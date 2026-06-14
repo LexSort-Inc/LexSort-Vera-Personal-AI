@@ -178,14 +178,20 @@ client.on('interactionCreate', async (interaction) => {
       const data = await response.json();
 
       if (data.isActive) {
+        const isCanceled = !!data.canceledAt;
+        const statusText = isCanceled ? '🔴 Cancelling (Expires at end of period)' : '🟢 Active';
+        const dateFieldName = isCanceled ? 'Expires' : 'Renews';
+        const titleText = isCanceled ? '🟡 VERA Pro — Pending Cancellation' : '✅ VERA Pro — Active Subscription';
+        const embedColor = isCanceled ? 0xf59e0b : 0x10b981;
+
         const embed = new EmbedBuilder()
-          .setTitle('✅ VERA Pro — Active Subscription')
-          .setColor(0x10b981)
+          .setTitle(titleText)
+          .setColor(embedColor)
           .addFields(
-            { name: 'Status', value: '🟢 Active', inline: true },
+            { name: 'Status', value: statusText, inline: true },
             { name: 'Beta Tester', value: data.isBetaTester ? '✅ Yes' : '❌ No', inline: true },
             {
-              name: 'Renews',
+              name: dateFieldName,
               value: data.currentPeriodEnd
                 ? `<t:${Math.floor(new Date(data.currentPeriodEnd).getTime() / 1000)}:R>`
                 : 'Unknown',

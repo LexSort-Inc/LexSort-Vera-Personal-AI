@@ -80,6 +80,12 @@ exports.handler = async (event, context) => {
         licenseKey: licenseKey,
         currentPeriodEnd: currentPeriodEnd,
         isBetaTester: activeSubscription?.metadata?.is_beta_tester === 'true',
+        canceledAt: activeSubscription?.canceled_at 
+          ? new Date(activeSubscription.canceled_at * 1000).toISOString() 
+          : null,
+        cancelAt: activeSubscription?.cancel_at 
+          ? new Date(activeSubscription.cancel_at * 1000).toISOString() 
+          : null,
       }),
     };
   } catch (error) {
