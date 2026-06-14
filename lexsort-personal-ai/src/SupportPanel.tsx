@@ -163,9 +163,55 @@ export default function SupportPanel({
     setExpandedIndex(expandedIndex === index ? null : index);
   };
 
-  // ── Bug report — opens GitHub Issues pre-filled ───────────────────────────
+  // ── Bug report — submits to Discord Forum via Netlify function ────────────
 
-  const submitBugReport = useCallback(async () => {
+  const submitBugToDiscord = useCallback(async () => {
+    if (!bugDesc.trim()) {
+      alert("Please describe the issue before submitting.");
+      return;
+    }
+    setBugSending(true);
+    setBugStatus("idle");
+
+    try {
+      // Extract platform and ramGb from diagnosticText if possible
+      let platform = "unknown";
+      let ramGb = null;
+
+      if (diagnosticText) {
+        const platformMatch = diagnosticText.match(/- \*\*OS Platform\*\*:\s*([^\n]+)/i);
+        const ramMatch = diagnosticText.match(/- \*\*RAM Detected\*\*:\s*([\d.]+)\s*GB/i);
+        if (platformMatch) platform = platformMatch[1].trim();
+        if (ramMatch) ramGb = parseFloat(ramMatch[1]);
+      }
+
+      const res = await fetch("https://lexsort.com/.netlify/functions/submit-bug-report", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          platform,
+          ramGb,
+          category: bugCategory,
+          description: bugDesc,
+          diagnostics: diagnosticText,
+          appName,
+          isPro,
+        }),
+      });
+
+      if (!res.ok) throw new Error(`Server returned ${res.status}`);
+      
+      setBugStatus("ok");
+      setBugDesc("");
+    } catch (err) {
+      console.error(err);
+      setBugStatus("err");
+    } finally {
+      setBugSending(false);
+    }
+  }, [bugCategory, bugDesc, diagnosticText, appName, isPro]);
+
+  const openGitHubIssue = useCallback(async () => {
     setBugSending(true);
     setBugStatus("idle");
 
@@ -186,9 +232,8 @@ export default function SupportPanel({
 
     try {
       await openExternalUrl(githubUrl);
-      setBugStatus("ok");
-    } catch {
-      setBugStatus("err");
+    } catch (err) {
+      console.error(err);
     } finally {
       setBugSending(false);
     }
@@ -384,7 +429,7 @@ export default function SupportPanel({
           {tab === "bug" && (
             <div className="sp-bug-form">
               <p style={{ fontSize: "0.83rem", color: "#64748b", margin: "0 0 0.5rem" }}>
-                Your report opens a pre-filled GitHub Issue — no account needed to preview, but you'll need a GitHub account to submit. Diagnostic info is included automatically.
+                Submit your report directly to our Discord Support Forum. OS and RAM info will be auto-tagged to help solve issues faster. You can also open a GitHub issue as a fallback.
               </p>
 
               <div className="sp-field">
@@ -402,7 +447,7 @@ export default function SupportPanel({
 
               <div className="sp-field">
                 <label className="sp-label">
-                  Describe the issue <span className="sp-label-hint">(optional)</span>
+                  Describe the issue <span className="sp-label-hint">(required for Discord submit)</span>
                 </label>
                 <textarea
                   className="sp-textarea"
@@ -422,25 +467,33 @@ export default function SupportPanel({
 
               {bugStatus === "ok" && (
                 <div className="sp-alert sp-alert--success">
-                  ✅ GitHub opened — review the pre-filled report and click "Submit new issue".
+                  ✅ Bug report successfully submitted to our Discord Support Forum! Feel free to check the #bug-reports channel.
                 </div>
               )}
               {bugStatus === "err" && (
                 <div className="sp-alert sp-alert--error">
-                  ⚠ Couldn't open browser. Try copying the diagnostic report and pasting it manually at github.com/Lexsort-Core/LexSort-Vera-Personal-AI/issues
+                  ⚠ Submission failed. Please verify your internet connection or join Discord manually to post.
                 </div>
               )}
 
-              <div className="sp-actions">
-                <button className="sp-btn sp-btn--ghost" onClick={onClose}>Cancel</button>
+              <div className="sp-actions" style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                <button className="sp-btn sp-btn--ghost" onClick={onClose} style={{ marginRight: "auto" }}>Cancel</button>
+                <button
+                  className="sp-btn sp-btn--ghost"
+                  onClick={openGitHubIssue}
+                  disabled={bugSending}
+                  style={{ border: "1px solid var(--border)" }}
+                >
+                  🐙 Open GitHub Issue
+                </button>
                 <button
                   className="sp-btn sp-btn--primary"
-                  onClick={submitBugReport}
+                  onClick={submitBugToDiscord}
                   disabled={bugSending}
                 >
                   {bugSending
-                    ? <><span className="sp-spinner" /> Opening GitHub…</>
-                    : "🐛 Open Bug Report"}
+                    ? <><span className="sp-spinner" /> Submitting…</>
+                    : "📤 Submit to Discord"}
                 </button>
               </div>
             </div>
