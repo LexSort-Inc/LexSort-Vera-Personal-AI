@@ -26,9 +26,9 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Search Stripe subscriptions for this Discord user
+    // Search Stripe subscriptions for this Discord user (both active and trialing)
     const subscriptions = await stripe.subscriptions.search({
-      query: `metadata['discord_user_id']:'${discordUserId}' AND status:'active'`,
+      query: `metadata['discord_user_id']:'${discordUserId}' AND (status:'active' OR status:'trialing')`,
       limit: 5,
     });
 

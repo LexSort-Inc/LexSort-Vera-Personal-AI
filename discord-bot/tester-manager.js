@@ -63,14 +63,42 @@ const client = new Client({
   intents: [GatewayIntentBits.Guilds],
 });
 
+const { initApprovalBot } = require('./approval-bot.js');
+
+// Initialize approval bot (runs HTTP server immediately)
+initApprovalBot(client);
+
 client.once('ready', () => {
   console.log(`✅ VERA Tester Bot is online as ${client.user.tag}`);
 });
+
+// ─── Rate Limiter ─────────────────────────────────────────────────────────
+const rateLimits = new Map();
+
+function checkRateLimit(userId, commandName) {
+  const key = `${userId}:${commandName}`;
+  const now = Date.now();
+  const lastTime = rateLimits.get(key) || 0;
+  const cooldown = 5000; // 5 seconds
+
+  if (now - lastTime < cooldown) {
+    return false;
+  }
+  rateLimits.set(key, now);
+  return true;
+}
 
 client.on('interactionCreate', async (interaction) => {
   if (!interaction.isChatInputCommand()) return;
 
   const { commandName, user } = interaction;
+
+  if (!checkRateLimit(user.id, commandName)) {
+    return interaction.reply({
+      content: '⏳ Please wait a few seconds before using this command again.',
+      ephemeral: true,
+    });
+  }
 
   // ── /register ────────────────────────────────────────────────────────
   if (commandName === 'register') {

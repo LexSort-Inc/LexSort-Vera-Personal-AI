@@ -176,26 +176,33 @@ exports.handler = async (event, context) => {
       return { statusCode: 200, body: JSON.stringify({ received: true }) };
     }
 
-    // Calculate expiry (30 days for monthly, 365 days for yearly + 14 trial days if initial creation)
-    let durationDays = 30;
-    try {
-      let interval = subscription?.items?.data?.[0]?.plan?.interval;
-      if (!interval) {
-        interval = subscription?.lines?.data?.[0]?.plan?.interval;
+    // Calculate expiry (use Stripe's current_period_end if available, with 3 days grace period, or fallback calculation)
+    let expiresAt;
+    if (subscription && subscription.current_period_end) {
+      expiresAt = subscription.current_period_end + 3 * 24 * 60 * 60;
+      console.log(`Using Stripe current_period_end: ${subscription.current_period_end} (+3 days grace) = ${expiresAt}`);
+    } else {
+      let durationDays = 30;
+      try {
+        let interval = subscription?.items?.data?.[0]?.plan?.interval;
+        if (!interval) {
+          interval = subscription?.lines?.data?.[0]?.plan?.interval;
+        }
+        if (interval === 'year') {
+          durationDays = 365;
+        }
+        console.log(`Billing interval detected: ${interval || 'unknown'}, base license duration: ${durationDays} days`);
+      } catch (e) {
+        console.warn('Could not determine subscription interval, defaulting to 30 days:', e.message);
       }
-      if (interval === 'year') {
-        durationDays = 365;
+
+      if (stripeEvent.type === 'customer.subscription.created' || stripeEvent.type === 'checkout.session.completed') {
+        durationDays += 14; // Include 14-day free trial grace period
       }
-      console.log(`Billing interval detected: ${interval || 'unknown'}, base license duration: ${durationDays} days`);
-    } catch (e) {
-      console.warn('Could not determine subscription interval, defaulting to 30 days:', e.message);
+      expiresAt = Math.floor(Date.now() / 1000) + durationDays * 24 * 60 * 60;
+      console.log(`Fallback calculation expiresAt: ${expiresAt} (${durationDays} days)`);
     }
 
-    if (stripeEvent.type === 'customer.subscription.created' || stripeEvent.type === 'checkout.session.completed') {
-      durationDays += 14; // Include 14-day free trial grace period
-    }
-
-    const expiresAt = Math.floor(Date.now() / 1000) + durationDays * 24 * 60 * 60;
     const licenseKey = generateLicenseKey(discordUserId, subscriptionId, expiresAt);
 
     try {
