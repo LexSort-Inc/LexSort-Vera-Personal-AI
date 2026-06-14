@@ -40,10 +40,10 @@ fn select_model(ceiling_bytes: u64) -> ModelInfo {
         }
     } else if gb >= 9.5 {
         ModelInfo {
-            id: "gemma4:e4b".to_string(),
+            id: "mistral".to_string(),
             name: "Mistral 7B".to_string(),
             description: "High performance — fast and capable".to_string(),
-            ollama_tag: "gemma4:e4b".to_string(),
+            ollama_tag: "mistral".to_string(),
         }
     } else if gb >= 5.5 {
         ModelInfo {
