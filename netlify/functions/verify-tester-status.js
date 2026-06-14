@@ -26,14 +26,14 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Search Stripe subscriptions for this Discord user (both active and trialing)
+    // Search Stripe subscriptions for this Discord user
     const subscriptions = await stripe.subscriptions.search({
-      query: `metadata['discord_user_id']:'${discordUserId}' AND (status:'active' OR status:'trialing')`,
+      query: `metadata['discord_user_id']:'${discordUserId}'`,
       limit: 5,
     });
 
-    const hasActiveSub = subscriptions.data.length > 0;
-    const activeSubscription = hasActiveSub ? subscriptions.data[0] : null;
+    const activeSubscription = subscriptions.data.find(sub => sub.status === 'active' || sub.status === 'trialing') || null;
+    const hasActiveSub = activeSubscription !== null;
 
     return {
       statusCode: 200,
