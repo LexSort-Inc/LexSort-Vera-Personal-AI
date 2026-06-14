@@ -30,13 +30,15 @@
 
 It runs **entirely on your own machine**. No account. No subscription. No data ever leaves your computer — not even a ping.
 
-### 💼 The LexSort Ecosystem
-VERA is our 100% free personal AI. For professional workflows, LexSort Inc. offers premium local-first desktop workstations:
-1. **LexSort Core (Financial & Tax Workstation)**:
-   - **LexSort Finance Module**: Personal & Business Organizer (local OCR receipt ingestion and file matching).
-   - **LexSort Tax Module**: Tax Preparation & Tax Credit Discovery Engine (CRA forms T2125, T776, T4, and Capital Cost Allowance).
-2. **LexSort Legal (Matter Intelligence Workstation)**:
-   - Criminal defence workflow, Crown disclosure, and client matching.
+### 💼 Product Positioning & Ecosystem
+LexSort Inc. develops independent, local-first software programs tailored to specific audiences:
+
+* **VERA & VERA Pro (General Public)**:
+  Our local-first personal AI assistant for general productivity, privacy-focused chat, and local email automation (VERA Pro).
+* **LexSort Core (Founders & Sole Proprietors)**:
+  A private financial and tax workstation containing the local Finance Organizer and CRA Tax Preparation engines.
+* **LexSort Legal (Lawyers & Law Firms)**:
+  **A completely separate, independent program** built specifically to meet the evidentiary, regulatory, and practice guidelines of the Law Society of Ontario (LSO) for active law firms (matter intelligence, disclosure analysis, court timeline assembly, and trust ledgers). It is *not* part of the VERA or VERA Pro software packages.
 
 We built VERA because we believe that AI tools for legal, financial, and personal use should be held to a higher standard of privacy. Cloud AI creates real liability when you paste confidential information. VERA eliminates that risk by design.
 
