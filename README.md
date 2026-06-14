@@ -175,7 +175,6 @@ Join the LexSort community — we build in public and share everything.
 [![Reddit](https://img.shields.io/badge/Reddit-r%2FLexSort-FF4500?style=flat-square&logo=reddit&logoColor=white)](https://www.reddit.com/r/LexSort/)
 <!-- [![X](https://img.shields.io/badge/X-@LexSortAI-000000?style=flat-square&logo=x&logoColor=white)](https://x.com/LexSortAI) -->
 [![YouTube](https://img.shields.io/badge/YouTube-@LexSort-FF0000?style=flat-square&logo=youtube&logoColor=white)](https://www.youtube.com/@LexSort)
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-William%20Commu-0077B5?style=flat-square&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/william-commu-0481b7415/)
 [![TikTok](https://img.shields.io/badge/TikTok-@lexsort-000000?style=flat-square&logo=tiktok&logoColor=white)](https://www.tiktok.com/@lexsort)
 [![Instagram](https://img.shields.io/badge/Instagram-@lexsort-E4405F?style=flat-square&logo=instagram&logoColor=white)](https://www.instagram.com/lexsort/)
 [![Product Hunt](https://img.shields.io/badge/Product%20Hunt-@lexsort-DA552F?style=flat-square&logo=producthunt&logoColor=white)](https://www.producthunt.com/@lexsort)
