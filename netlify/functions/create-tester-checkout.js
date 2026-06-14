@@ -39,6 +39,7 @@ exports.handler = async (event, context) => {
     // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
+      allow_promotion_codes: true,
       line_items: [
         {
           price: priceId,
