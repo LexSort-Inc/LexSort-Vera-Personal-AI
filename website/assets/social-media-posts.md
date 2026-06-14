@@ -15,7 +15,7 @@
   > 
   > No email signup. No tracking. Just download and pay.
   > 
-  > Join Discord to test the pre-release free today: https://discord.gg/lexsort
+  > Join Discord to test the pre-release free today: https://discord.gg/kpZ3hWyAaq
   > 
   > 🔒 100% local. 0% data harvesting.
 
@@ -31,7 +31,7 @@
   > - **Guardian Watch**: Real-time CPU/RAM/Disk/Network hardware diagnostics explained in plain English by VERA.
   > - **LexSort-GO Companion**: Serve a secure, local-WiFi web UI to your phone via QR pairing. No cloud required.
   > 
-  > **Try it today**: The pre-release is open for testing right now. Join our Discord to get a test key (free access during the beta): https://discord.gg/lexsort
+  > **Try it today**: The pre-release is open for testing right now. Join our Discord to get a test key (free access during the beta): https://discord.gg/kpZ3hWyAaq
   > 
   > **Tester Rewards**: Active testers who give feedback before July 1 will get special "Pro Tester" Discord roles, Reddit flairs, and a coupon code giving them **1 year of VERA Pro for free** at launch.
 
@@ -70,21 +70,21 @@
   > 
   > Cross-check hallucinations automatically by running side-by-side local models on your own CPU/GPU.
   > 
-  > Launches July 1. Test now: https://discord.gg/lexsort
+  > Launches July 1. Test now: https://discord.gg/kpZ3hWyAaq
 
 * **Wednesday: Drag & Drop Ingestion**
   > Drop any local document (.txt, .md, .csv, .json, .html). VERA parses it instantly, off-grid.
   > 
   > No uploading to third-party servers. No training corporate models on your client documents.
   > 
-  > Test the pre-release: https://discord.gg/lexsort
+  > Test the pre-release: https://discord.gg/kpZ3hWyAaq
 
 * **Friday: Saved Prompts Library**
   > Stop typing the same prompts. Save your customized system prompts locally.
   > 
   > Build a private library of tasks, templates, and instruction sets.
   > 
-  > July 1 release. Join: https://discord.gg/lexsort
+  > July 1 release. Join: https://discord.gg/kpZ3hWyAaq
 
 ---
 
@@ -113,4 +113,4 @@
   > Download VERA Freeware, and upgrade inside the app for $5.99/month.
   > 
   > Get started: https://lexsort.com/vera-pro.html
-  > Join community: https://discord.gg/lexsort
+  > Join community: https://discord.gg/kpZ3hWyAaq
