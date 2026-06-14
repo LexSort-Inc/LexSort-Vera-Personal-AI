@@ -129,7 +129,7 @@ client.on('interactionCreate', async (interaction) => {
       const embed = new EmbedBuilder()
         .setTitle('🚀 Start Your VERA Pro Beta Access')
         .setDescription(
-          "Click the button below to begin your secure Stripe checkout.\n\n**What happens next:**\n1. Complete checkout (14-day free trial)\n2. I'll DM you your license key automatically\n3. Your **Beta Tester** role will be granted instantly\n\n> 🔒 VERA never sees your email — Stripe handles payments only."
+          `Please click the link below to begin your secure Stripe checkout:\n\n👉 **[🔐 Begin Secure Checkout](${data.checkoutUrl})**\n\n**What happens next:**\n1. Complete checkout (14-day free trial)\n2. I'll DM you your license key automatically\n3. Your **Beta Tester** role will be granted instantly\n\n> 🔒 VERA never sees your email — Stripe handles payments only.`
         )
         .setColor(0x8b5cf6)
         .addFields({
@@ -140,21 +140,24 @@ client.on('interactionCreate', async (interaction) => {
         .setFooter({ text: 'VERA Pro · 100% local AI · 0% data collection' })
         .setTimestamp();
 
+      const components = [];
+      if (data.checkoutUrl.length <= 512) {
+        components.push({
+          type: 1, // Action Row
+          components: [
+            {
+              type: 2, // Button
+              style: 5, // Link
+              label: '🔐 Begin Secure Checkout',
+              url: data.checkoutUrl,
+            },
+          ],
+        });
+      }
+
       await interaction.editReply({
         embeds: [embed],
-        components: [
-          {
-            type: 1, // Action Row
-            components: [
-              {
-                type: 2, // Button
-                style: 5, // Link
-                label: '🔐 Begin Secure Checkout',
-                url: data.checkoutUrl,
-              },
-            ],
-          },
-        ],
+        components: components,
       });
     } catch (error) {
       console.error('/register error:', error);
