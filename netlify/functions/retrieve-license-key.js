@@ -67,8 +67,13 @@ exports.handler = async (event, context) => {
     const discordUserId = subscription.metadata?.discord_user_id || session.metadata?.discord_user_id;
     const subscriptionId = subscription.id;
 
-    // Calculate expiry (current period end + 14-day free trial grace period)
-    const expiresAt = subscription.current_period_end + 14 * 24 * 60 * 60;
+    // Calculate expiry (support new 2026-02-25.preview schema where current_period_end is nested or trial_end is used)
+    const periodEnd = subscription.trial_end || 
+                      subscription.items?.data?.[0]?.current_period_end || 
+                      subscription.items?.data?.[0]?.billed_until ||
+                      (Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60);
+
+    const expiresAt = periodEnd + 7 * 24 * 60 * 60; // 7 days grace period
 
     // Generate/regenerate the license key
     const licenseKey = generateLicenseKey(discordUserId, subscriptionId, expiresAt);

@@ -43,7 +43,10 @@ exports.handler = async (event, context) => {
         isActive: hasActiveSub,
         subscriptionId: activeSubscription?.id || null,
         currentPeriodEnd: activeSubscription
-          ? new Date(activeSubscription.current_period_end * 1000).toISOString()
+          ? new Date((activeSubscription.trial_end || 
+                      activeSubscription.items?.data?.[0]?.current_period_end || 
+                      activeSubscription.items?.data?.[0]?.billed_until ||
+                      activeSubscription.current_period_end) * 1000).toISOString()
           : null,
         isBetaTester: activeSubscription?.metadata?.is_beta_tester === 'true',
       }),

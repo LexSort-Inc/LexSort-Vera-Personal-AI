@@ -176,11 +176,15 @@ exports.handler = async (event, context) => {
       return { statusCode: 200, body: JSON.stringify({ received: true }) };
     }
 
-    // Calculate expiry (use Stripe's current_period_end if available, with 3 days grace period, or fallback calculation)
+    // Calculate expiry (support new 2026-02-25.preview schema where current_period_end is nested or trial_end is used)
+    let periodEnd = subscription?.trial_end || 
+                    subscription?.items?.data?.[0]?.current_period_end || 
+                    subscription?.items?.data?.[0]?.billed_until;
+
     let expiresAt;
-    if (subscription && subscription.current_period_end) {
-      expiresAt = subscription.current_period_end + 3 * 24 * 60 * 60;
-      console.log(`Using Stripe current_period_end: ${subscription.current_period_end} (+3 days grace) = ${expiresAt}`);
+    if (periodEnd) {
+      expiresAt = periodEnd + 7 * 24 * 60 * 60; // 7 days grace period
+      console.log(`Using extracted periodEnd: ${periodEnd} (+7 days grace) = ${expiresAt}`);
     } else {
       let durationDays = 30;
       try {
