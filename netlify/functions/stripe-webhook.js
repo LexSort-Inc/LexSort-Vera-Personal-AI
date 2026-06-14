@@ -85,7 +85,7 @@ async function sendDiscordDM(discordUserId, licenseKey) {
         {
           title: '🎉 Welcome to VERA Pro Beta!',
           description:
-            "Your subscription is active. Here is your **license key** — paste it into VERA to activate Pro features.\n\n> **Copy this key carefully. It is bound to your hardware on first use.**",
+            "Your subscription is active. Here is your **license key** — paste it into VERA to activate Pro features.\n\n📥 **Download VERA**: [Download VERA App](https://lexsort.com/download.html)\n\n> **Copy this key carefully. It is bound to your hardware on first use.**",
           color: 0x8b5cf6,
           fields: [
             {
