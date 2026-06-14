@@ -222,18 +222,58 @@ client.on('interactionCreate', async (interaction) => {
       );
       const data = await response.json();
 
-      if (!data.isActive) {
+      if (!data.isActive || !data.licenseKey) {
         await interaction.editReply({
           content: '❌ You need an active VERA Pro subscription to request a key. Use **/register** to get started.',
         });
         return;
       }
 
-      // Keys are sent via DM during checkout — direct them to check DMs
-      await interaction.editReply({
-        content:
-          '📬 Your license key was sent to you via DM when you subscribed. Please check your Discord DMs from this bot.\n\nIf you need a new key (e.g., new hardware), please open a support ticket in <#support> and a moderator will assist you.',
-      });
+      // Attempt to send a DM as a backup
+      let dmSent = false;
+      try {
+        const dmEmbed = new EmbedBuilder()
+          .setTitle('🎉 Welcome to VERA Pro Beta!')
+          .setDescription(
+            "Here is your **license key** — paste it into VERA to activate Pro features.\n\n📥 **Download VERA**: [Download VERA App](https://lexsort.com/download.html)\n\n> **Copy this key carefully. It is bound to your hardware on first use.**"
+          )
+          .setColor(0x8b5cf6)
+          .addFields(
+            {
+              name: '🔑 Your License Key',
+              value: `\`\`\`\n${data.licenseKey}\n\`\`\``,
+              inline: false,
+            },
+            {
+              name: '📋 How to Activate',
+              value:
+                '1. Open VERA on your desktop\n2. Click **Settings → Pro License**\n3. Paste your key and click **Activate**\n4. Enjoy all Pro modules! ✨',
+              inline: false,
+            }
+          )
+          .setFooter({ text: 'VERA Pro · 100% local · 0% data collection' })
+          .setTimestamp();
+        
+        await user.send({ embeds: [dmEmbed] });
+        dmSent = true;
+      } catch (dmErr) {
+        console.warn(`Could not send DM to user ${user.id}:`, dmErr.message);
+      }
+
+      // Show the key ephemerally
+      const embed = new EmbedBuilder()
+        .setTitle('🎉 VERA Pro License Retrieval')
+        .setDescription(
+          `Here is your **license key** (only you can see this message):\n\n🔑 **Your License Key**:\n\`\`\`\n${data.licenseKey}\n\`\`\`\n📥 **Download VERA**: [Download VERA App](https://lexsort.com/download.html)\n\n📋 **How to Activate**:\n1. Open VERA on your desktop\n2. Click **Settings → Pro License**\n3. Paste your key and click **Activate**`
+        )
+        .setColor(0x8b5cf6)
+        .setFooter({ 
+          text: dmSent 
+            ? '📬 Also sent to your Discord DMs!' 
+            : '⚠️ DMs blocked. Please enable DMs from server members if you want a copy in your inbox.' 
+        });
+
+      await interaction.editReply({ embeds: [embed] });
     } catch (error) {
       await interaction.editReply({ content: `❌ Error: ${error.message}` });
     }
