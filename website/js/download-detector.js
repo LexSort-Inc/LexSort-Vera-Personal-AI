@@ -136,12 +136,20 @@ document.addEventListener("DOMContentLoaded", () => {
     altLinks.innerHTML = altHtml;
   }
 
+  function showOnboardingModal() {
+    const modal = document.getElementById('download-onboarding-modal');
+    if (modal) {
+      modal.style.display = 'flex';
+    }
+  }
+
   // Hook up event listeners to all platform download buttons
   document.querySelectorAll('.platform-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const urlParts = btn.href.split('/');
       const filename = urlParts[urlParts.length - 1];
       sendAnalytics(filename, true);
+      showOnboardingModal();
     });
   });
 
@@ -150,6 +158,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const urlParts = downloadBtn.href.split('/');
       const filename = urlParts[urlParts.length - 1];
       sendAnalytics(filename, true);
+      showOnboardingModal();
     });
   }
 
@@ -160,6 +169,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const urlParts = target.href.split('/');
         const filename = urlParts[urlParts.length - 1];
         sendAnalytics(filename, true);
+        showOnboardingModal();
       }
     });
   }
