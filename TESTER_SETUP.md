@@ -241,7 +241,7 @@ NETLIFY_SITE_URL=https://lexsort.com
 | `netlify/functions/create-tester-checkout.js` | Creates Stripe checkout session |
 | `netlify/functions/stripe-webhook.js` | Handles payment events, issues keys + roles |
 | `netlify/functions/verify-tester-status.js` | Checks if Discord user has active sub |
-| `discord-bot/tester-manager.js` | Discord bot with `/register`, `/mystatus`, `/help` |
+| `discord-bot/tester-manager.js` | Discord bot with `/register`, `/mystatus`, `/mykey`, `/help` |
 | `discord-bot/package.json` | Bot dependencies (discord.js, dotenv) |
 | `discord-bot/.env.example` | Template for bot environment variables |
 | `scripts/generate-test-keys.js` | Generate test keys for local dev |
