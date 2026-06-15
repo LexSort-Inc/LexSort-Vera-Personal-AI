@@ -5,28 +5,7 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const crypto = require('crypto');
 
-// ─── License Key Generation ────────────────────────────────────────────────
-function generateLicenseKey(discordUserId, subscriptionId, expiresAt) {
-  const payload = {
-    uid: discordUserId,
-    sub: subscriptionId,
-    exp: expiresAt,
-    tier: 'pro',
-    issued: Date.now(),
-  };
-
-  const payloadB64 = Buffer.from(JSON.stringify(payload)).toString('base64url');
-
-  // Sign with HMAC-SHA256 using the license signing secret
-  const signature = crypto
-    .createHmac('sha256', process.env.LICENSE_SIGNING_SECRET)
-    .update(payloadB64)
-    .digest('base64url');
-
-  // Format: VERA-XXXX-XXXX-XXXX (chunked for readability)
-  const rawKey = `${payloadB64}.${signature}`;
-  return `VERA-PRO-${rawKey}`;
-}
+const { generateLicenseKey } = require('./license-helper');
 
 // ─── Discord Role Grant via Discord API ───────────────────────────────────
 async function grantDiscordTesterRole(discordUserId) {
@@ -207,7 +186,7 @@ exports.handler = async (event, context) => {
       console.log(`Fallback calculation expiresAt: ${expiresAt} (${durationDays} days)`);
     }
 
-    const licenseKey = generateLicenseKey(discordUserId, subscriptionId, expiresAt);
+    const licenseKey = generateLicenseKey('pro', expiresAt);
 
     try {
       // Grant Discord tester role

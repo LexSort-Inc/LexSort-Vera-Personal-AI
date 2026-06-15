@@ -77,3 +77,23 @@ fn guardian_watch_intervals_are_within_bounds() {
     assert!(permissions_interval_secs >= 120 && permissions_interval_secs <= 900,
         "Permissions check interval out of acceptable range");
 }
+
+#[test]
+fn quick_organizer_task_roundtrip() {
+    use chrono::Utc;
+    let task = lexsort_personal_ai_lib::quick_organizer::Task {
+        id: "task_test_001".to_string(),
+        title: "Test task".to_string(),
+        notes: None,
+        list: lexsort_personal_ai_lib::quick_organizer::TaskList::Today,
+        completed: false,
+        created_at: Utc::now().to_rfc3339(),
+        completed_at: None,
+        ai_breakdown: None,
+    };
+    let json = serde_json::to_string(&task).unwrap();
+    let restored: lexsort_personal_ai_lib::quick_organizer::Task = serde_json::from_str(&json).unwrap();
+    assert_eq!(restored.id, task.id);
+    assert_eq!(restored.title, task.title);
+    assert!(!restored.completed);
+}

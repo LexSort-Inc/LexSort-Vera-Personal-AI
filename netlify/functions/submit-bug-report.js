@@ -15,6 +15,8 @@ exports.handler = async (event, context) => {
     const { 
       platform, 
       ramGb, 
+      freeStorageGb,
+      hasNvidiaGpu,
       category, 
       description, 
       diagnostics, 
@@ -72,6 +74,14 @@ exports.handler = async (event, context) => {
     const cTag = categoryTags[category];
     if (cTag) applied_tags.push(cTag);
 
+    if (hasNvidiaGpu && process.env.DISCORD_TAG_GPU_NVIDIA) {
+      applied_tags.push(process.env.DISCORD_TAG_GPU_NVIDIA);
+    }
+
+    if (freeStorageGb && freeStorageGb < 30 && process.env.DISCORD_TAG_STORAGE_LOW) {
+      applied_tags.push(process.env.DISCORD_TAG_STORAGE_LOW);
+    }
+
     if (process.env.DISCORD_TAG_STATUS_OPEN) {
       applied_tags.push(process.env.DISCORD_TAG_STATUS_OPEN);
     }
@@ -113,7 +123,7 @@ exports.handler = async (event, context) => {
               fields: [
                 {
                   name: '🖥️ System Info',
-                  value: `**Platform:** ${formattedPlatform}\n**Memory:** ${formattedRam}`,
+                  value: `**Platform:** ${formattedPlatform}\n**Memory:** ${formattedRam}\n**Storage Avail:** ${freeStorageGb ? `${freeStorageGb}GB` : 'UNKNOWN'}\n**NVIDIA GPU:** ${hasNvidiaGpu ? 'YES' : 'NO'}`,
                   inline: true,
                 },
                 {

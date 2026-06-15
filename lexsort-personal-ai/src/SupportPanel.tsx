@@ -124,6 +124,24 @@ export default function SupportPanel({
 }: Props) {
   const [tab, setTab] = useState<Tab>("community");
 
+  const parsedInfo = useMemo(() => {
+    let version = "1.0.0";
+    let model = "unknown";
+    let ram = "unknown";
+    
+    if (diagnosticText) {
+      const verMatch = diagnosticText.match(/- \*\*VERA Version\*\*:\s*([^\n]+)/i);
+      const modelMatch = diagnosticText.match(/- \*\*Selected Model\*\*:\s*([^\n]+)/i);
+      const ramMatch = diagnosticText.match(/- \*\*RAM Detected\*\*:\s*([\d.]+)/i) || diagnosticText.match(/- \*\*RAM Detected\*\*:\s*([^\n]+)/i);
+      
+      if (verMatch) version = verMatch[1].trim();
+      if (modelMatch) model = modelMatch[1].trim().split(" (")[0];
+      if (ramMatch) ram = ramMatch[1].trim();
+    }
+    
+    return { version, model, ram };
+  }, [diagnosticText]);
+
   // FAQ state
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<keyof typeof CATEGORIES_MAP>("all");
@@ -174,15 +192,21 @@ export default function SupportPanel({
     setBugStatus("idle");
 
     try {
-      // Extract platform and ramGb from diagnosticText if possible
+      // Extract system details from diagnosticText if possible
       let platform = "unknown";
       let ramGb = null;
+      let freeStorageGb = null;
+      let hasNvidiaGpu = false;
 
       if (diagnosticText) {
         const platformMatch = diagnosticText.match(/- \*\*OS Platform\*\*:\s*([^\n]+)/i);
         const ramMatch = diagnosticText.match(/- \*\*RAM Detected\*\*:\s*([\d.]+)\s*GB/i);
+        const storageMatch = diagnosticText.match(/- \*\*Free Storage\*\*:\s*([\d.]+)\s*GB/i);
+        const gpuMatch = diagnosticText.match(/- \*\*NVIDIA GPU\*\*:\s*(Yes|True)/i);
         if (platformMatch) platform = platformMatch[1].trim();
         if (ramMatch) ramGb = parseFloat(ramMatch[1]);
+        if (storageMatch) freeStorageGb = parseFloat(storageMatch[1]);
+        if (gpuMatch) hasNvidiaGpu = true;
       }
 
       const res = await fetch("https://lexsort.com/.netlify/functions/submit-bug-report", {
@@ -191,6 +215,8 @@ export default function SupportPanel({
         body: JSON.stringify({
           platform,
           ramGb,
+          freeStorageGb,
+          hasNvidiaGpu,
           category: bugCategory,
           description: bugDesc,
           diagnostics: diagnosticText,
@@ -319,18 +345,33 @@ export default function SupportPanel({
                 <div className="sp-community-icon sp-community-icon--discord">💬</div>
                 <div className="sp-community-text">
                   <p className="sp-community-name">Discord Server</p>
-                  <p className="sp-community-desc">Chat with the team, get help, share your workflows. We're active daily.</p>
+                  <p className="sp-community-desc">discord.gg/kpZ3hWyAaq · Live community support</p>
                 </div>
-                <span className="sp-community-arrow">→</span>
+                <span className="sp-community-arrow">Open</span>
               </button>
 
               <button className="sp-community-card" onClick={joinReddit}>
                 <div className="sp-community-icon sp-community-icon--reddit">🔴</div>
                 <div className="sp-community-text">
                   <p className="sp-community-name">Reddit — r/LexSort</p>
-                  <p className="sp-community-desc">Share use cases, vote on feature ideas, and connect with other users.</p>
+                  <p className="sp-community-desc">r/LexSort · Tips and showcase</p>
                 </div>
-                <span className="sp-community-arrow">→</span>
+                <span className="sp-community-arrow">Open</span>
+              </button>
+
+              <button
+                className="sp-community-card"
+                onClick={() => {
+                  navigator.clipboard.writeText("support@lexsort.com");
+                  alert("Support email copied to clipboard!");
+                }}
+              >
+                <div className="sp-community-icon sp-community-icon--email">✉</div>
+                <div className="sp-community-text">
+                  <p className="sp-community-name">Email Support</p>
+                  <p className="sp-community-desc">support@lexsort.com · Copy to clipboard</p>
+                </div>
+                <span className="sp-community-arrow">Copy</span>
               </button>
 
               <p className="sp-divider-label">Help & Documentation</p>
@@ -581,6 +622,21 @@ export default function SupportPanel({
             <div>
               <strong>Privacy Commitment:</strong> VERA does not collect, track, or store any personal data or usage logs from this support interface. Bug reports and diagnostics are compiled locally and only sent when manually submitted by you.
             </div>
+          </div>
+
+          {/* System Info Footer */}
+          <div className="sp-footer-info" style={{ marginTop: "16px", padding: "12px", borderTop: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "11px", color: "var(--text-muted)" }}>
+            <span>VERA v{parsedInfo.version} · {isPro ? "Pro Edition" : "Freeware Edition"}</span>
+            <span>Model: {parsedInfo.model} · {parsedInfo.ram} RAM</span>
+            <button 
+              onClick={() => {
+                navigator.clipboard.writeText(`VERA v${parsedInfo.version} (${isPro ? "Pro Edition" : "Freeware Edition"})\nModel: ${parsedInfo.model}\nRAM: ${parsedInfo.ram} RAM`);
+                alert("System info copied to clipboard!");
+              }}
+              style={{ background: "transparent", border: "none", color: "var(--accent)", cursor: "pointer", fontSize: "11px", padding: 0 }}
+            >
+              Copy Info
+            </button>
           </div>
 
         </div>

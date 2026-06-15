@@ -5,24 +5,7 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const crypto = require('crypto');
 
-function generateLicenseKey(discordUserId, subscriptionId, expiresAt) {
-  const payload = {
-    uid: discordUserId || 'web_customer',
-    sub: subscriptionId,
-    exp: expiresAt,
-    tier: 'pro',
-    issued: Date.now(),
-  };
-
-  const payloadB64 = Buffer.from(JSON.stringify(payload)).toString('base64url');
-
-  const signature = crypto
-    .createHmac('sha256', process.env.LICENSE_SIGNING_SECRET || '')
-    .update(payloadB64)
-    .digest('base64url');
-
-  return `VERA-PRO-${payloadB64}.${signature}`;
-}
+const { generateLicenseKey } = require('./license-helper');
 
 exports.handler = async (event, context) => {
   if (event.httpMethod !== 'GET' && event.httpMethod !== 'POST') {
@@ -66,7 +49,7 @@ exports.handler = async (event, context) => {
                         (Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60);
 
       const expiresAt = periodEnd + 7 * 24 * 60 * 60; // 7 days grace period
-      licenseKey = generateLicenseKey(discordUserId, activeSubscription.id, expiresAt);
+      licenseKey = generateLicenseKey('pro', expiresAt);
       currentPeriodEnd = new Date(periodEnd * 1000).toISOString();
     }
 

@@ -4,6 +4,7 @@ use std::process::{Child, Command};
 use std::path::PathBuf;
 use serde::{Deserialize, Serialize};
 use sysinfo::{System, Disks};
+pub mod quick_organizer;
 
 pub struct ServerProcess(pub Mutex<Option<Child>>);
 
@@ -945,10 +946,31 @@ pub mod commands {
             modules: module_updates,
         })
     }
+
+    const QUICK_ORGANIZER_DOCS: &str = include_str!("docs/quick_organizer.md");
+
+    #[tauri::command]
+    pub fn get_module_docs(module_name: String) -> Result<String, String> {
+        let name_lower = module_name.to_lowercase();
+        if name_lower == "quick_organizer" || name_lower == "quick-organizer" || name_lower == "organizer" {
+            Ok(QUICK_ORGANIZER_DOCS.to_string())
+        } else {
+            Err(format!("Documentation for module '{}' not found", module_name))
+        }
+    }
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    // Single-instance lock to prevent concurrent DB lock conflicts
+    let _instance_lock = match std::net::TcpListener::bind("127.0.0.1:58737") {
+        Ok(listener) => listener,
+        Err(_) => {
+            eprintln!("[LexSort Personal AI] Another instance of LexSort Personal AI is already running. Exiting.");
+            std::process::exit(0);
+        }
+    };
+
     tauri::Builder::default()
         .manage(ServerProcess(Mutex::new(None)))
         .plugin(tauri_plugin_shell::init())
@@ -970,6 +992,14 @@ pub fn run() {
             commands::init_lexsort_dirs,
             commands::get_installed_registry,
             commands::check_for_updates,
+            commands::get_module_docs,
+            quick_organizer::get_tasks,
+            quick_organizer::create_task,
+            quick_organizer::update_task,
+            quick_organizer::complete_task,
+            quick_organizer::delete_task,
+            quick_organizer::move_task,
+            quick_organizer::cache_ai_breakdown,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
