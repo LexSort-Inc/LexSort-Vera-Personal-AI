@@ -1,38 +1,101 @@
 {
-  "updated_at": "2026-06-14T05:22:30Z",
-  "modules": [
-    {
-      "name": "hello-world",
+  "generated_at": "2026-06-15T07:01:30Z",
+  "modules": {
+    "hello-world": {
       "display_name": "Hello World Test",
       "version": "1.0.0",
       "description": "Verification test module to ensure VERA Pro hot-loading loader works end-to-end.",
-      "download_url": "https://modules.lexsort.com/modules/hello-world-1.0.0.vera-module",
-      "size_bytes": 1165,
-      "sha256": "977a12b24ea23d2f4dc76601bb3067b4f8c1e080993d33b551714b30ebdcb871",
       "requires_pro": false,
-      "icon": "🚀"
+      "icon": "\ud83d\ude80",
+      "min_pro_version": "1.0.0",
+      "api_version": "1.0.0",
+      "release_notes": "Initial release.",
+      "targets": {
+        "macos_aarch64": {
+          "url": "http://127.0.0.1:45000/modules/hello-world-1.0.0-macos_aarch64.vera-module",
+          "size_bytes": 1165,
+          "sha256": "d7b03847f75a2a72d8443fb787b3c376980993c3049e1cfbf0116c907a74d115"
+        },
+        "macos_x86_64": {
+          "url": "http://127.0.0.1:45000/modules/hello-world-1.0.0-macos_x86_64.vera-module",
+          "size_bytes": 1165,
+          "sha256": "d7b03847f75a2a72d8443fb787b3c376980993c3049e1cfbf0116c907a74d115"
+        },
+        "windows_x86_64": {
+          "url": "http://127.0.0.1:45000/modules/hello-world-1.0.0-windows_x86_64.vera-module",
+          "size_bytes": 1165,
+          "sha256": "d7b03847f75a2a72d8443fb787b3c376980993c3049e1cfbf0116c907a74d115"
+        },
+        "linux_x86_64": {
+          "url": "http://127.0.0.1:45000/modules/hello-world-1.0.0-linux_x86_64.vera-module",
+          "size_bytes": 1165,
+          "sha256": "d7b03847f75a2a72d8443fb787b3c376980993c3049e1cfbf0116c907a74d115"
+        }
+      }
     },
-    {
-      "name": "guardian-watch",
+    "guardian-watch": {
       "display_name": "Guardian Watch",
       "version": "1.0.0",
       "description": "Real-time system resource monitor and AI diagnostic assistant. Explains RAM/CPU usage and system health anomalies in plain English.",
-      "download_url": "https://modules.lexsort.com/modules/guardian-watch-1.0.0.vera-module",
-      "size_bytes": 4200,
-      "sha256": "6d64a80954bc1fa665fae944edf18daf6b843a48a744eab2d0b76bf2d75d04cd",
       "requires_pro": true,
-      "icon": "🛡️"
+      "icon": "\ud83d\udee1\ufe0f",
+      "min_pro_version": "1.0.0",
+      "api_version": "1.0.0",
+      "release_notes": "Initial release.",
+      "targets": {
+        "macos_aarch64": {
+          "url": "http://127.0.0.1:45000/modules/guardian-watch-1.0.0-macos_aarch64.vera-module",
+          "size_bytes": 4200,
+          "sha256": "9896c8764ae3f6a0be4c57af82b0f32ff1c2e70a1ba40a04a5c2d2a17ab2052b"
+        },
+        "macos_x86_64": {
+          "url": "http://127.0.0.1:45000/modules/guardian-watch-1.0.0-macos_x86_64.vera-module",
+          "size_bytes": 4200,
+          "sha256": "9896c8764ae3f6a0be4c57af82b0f32ff1c2e70a1ba40a04a5c2d2a17ab2052b"
+        },
+        "windows_x86_64": {
+          "url": "http://127.0.0.1:45000/modules/guardian-watch-1.0.0-windows_x86_64.vera-module",
+          "size_bytes": 4200,
+          "sha256": "9896c8764ae3f6a0be4c57af82b0f32ff1c2e70a1ba40a04a5c2d2a17ab2052b"
+        },
+        "linux_x86_64": {
+          "url": "http://127.0.0.1:45000/modules/guardian-watch-1.0.0-linux_x86_64.vera-module",
+          "size_bytes": 4200,
+          "sha256": "9896c8764ae3f6a0be4c57af82b0f32ff1c2e70a1ba40a04a5c2d2a17ab2052b"
+        }
+      }
     },
-    {
-      "name": "lexsort-go",
+    "lexsort-go": {
       "display_name": "LexSort-GO",
       "version": "1.0.0",
       "description": "LAN Mobile Bridge. Scan a QR code to chat with VERA from your mobile browser over local Wi-Fi, completely offline.",
-      "download_url": "https://modules.lexsort.com/modules/lexsort-go-1.0.0.vera-module",
-      "size_bytes": 3397,
-      "sha256": "b62b1123ea06a31d07941b51b3946b629a4065df7e84ab37fdba37312dfb0e8e",
       "requires_pro": true,
-      "icon": "📱"
+      "icon": "\ud83d\udcf1",
+      "min_pro_version": "1.0.0",
+      "api_version": "1.0.0",
+      "release_notes": "Initial release.",
+      "targets": {
+        "macos_aarch64": {
+          "url": "http://127.0.0.1:45000/modules/lexsort-go-1.0.0-macos_aarch64.vera-module",
+          "size_bytes": 3397,
+          "sha256": "4a9aa4ddb176e1f233a7428cfe44a07a3c8c0a53648d36ba92fdc02a8903b584"
+        },
+        "macos_x86_64": {
+          "url": "http://127.0.0.1:45000/modules/lexsort-go-1.0.0-macos_x86_64.vera-module",
+          "size_bytes": 3397,
+          "sha256": "4a9aa4ddb176e1f233a7428cfe44a07a3c8c0a53648d36ba92fdc02a8903b584"
+        },
+        "windows_x86_64": {
+          "url": "http://127.0.0.1:45000/modules/lexsort-go-1.0.0-windows_x86_64.vera-module",
+          "size_bytes": 3397,
+          "sha256": "4a9aa4ddb176e1f233a7428cfe44a07a3c8c0a53648d36ba92fdc02a8903b584"
+        },
+        "linux_x86_64": {
+          "url": "http://127.0.0.1:45000/modules/lexsort-go-1.0.0-linux_x86_64.vera-module",
+          "size_bytes": 3397,
+          "sha256": "4a9aa4ddb176e1f233a7428cfe44a07a3c8c0a53648d36ba92fdc02a8903b584"
+        }
+      }
     }
-  ]
+  }
 }
