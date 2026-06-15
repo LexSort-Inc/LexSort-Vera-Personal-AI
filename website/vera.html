@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VERA by LexSort — Your Private AI. Free. Forever.</title>
+  <title>LexSort Vera — Your Private AI. Free. Forever.</title>
   <style>
     :root {
       --canvas: #080a0c;
@@ -102,6 +102,34 @@
     footer .foot-links a { color: var(--text-muted); text-decoration: none; font-size: 13px; }
     footer p { font-size: 12px; color: var(--text-muted); margin: 0; }
  
+    /* ── SUBTABS FOR RESEARCH LAB ── */
+    .subtab-btn {
+      background: #161b22;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 8px 16px;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .subtab-btn:hover {
+      color: #fff;
+      border-color: #7d8590;
+    }
+    .subtab-btn.active {
+      color: #fff;
+      background: var(--accent2);
+      border-color: var(--accent);
+    }
+    .subtab-pane {
+      display: none;
+    }
+    .subtab-pane.active {
+      display: block;
+    }
+
     @media(max-width:600px){
       .hero h1{font-size:38px;}
       .promise-strip{flex-wrap:wrap;}
@@ -120,23 +148,23 @@
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
       <span style="font-weight:600;letter-spacing:.04em;">LexSort Inc.</span>
     </a>
-    <div style="display:flex;align-items:center;gap:12px;color:#7d8590;">
-      <a href="vera.html" style="color:#e6edf3;font-weight:700;text-decoration:none;letter-spacing:.04em;">VERA</a>
+    <div style="display:flex;align-items:center;gap:6px;color:#7d8590;">
+      <span style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;">Product</span>
       <span style="color:#21262d;">·</span>
-      <a href="vera-pro.html" style="color:#a78bfa;font-weight:600;text-decoration:none;letter-spacing:.04em;">VERA Pro</a>
+      <span style="color:#e6edf3;font-weight:700;letter-spacing:.04em;">LexSort Vera</span>
     </div>
   </div>
 
   <!-- ── HERO ─────────────────────────────────────────────────────────── -->
   <header class="hero">
     <div class="container">
-      <img src="vera-logo-site.jpg" alt="VERA by LexSort" class="hero-logo" />
+      <img src="vera-logo-site.jpg" alt="LexSort Vera" class="hero-logo" />
       <div class="free-badge">✦ 100% Free — No Account — No Catch</div>
-      <h1>VERA</h1>
+      <h1>LexSort Vera</h1>
       <div class="hero-by">by LexSort Inc.</div>
       <p class="hero-tagline">Your private AI runs entirely on your machine.<br>No cloud. No subscription. No data leaving your computer.</p>
       <p class="hero-sub">Your conversation never leaves this machine &nbsp;·&nbsp; No account &nbsp;·&nbsp; No logs &nbsp;·&nbsp; Free forever</p>
-      <a href="download.html" class="cta-btn">⬇ Download VERA — Free</a>
+      <a href="download.html" class="cta-btn">⬇ Download LexSort Vera — Free</a>
     </div>
   </header>
  
@@ -174,7 +202,7 @@
     <!-- ── SECTION LABEL ─────────────────────────────────────────────── -->
     <section style="padding:52px 0 8px; text-align:center;">
       <h2 style="font-size:30px;color:#fff;font-weight:800;margin-bottom:14px;">Why Everyone Else Charges a Monthly Fee — And We Don't.</h2>
-      <p style="font-size:16px;line-height:1.6;color:var(--text-muted);max-width:700px;margin:0 auto;">Watch the difference between a cloud AI subscription hitting its limit, and VERA running privately on your machine with no limits at all.</p>
+      <p style="font-size:16px;line-height:1.6;color:var(--text-muted);max-width:700px;margin:0 auto;">Watch the difference between a cloud AI subscription hitting its limit, and LexSort Vera running privately on your machine with no limits at all.</p>
     </section>
  
     <!-- ── INTERACTIVE THEATER ───────────────────────────────────────── -->
@@ -213,9 +241,9 @@
         <div id="view-stage-desktop-transition" class="stage-view">
           <div class="virtual-desktop">
             <div id="target-shortcut-icon" class="app-icon-shortcut">
-              <img src="vera-logo-site.jpg" alt="VERA" />
+              <img src="vera-logo-site.jpg" alt="LexSort Vera" />
             </div>
-            <div style="margin-top:14px;font-size:13px;color:#94a3b8;font-weight:bold;">VERA — Private AI</div>
+            <div style="margin-top:14px;font-size:13px;color:#94a3b8;font-weight:bold;">LexSort Vera — Private AI</div>
           </div>
         </div>
  
@@ -223,7 +251,7 @@
         <div id="view-stage-lexsort" class="stage-view" style="padding:24px;">
           <div style="font-weight:600;color:var(--sim-text-muted);margin-bottom:6px;font-size:13px;text-transform:uppercase;letter-spacing:.5px;">Local User Input</div>
           <div id="lexsort-prompt" style="color:var(--sim-text-dark);margin-bottom:24px;min-height:24px;font-size:16px;"></div>
-          <div style="font-weight:600;color:var(--sim-text-muted);margin-bottom:8px;font-size:13px;text-transform:uppercase;letter-spacing:.5px;">VERA Local Stream</div>
+          <div style="font-weight:600;color:var(--sim-text-muted);margin-bottom:8px;font-size:13px;text-transform:uppercase;letter-spacing:.5px;">LexSort Vera Local Stream</div>
           <div id="lexsort-output" style="color:var(--sim-text-dark);white-space:pre-wrap;font-size:15px;"></div>
           <button id="manual-replay-btn" class="replay-trigger-btn" style="display:none;" onclick="manuallyResetSimulation()">🔄 Replay</button>
         </div>
@@ -238,8 +266,8 @@
           <div class="outro-card">
             <span class="fomo-pill">✦ FREE — ALWAYS</span>
             <h3 style="font-size:26px;font-weight:800;margin:0 0 10px;color:#fff;letter-spacing:-.5px;">Your AI. Your Machine. Your Data.</h3>
-            <p style="font-size:15px;color:#94a3b8;max-width:480px;margin:0 auto 24px;line-height:1.5;">VERA runs entirely on your computer. No subscription. No account. No data leaving your machine. Free forever.</p>
-            <a href="download.html" style="background:linear-gradient(135deg,#2E5FA3,#1B2A4A);color:#fff;text-decoration:none;padding:13px 30px;border-radius:8px;font-size:15px;font-weight:bold;box-shadow:0 4px 14px rgba(46,95,163,0.4);">⬇ Download VERA — Free</a>
+            <p style="font-size:15px;color:#94a3b8;max-width:480px;margin:0 auto 24px;line-height:1.5;">LexSort Vera runs entirely on your computer. No subscription. No account. No data leaving your machine. Free forever.</p>
+            <a href="download.html" style="background:linear-gradient(135deg,#2E5FA3,#1B2A4A);color:#fff;text-decoration:none;padding:13px 30px;border-radius:8px;font-size:15px;font-weight:bold;box-shadow:0 4px 14px rgba(46,95,163,0.4);">⬇ Download LexSort Vera — Free</a>
             <div style="font-size:11px;color:#64748b;margin-top:14px;font-weight:500;">No account required &nbsp;·&nbsp; No credit card &nbsp;·&nbsp; Apache 2.0 open source</div>
           </div>
         </div>
@@ -249,7 +277,7 @@
  
     <!-- ── HOW IT WORKS ──────────────────────────────────────────────── -->
     <section>
-      <h2 style="text-align:center;font-size:28px;font-weight:800;color:#fff;margin:0 0 8px;">How VERA Works</h2>
+      <h2 style="text-align:center;font-size:28px;font-weight:800;color:#fff;margin:0 0 8px;">How LexSort Vera Works</h2>
       <p style="text-align:center;color:var(--text-muted);margin:0 0 32px;font-size:15px;">Three steps. Zero configuration. No account.</p>
       <div class="how-grid">
         <div class="how-card">
@@ -259,8 +287,8 @@
         </div>
         <div class="how-card">
           <div class="how-num">2</div>
-          <h4>VERA Detects Your Hardware</h4>
-          <p>VERA reads your available RAM and processor. It automatically downloads and installs the best AI model your machine can run.</p>
+          <h4>LexSort Vera Detects Your Hardware</h4>
+          <p>LexSort Vera reads your available RAM and processor. It automatically downloads and installs the best AI model your machine can run.</p>
         </div>
         <div class="how-card">
           <div class="how-num">3</div>
@@ -276,6 +304,7 @@
         <button class="tab-btn active" onclick="switchTab(event,'privacy-tab')">🔒 PRIVACY</button>
         <button class="tab-btn" onclick="switchTab(event,'unlimited-tab')">∞ UNLIMITED</button>
         <button class="tab-btn" onclick="switchTab(event,'hardware-tab')">⚡ AUTO HARDWARE</button>
+        <button class="tab-btn" onclick="switchTab(event,'research-lab-tab')">🧪 RESEARCH LAB (PRO)</button>
         <button class="tab-btn" onclick="switchTab(event,'specs-tab')">🖥 TECH SPECS</button>
       </div>
       <div class="console-content">
@@ -288,8 +317,38 @@
           <p>Cloud AI tools meter every token you generate. VERA runs on your own processor. Your usage limits are determined entirely by your hardware — not by a subscription tier. Draft hundreds of documents, ask thousands of questions, run all day. There is no counter. There is no limit. There is no bill.</p>
         </div>
         <div id="hardware-tab" class="tab-pane">
-          <h4>VERA Picks the Right Brain for Your Machine.</h4>
-          <p>On first launch, VERA reads your available RAM and selects the highest-quality AI model your hardware can sustain. 4GB machine? You get a fast, capable model. 32GB workstation? You get a much more powerful one. You don't pick anything. VERA handles it automatically — and updates its selection as better open-source models become available.</p>
+          <h4>LexSort Vera Picks the Right Brain for Your Machine.</h4>
+          <p>On first launch, LexSort Vera reads your available RAM and selects the highest-quality AI model your hardware can sustain. 4GB machine? You get a fast, capable model. 32GB workstation? You get a much more powerful one. You don't pick anything. LexSort Vera handles it automatically — and updates its selection as better open-source models become available.</p>
+        </div>
+        <div id="research-lab-tab" class="tab-pane">
+          <h4>Evaluate & Optimize Local Model Speeds.</h4>
+          <p>LexSort Vera Pro includes a full-featured <strong>Model Research Lab</strong> workstation. Easily pull any GGUF/Ollama model, benchmark inference speeds (TPS) across standard Tax, Grant, and Legal workflows, audit prompt templates, and test system instructions in a secure offline playground. Instantly export branded share cards showing your local speeds.</p>
+          
+          <div style="display: flex; gap: 8px; margin-top: 20px; justify-content: center; flex-wrap: wrap; margin-bottom: 20px;">
+            <button class="subtab-btn active" onclick="switchSubTab(event, 'subtab-benchmark')">🏃 Workflow Runner</button>
+            <button class="subtab-btn" onclick="switchSubTab(event, 'subtab-prompts')">📚 Prompt Library</button>
+            <button class="subtab-btn" onclick="switchSubTab(event, 'subtab-models')">📦 Model Manager</button>
+            <button class="subtab-btn" onclick="switchSubTab(event, 'subtab-playground')">🎮 Playground</button>
+          </div>
+
+          <div style="margin-top: 20px; text-align: center;">
+            <div id="subtab-benchmark" class="subtab-pane active">
+              <img src="assets/research-lab-benchmark.png" alt="VERA Pro Model Research Lab Benchmark Suite" style="max-width: 100%; border-radius: 8px; border: 1px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.5);" />
+              <p style="font-size: 13px; color: var(--text-muted); margin-top: 10px;">Run standardized prompt workflows to measure real-time Tokens Per Second (TPS) and check hardware performance.</p>
+            </div>
+            <div id="subtab-prompts" class="subtab-pane">
+              <img src="assets/research-lab-prompts.png" alt="VERA Pro Prompt Library" style="max-width: 100%; border-radius: 8px; border: 1px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.5);" />
+              <p style="font-size: 13px; color: var(--text-muted); margin-top: 10px;">Manage prompt templates, customize workflows, and import/export prompts easily.</p>
+            </div>
+            <div id="subtab-models" class="subtab-pane">
+              <img src="assets/research-lab-models.png" alt="VERA Pro Model Manager" style="max-width: 100%; border-radius: 8px; border: 1px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.5);" />
+              <p style="font-size: 13px; color: var(--text-muted); margin-top: 10px;">View disk usage, manage downloaded GGUF/Ollama models, and toggle background model execution.</p>
+            </div>
+            <div id="subtab-playground" class="subtab-pane">
+              <img src="assets/research-lab-playground.png" alt="VERA Pro Playground" style="max-width: 100%; border-radius: 8px; border: 1px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.5);" />
+              <p style="font-size: 13px; color: var(--text-muted); margin-top: 10px;">Test parameters (temperature, system prompt, context window) dynamically with side-by-side prompt output.</p>
+            </div>
+          </div>
         </div>
         <div id="specs-tab" class="tab-pane">
           <h4>Hard Sandboxed Architecture.</h4>
@@ -307,14 +366,14 @@
     <!-- ── DOWNLOAD ──────────────────────────────────────────────────── -->
     <section id="download" class="download-section">
       <img src="vera-logo-site.jpg" alt="VERA" style="width:72px;height:72px;border-radius:14px;object-fit:contain;background:#fff;padding:4px;margin-bottom:20px;box-shadow:0 6px 20px rgba(46,95,163,0.35);" />
-      <h2>Download VERA</h2>
+      <h2>Download LexSort Vera</h2>
       <p>Free forever. No account. No credit card. Install and start your first private conversation in under two minutes.</p>
       <div class="os-badges">
         <span class="os-badge">🍎 macOS</span>
         <span class="os-badge">🪟 Windows</span>
         <span class="os-badge">🐧 Linux</span>
       </div>
-      <a href="download.html" class="cta-btn">⬇ Download VERA — Free</a>
+      <a href="download.html" class="cta-btn">⬇ Download LexSort Vera — Free</a>
       <div style="font-size:12px;color:var(--text-muted);margin-top:16px;">Apache 2.0 open source &nbsp;·&nbsp; No account required &nbsp;·&nbsp; No data collected</div>
     </section>
  
@@ -324,7 +383,7 @@
   <footer>
     <div class="foot-logo">
       <img src="vera-logo-site.jpg" alt="VERA" />
-      <span style="font-weight:700;color:#fff;font-size:16px;">VERA</span>
+      <span style="font-weight:700;color:#fff;font-size:16px;">LexSort Vera</span>
       <span style="color:var(--text-muted);font-size:13px;">by LexSort Inc.</span>
     </div>
     <div class="foot-links">
@@ -332,10 +391,8 @@
       <a href="privacy.html">Privacy Policy</a>
       <a href="download.html">Download</a>
       <a href="freeware.html">Freeware Foundation</a>
-      <a href="vera-pro.html" style="color: #a78bfa;">VERA Pro Suite</a>
       <a href="https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI">GitHub</a>
       <a href="https://discord.gg/kpZ3hWyAaq">Discord</a>
-      <a href="https://www.reddit.com/r/LexSort/">Reddit</a>
       <a href="faq.html">FAQ</a>
     </div>
     <p>&copy; 2026 LexSort Inc. All rights reserved. &nbsp;·&nbsp; Zero cookies. Zero tracking. Total privacy sovereignty.</p>
@@ -376,7 +433,7 @@
     function step4_applyRedStamp(){if(!keepLooping)return;viewRedstamp.style.display='flex';setTimeout(step5_animateCursor,2500);}
     function step5_animateCursor(){if(!keepLooping)return;mickey.style.top='300px';mickey.style.left='700px';mickey.style.display='block';setTimeout(()=>{mickey.style.top='15px';mickey.style.left='25px';},100);setTimeout(()=>{hideAllViews();chromeBar.style.display='none';mickey.classList.add('dark-desktop');viewDesktop.style.display='block';setTimeout(step6_cursorToIcon,500);},1700);}
     function step6_cursorToIcon(){if(!keepLooping)return;const icon=document.getElementById('target-shortcut-icon');const rect=icon.getBoundingClientRect();const fRect=frame.getBoundingClientRect();mickey.style.top=(rect.top-fRect.top+35)+'px';mickey.style.left=(rect.left-fRect.left+35)+'px';setTimeout(()=>{mickey.style.display='none';step7_initVERA();},1800);}
-    function step7_initVERA(){if(!keepLooping)return;frame.style.border='1px solid var(--sim-border)';chromeBar.style.display='flex';titleMode.textContent='⚡ VERA — Private Local AI (Offline Sandbox)';titleMode.style.color='#2E5FA3';titleMode.style.fontWeight='bold';statusTokens.textContent='● Private  ·  Unlimited';statusTokens.style.color='#16a34a';hideAllViews();viewLexsort.style.display='block';setTimeout(step8_typeVERAPrompt,1200);}
+    function step7_initVERA(){if(!keepLooping)return;frame.style.border='1px solid var(--sim-border)';chromeBar.style.display='flex';titleMode.textContent='⚡ LexSort Vera — Private Local AI (Offline Sandbox)';titleMode.style.color='#2E5FA3';titleMode.style.fontWeight='bold';statusTokens.textContent='● Private  ·  Unlimited';statusTokens.style.color='#16a34a';hideAllViews();viewLexsort.style.display='block';setTimeout(step8_typeVERAPrompt,1200);}
     function step8_typeVERAPrompt(){if(!keepLooping)return;if(lpIdx<promptTxt.length){lexsortPrompt.textContent+=promptTxt.charAt(lpIdx);lpIdx++;setTimeout(step8_typeVERAPrompt,140);}else{setTimeout(step9_streamVERA,600);}}
     function step9_streamVERA(){if(!keepLooping)return;if(loIdx<localResponseTxt.length){lexsortOutput.textContent+=localResponseTxt.charAt(loIdx);loIdx++;setTimeout(step9_streamVERA,22);}else{setTimeout(step10_greenStamp,4000);}}
     function step10_greenStamp(){if(!keepLooping)return;viewGreenstamp.style.display='flex';manualBtn.style.display='block';setTimeout(step11_outro,6000);}
@@ -384,6 +441,16 @@
     function manuallyResetSimulation(){keepLooping=true;pIdx=0;oIdx=0;lpIdx=0;loIdx=0;cloudPrompt.textContent='';cloudOutput.textContent='';lexsortPrompt.textContent='';lexsortOutput.textContent='';frame.style.border='1px solid var(--sim-border)';titleMode.textContent='🌐 Web Connection: Online Chat Engine (Cloud API)';titleMode.style.color='#ef4444';titleMode.style.fontWeight='600';statusTokens.textContent='Account: Metered Tier';statusTokens.style.color='var(--sim-text-muted)';chromeBar.style.display='flex';step1_typeCloudPrompt();}
  
     function switchTab(e,id){document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));e.currentTarget.classList.add('active');document.getElementById(id).classList.add('active');}
+ 
+    function switchSubTab(e,id){
+      const parent = e.currentTarget.parentNode;
+      parent.querySelectorAll('.subtab-btn').forEach(b=>b.classList.remove('active'));
+      e.currentTarget.classList.add('active');
+      
+      const container = parent.nextElementSibling;
+      container.querySelectorAll('.subtab-pane').forEach(p=>p.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    }
  
     window.onload=()=>step1_typeCloudPrompt();
   </script>
