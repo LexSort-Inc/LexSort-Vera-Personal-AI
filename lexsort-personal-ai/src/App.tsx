@@ -1342,15 +1342,15 @@ export default function App() {
 
                     <div className="pro-preview__upgrade">
                       <div className="pro-preview__upgrade-text">
-                        <strong>VERA Pro</strong> — one-time purchase, no subscription.
+                        <strong>VERA Pro</strong> — monthly subscription, no commitment.
                       </div>
                       <a
-                        href="https://lexsort.com/vera-pro"
+                        href="https://lexsort.com/vera-pro.html"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="pro-preview__upgrade-btn"
                       >
-                        Upgrade to Pro — $49
+                        Upgrade to Pro — $5.99/mo
                       </a>
                     </div>
                   </div>
