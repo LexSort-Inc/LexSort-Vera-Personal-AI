@@ -33,7 +33,7 @@
       "icons/icon.ico"
     ],
     "macOS": {
-      "signingIdentity": "Developer ID Application: William Commu (C76T5D27A2)",
+      "signingIdentity": "9498E6481B8D3D1872E4E0E34BFB5F26E785F15D",
       "entitlements": "./entitlements.plist"
     }
   }
