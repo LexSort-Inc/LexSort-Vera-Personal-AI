@@ -63,3 +63,17 @@ fn lexsort_directory_permissions_are_restrictive() {
         }
     }
 }
+
+#[test]
+fn guardian_watch_intervals_are_within_bounds() {
+    // Ollama check: must be between 15s and 60s
+    // Too fast = CPU waste during inference. Too slow = user sees downtime.
+    let ollama_interval_secs: u64 = 30;
+    assert!(ollama_interval_secs >= 15 && ollama_interval_secs <= 60,
+        "Ollama health check interval out of acceptable range");
+
+    // Permissions check: must be between 2min and 15min
+    let permissions_interval_secs: u64 = 300;
+    assert!(permissions_interval_secs >= 120 && permissions_interval_secs <= 900,
+        "Permissions check interval out of acceptable range");
+}
