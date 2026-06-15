@@ -473,6 +473,19 @@ export default function App() {
     }
   };
 
+  const handleFactoryReset = async () => {
+    const confirmed = window.confirm(
+      "⚠️ WARNING: This will permanently delete all your task lists, notes, and local app configuration. This action cannot be undone.\n\nAre you sure you want to perform a Factory Reset?"
+    );
+    if (!confirmed) return;
+
+    try {
+      await invoke("factory_reset");
+    } catch (err: any) {
+      alert(`Factory reset failed: ${err}`);
+    }
+  };
+
   async function bootSequence() {
     try {
       // Initialize directories for freeware
@@ -1271,6 +1284,33 @@ export default function App() {
                         </button>
                       </div>
                     )}
+
+                    {/* Factory Reset Section */}
+                    <div className="settings-divider" style={{ height: "1px", background: "var(--border)", margin: "24px 0 12px" }} />
+                    <div className="settings-section">
+                      <span className="settings-section-title">Factory Reset</span>
+                      <div className="factory-reset-card" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px", background: "rgba(240, 82, 82, 0.05)", border: "1px solid rgba(240, 82, 82, 0.2)", borderRadius: "12px" }}>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "4px", textAlign: "left" }}>
+                          <span style={{ fontSize: "14px", fontWeight: 700, color: "var(--text)" }}>Reset Application Data</span>
+                          <span style={{ fontSize: "12px", color: "var(--text-muted)", lineHeight: "1.4" }}>
+                            This will permanently delete all task lists, notes, and app configurations. Local models downloaded to Ollama will not be affected.
+                          </span>
+                        </div>
+                        <button 
+                          className="hdr-btn"
+                          onClick={handleFactoryReset}
+                          style={{ border: "1px solid var(--red)", color: "var(--red)", fontWeight: 600, padding: "8px 16px", borderRadius: "8px", cursor: "pointer", whiteSpace: "nowrap", marginLeft: "16px" }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = "rgba(240, 82, 82, 0.1)";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = "transparent";
+                          }}
+                        >
+                          Reset App
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 )}
 

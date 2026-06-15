@@ -958,6 +958,21 @@ pub mod commands {
             Err(format!("Documentation for module '{}' not found", module_name))
         }
     }
+
+    #[tauri::command]
+    pub fn factory_reset(server: State<'_, super::ServerProcess>) -> Result<(), String> {
+        if let Ok(mut guard) = server.0.lock() {
+            if let Some(mut child) = guard.take() {
+                let _ = child.kill();
+            }
+        }
+        let base = super::lexsort_dir();
+        if base.exists() {
+            std::fs::remove_dir_all(&base)
+                .map_err(|e| format!("Failed to delete config directory: {}", e))?;
+        }
+        std::process::exit(0);
+    }
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -993,6 +1008,7 @@ pub fn run() {
             commands::get_installed_registry,
             commands::check_for_updates,
             commands::get_module_docs,
+            commands::factory_reset,
             quick_organizer::get_tasks,
             quick_organizer::create_task,
             quick_organizer::update_task,
