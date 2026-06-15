@@ -280,7 +280,7 @@ export default function SupportPanel({
           app:     appName,
           rating:  stars,
           message: feedbackText.trim(),
-          version: "1.0.0",
+          version: "1.1.0",
         }),
       });
 

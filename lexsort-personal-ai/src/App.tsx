@@ -771,7 +771,7 @@ export default function App() {
   const generateDiagnosticText = () => {
     return [
       `### VERA Personal AI — Diagnostic Report`,
-      `- **VERA Version**: 1.0.0 (Freeware)`,
+      `- **VERA Version**: 1.1.0 (Freeware)`,
       `- **OS Platform**: ${hardware?.platform || "Detecting..."}`,
       `- **RAM Detected**: ${hardware?.ram_gb !== undefined ? `${hardware.ram_gb} GB` : "Detecting..."}`,
       `- **Free Storage**: ${hardware?.free_storage_gb !== undefined ? `${hardware.free_storage_gb} GB` : "Detecting..."}`,
