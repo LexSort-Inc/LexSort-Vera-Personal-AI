@@ -1,0 +1,42 @@
+{
+  "manifest_version": "1",
+  "generated_at": "2026-06-14T00:00:00Z",
+  "core": {
+    "freeware": {
+      "version": "1.0.0",
+      "min_os": { "macos": "12.0", "windows": "10" },
+      "release_notes": "Initial public release."
+    },
+    "pro": {
+      "version": "1.0.0",
+      "min_os": { "macos": "12.0", "windows": "10" },
+      "release_notes": "Initial Pro release."
+    }
+  },
+  "modules": {
+    "promailer": {
+      "version": "1.0.0",
+      "min_pro_version": "1.0.0",
+      "size_bytes": 204800,
+      "release_notes": "Initial release."
+    },
+    "organizer": {
+      "version": "1.0.0",
+      "min_pro_version": "1.0.0",
+      "size_bytes": 153600,
+      "release_notes": "Initial release."
+    },
+    "taxmate": {
+      "version": "1.0.0",
+      "min_pro_version": "1.0.0",
+      "size_bytes": 307200,
+      "release_notes": "Initial release."
+    },
+    "guardian_watch": {
+      "version": "1.0.0",
+      "min_pro_version": "1.0.0",
+      "size_bytes": 102400,
+      "release_notes": "Initial release."
+    }
+  }
+}

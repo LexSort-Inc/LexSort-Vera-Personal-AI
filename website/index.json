@@ -1,0 +1,38 @@
+{
+  "updated_at": "2026-06-14T05:22:30Z",
+  "modules": [
+    {
+      "name": "hello-world",
+      "display_name": "Hello World Test",
+      "version": "1.0.0",
+      "description": "Verification test module to ensure VERA Pro hot-loading loader works end-to-end.",
+      "download_url": "https://modules.lexsort.com/modules/hello-world-1.0.0.vera-module",
+      "size_bytes": 1165,
+      "sha256": "977a12b24ea23d2f4dc76601bb3067b4f8c1e080993d33b551714b30ebdcb871",
+      "requires_pro": false,
+      "icon": "🚀"
+    },
+    {
+      "name": "guardian-watch",
+      "display_name": "Guardian Watch",
+      "version": "1.0.0",
+      "description": "Real-time system resource monitor and AI diagnostic assistant. Explains RAM/CPU usage and system health anomalies in plain English.",
+      "download_url": "https://modules.lexsort.com/modules/guardian-watch-1.0.0.vera-module",
+      "size_bytes": 4200,
+      "sha256": "6d64a80954bc1fa665fae944edf18daf6b843a48a744eab2d0b76bf2d75d04cd",
+      "requires_pro": true,
+      "icon": "🛡️"
+    },
+    {
+      "name": "lexsort-go",
+      "display_name": "LexSort-GO",
+      "version": "1.0.0",
+      "description": "LAN Mobile Bridge. Scan a QR code to chat with VERA from your mobile browser over local Wi-Fi, completely offline.",
+      "download_url": "https://modules.lexsort.com/modules/lexsort-go-1.0.0.vera-module",
+      "size_bytes": 3397,
+      "sha256": "b62b1123ea06a31d07941b51b3946b629a4065df7e84ab37fdba37312dfb0e8e",
+      "requires_pro": true,
+      "icon": "📱"
+    }
+  ]
+}
