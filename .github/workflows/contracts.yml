@@ -1,0 +1,19 @@
+name: Contract Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  rust-contracts:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Run contract tests
+        run: |
+          cd lexsort-personal-ai/src-tauri
+          cargo test --test contracts -- --nocapture

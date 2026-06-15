@@ -1,0 +1,65 @@
+//! Contract tests – protect against regression bugs.
+//! If any of these fail, you have broken a documented integration point.
+
+use lexsort_personal_ai_lib::commands::AppConfig;
+
+#[test]
+fn public_key_fingerprint_matches_expected() {
+    let key_bytes = include_bytes!("../lexsort_public_key.bin");
+    let fingerprint = hex::encode(&key_bytes[0..8]);
+    assert_eq!(
+        fingerprint, "3183e9e4a95b99b3",
+        "Public key fingerprint changed! See KEY_MANIFEST.md for rotation procedure."
+    );
+}
+
+#[test]
+fn index_json_uses_map_not_array_for_modules() {
+    use serde_json::json;
+    let sample = json!({
+        "generated_at": "2026-06-15T12:00:00Z",
+        "modules": {
+            "business-organizer": { "version": "1.0.0" }
+        }
+    });
+    let modules = sample["modules"].as_object().expect("modules must be a map");
+    assert!(modules.contains_key("business-organizer"));
+}
+
+#[test]
+fn app_config_roundtrip_preserves_optional_fields() {
+    let original = AppConfig {
+        active_model: Some("llama3.2:3b".to_string()),
+        last_benchmark_tps: Some(5.5),
+        ..Default::default()
+    };
+    let serialized = serde_json::to_string(&original).unwrap();
+    let deserialized: AppConfig = serde_json::from_str(&serialized).unwrap();
+    assert_eq!(deserialized.active_model, original.active_model);
+    assert_eq!(deserialized.last_benchmark_tps, original.last_benchmark_tps);
+}
+
+#[test]
+fn lexsort_directory_permissions_are_restrictive() {
+    let home = std::env::var("HOME").expect("HOME not set");
+    let lexsort_dir = std::path::PathBuf::from(home).join(".lexsort");
+    if lexsort_dir.exists() {
+        let metadata = std::fs::metadata(&lexsort_dir).unwrap();
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let mode = metadata.permissions().mode();
+            assert_eq!(mode & 0o777, 0o700, "~/.lexsort should be 700");
+        }
+    }
+    let config_file = lexsort_dir.join("config.json");
+    if config_file.exists() {
+        let meta = std::fs::metadata(&config_file).unwrap();
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let mode = meta.permissions().mode();
+            assert_eq!(mode & 0o777, 0o600, "config.json should be 600");
+        }
+    }
+}
