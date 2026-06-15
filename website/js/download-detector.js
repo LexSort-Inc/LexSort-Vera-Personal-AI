@@ -6,17 +6,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ── GitHub Release Base URL ──────────────────────────────────────────────
   // Update version string here when a new release ships
-  const VERSION = "v1.0.2";
-  const GITHUB_BASE = `https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/releases/download/${VERSION}`;
+  const VERSION_LATEST = "v1.1.0";
+  const VERSION_FALLBACK = "v1.0.2";
+
+  const GITHUB_BASE_LATEST = `https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/releases/download/${VERSION_LATEST}`;
+  const GITHUB_BASE_FALLBACK = `https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/releases/download/${VERSION_FALLBACK}`;
   const RELEASES_PAGE = "https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/releases/latest";
 
   // ── Tauri-generated filenames (must match exactly what GitHub Actions produces)
-  const ASSETS = {
-    mac_arm:   `LexSort.Personal.AI_${VERSION.slice(1)}_aarch64.dmg`,
-    mac_intel: `LexSort.Personal.AI_${VERSION.slice(1)}_x64.dmg`,
-    windows:   `LexSort.Personal.AI_${VERSION.slice(1)}_x64_en-US.msi`,
-    linux_deb: `LexSort.Personal.AI_${VERSION.slice(1)}_amd64.deb`,
-    linux_app: `LexSort.Personal.AI_${VERSION.slice(1)}_amd64.AppImage`,
+  const ASSETS_LATEST = {
+    mac_arm:   `LexSort.Personal.AI_${VERSION_LATEST.slice(1)}_aarch64.dmg`,
+    mac_intel: `LexSort.Personal.AI_${VERSION_LATEST.slice(1)}_x64.dmg`,
+    linux_deb: `LexSort.Personal.AI_${VERSION_LATEST.slice(1)}_amd64.deb`,
+    linux_app: `LexSort.Personal.AI_${VERSION_LATEST.slice(1)}_amd64.AppImage`,
+  };
+
+  const ASSETS_FALLBACK = {
+    windows:   `LexSort.Personal.AI_${VERSION_FALLBACK.slice(1)}_x64_en-US.msi`,
   };
 
   // ── Platform Detection ───────────────────────────────────────────────────
@@ -77,25 +83,25 @@ document.addEventListener("DOMContentLoaded", () => {
   let altHtml     = "";
 
   if (isWindows) {
-    primaryUrl = `${GITHUB_BASE}/${ASSETS.windows}`;
+    primaryUrl = `${GITHUB_BASE_FALLBACK}/${ASSETS_FALLBACK.windows}`;
     osLabel    = "Windows 10 / 11 (x64)";
     altHtml    = `<a href="${RELEASES_PAGE}" target="_blank">Other versions →</a>`;
 
   } else if (isMac) {
     if (isAppleSilicon) {
-      primaryUrl = `${GITHUB_BASE}/${ASSETS.mac_arm}`;
+      primaryUrl = `${GITHUB_BASE_LATEST}/${ASSETS_LATEST.mac_arm}`;
       osLabel    = "macOS (Apple Silicon)";
-      altHtml    = `Not Apple Silicon? <a href="${GITHUB_BASE}/${ASSETS.mac_intel}">Download macOS Intel build</a>`;
+      altHtml    = `Not Apple Silicon? <a href="${GITHUB_BASE_LATEST}/${ASSETS_LATEST.mac_intel}">Download macOS Intel build</a>`;
     } else {
-      primaryUrl = `${GITHUB_BASE}/${ASSETS.mac_intel}`;
+      primaryUrl = `${GITHUB_BASE_LATEST}/${ASSETS_LATEST.mac_intel}`;
       osLabel    = "macOS (Intel)";
-      altHtml    = `On an M1/M2/M3 Mac? <a href="${GITHUB_BASE}/${ASSETS.mac_arm}">Download Apple Silicon build</a>`;
+      altHtml    = `On an M1/M2/M3 Mac? <a href="${GITHUB_BASE_LATEST}/${ASSETS_LATEST.mac_arm}">Download Apple Silicon build</a>`;
     }
 
   } else if (isLinux) {
-    primaryUrl = `${GITHUB_BASE}/${ASSETS.linux_app}`;
+    primaryUrl = `${GITHUB_BASE_LATEST}/${ASSETS_LATEST.linux_app}`;
     osLabel    = "Linux (AppImage)";
-    altHtml    = `Also available as: <a href="${GITHUB_BASE}/${ASSETS.linux_deb}">Debian package (.deb)</a>`;
+    altHtml    = `Also available as: <a href="${GITHUB_BASE_LATEST}/${ASSETS_LATEST.linux_deb}">Debian package (.deb)</a>`;
   }
 
   // ── Analytics tracking ───────────────────────────────────────────────────
