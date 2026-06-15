@@ -43,7 +43,7 @@ This document lists the exact hour-by-hour checklist for deploying, configuring,
     * `STRIPE_PRO_PRICE_ID_MONTHLY` (`price_xxx_monthly`)
     * `STRIPE_PRO_PRICE_ID_YEARLY` (`price_xxx_yearly`)
     * `STRIPE_WEBHOOK_SECRET` (`whsec_xxx`)
-    * `LICENSE_SIGNING_SECRET` (Use a strong, secure random string)
+    * `LICENSE_SIGNING_PRIVATE_KEY` (Use the 96-char hex private key from `src-tauri/private_key.hex`)
     * `DISCORD_BOT_TOKEN` (From Discord developer application portal)
     * `DISCORD_GUILD_ID` (Your Discord server ID)
     * `DISCORD_TESTER_ROLE_ID` (Role ID to grant upon subscription creation)
