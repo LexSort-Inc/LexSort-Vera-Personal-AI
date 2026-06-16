@@ -582,7 +582,7 @@
           <span class="verification-badge">✓ Tested & working (Developer specs)</span>
         </div>
         <div class="download-links">
-          <a href="https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/releases/download/v1.1.0/LexSort.Personal.AI_1.1.0_aarch64.dmg" class="download-link">
+          <a href="https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/releases/download/v1.1.1/LexSort.Personal.AI_1.1.1_aarch64.dmg" class="download-link">
             <span>LexSort Vera macOS Apple Silicon</span>
             <span class="ext">.dmg (Apple Silicon)</span>
           </a>
@@ -597,7 +597,7 @@
           <span class="verification-badge">✓ Compiled binary available</span>
         </div>
         <div class="download-links">
-          <a href="https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/releases/download/v1.1.0/LexSort.Personal.AI_1.1.0_x64.dmg" class="download-link">
+          <a href="https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/releases/download/v1.1.1/LexSort.Personal.AI_1.1.1_x64.dmg" class="download-link">
             <span>LexSort Vera macOS Intel</span>
             <span class="ext">.dmg (Intel)</span>
           </a>
@@ -627,11 +627,11 @@
           <span class="verification-badge">✓ Compiled binaries</span>
         </div>
         <div class="download-links">
-          <a href="https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/releases/download/v1.1.0/LexSort.Personal.AI_1.1.0_amd64.deb" class="download-link" style="margin-bottom: 8px;">
+          <a href="https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/releases/download/v1.1.1/LexSort.Personal.AI_1.1.1_amd64.deb" class="download-link" style="margin-bottom: 8px;">
             <span>LexSort Vera Linux Package</span>
             <span class="ext">.deb</span>
           </a>
-          <a href="https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/releases/download/v1.1.0/LexSort.Personal.AI_1.1.0_amd64.AppImage" class="download-link">
+          <a href="https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/releases/download/v1.1.1/LexSort.Personal.AI_1.1.1_amd64.AppImage" class="download-link">
             <span>LexSort Vera Linux AppImage</span>
             <span class="ext">.AppImage</span>
           </a>
@@ -667,7 +667,7 @@
       <div class="guide-card">
         <h3>🐧 Linux Setup</h3>
         <ol>
-          <li>For Debian/Ubuntu, download the <strong>.deb</strong> and install via: <code>sudo dpkg -i lexsort-personal-ai_1.1.0_amd64.deb</code>.</li>
+          <li>For Debian/Ubuntu, download the <strong>.deb</strong> and install via: <code>sudo dpkg -i lexsort-personal-ai_1.1.1_amd64.deb</code>.</li>
           <li>Alternatively use the <strong>.AppImage</strong>: <code>chmod +x *.AppImage</code> then run directly.</li>
           <li>Linux support is community-tested — if you hit any issues use the <strong>Help & Support</strong> tab inside the app to send a bug report.</li>
         </ol>
@@ -772,16 +772,16 @@
             if (clientInfo.isAppleSilicon) {
               div.textContent = "[SUCCESS] OS: macOS (Apple Silicon). CPU Architecture: ARM64. Memory: Unified Memory Map. Recommended: LexSort Vera macOS Apple Silicon (.dmg)";
               recommendation = "mac-silicon";
-              downloadLink = "https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/releases/download/v1.1.0/LexSort.Personal.AI_1.1.0_aarch64.dmg";
+              downloadLink = "https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/releases/download/v1.1.1/LexSort.Personal.AI_1.1.1_aarch64.dmg";
             } else {
               div.textContent = "[SUCCESS] OS: macOS (Intel). CPU Architecture: x86_64. Recommended: LexSort Vera macOS Intel (.dmg)";
               recommendation = "mac-intel";
-              downloadLink = "https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/releases/download/v1.1.0/LexSort.Personal.AI_1.1.0_x64.dmg";
+              downloadLink = "https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/releases/download/v1.1.1/LexSort.Personal.AI_1.1.1_x64.dmg";
             }
           } else if (clientInfo.os === "linux") {
             div.textContent = "[SUCCESS] OS: Linux. CPU Architecture: x86_64. Recommended: LexSort Vera Linux Package (.AppImage or .deb)";
             recommendation = "linux";
-            downloadLink = "https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/releases/download/v1.1.0/LexSort.Personal.AI_1.1.0_amd64.AppImage";
+            downloadLink = "https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/releases/download/v1.1.1/LexSort.Personal.AI_1.1.1_amd64.AppImage";
           } else {
             div.textContent = "[SUCCESS] OS: Windows. CPU Architecture: x86_64. Recommended: LexSort Vera Windows Setup (.msi)";
             recommendation = "windows";
