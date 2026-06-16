@@ -125,7 +125,7 @@ export default function SupportPanel({
   const [tab, setTab] = useState<Tab>("community");
 
   const parsedInfo = useMemo(() => {
-    let version = "1.0.0";
+    let version = "1.1.3";
     let model = "unknown";
     let ram = "unknown";
     
@@ -280,7 +280,7 @@ export default function SupportPanel({
           app:     appName,
           rating:  stars,
           message: feedbackText.trim(),
-          version: "1.1.0",
+          version: parsedInfo.version,
         }),
       });
 

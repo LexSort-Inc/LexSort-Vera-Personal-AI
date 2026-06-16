@@ -813,6 +813,11 @@ pub mod commands {
     }
 
     #[tauri::command]
+    pub fn get_app_version() -> String {
+        env!("CARGO_PKG_VERSION").to_string()
+    }
+
+    #[tauri::command]
     pub async fn check_for_updates(edition: String) -> Result<super::UpdateCheckResult, String> {
         let _ = super::ensure_lexsort_dirs(&edition);
 
@@ -1006,6 +1011,7 @@ pub fn run() {
             commands::check_model_exists,
             commands::init_lexsort_dirs,
             commands::get_installed_registry,
+            commands::get_app_version,
             commands::check_for_updates,
             commands::get_module_docs,
             commands::factory_reset,

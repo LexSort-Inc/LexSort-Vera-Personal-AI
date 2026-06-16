@@ -214,6 +214,7 @@ export default function App() {
 
   // Update check states
   const [updateCheckResult, setUpdateCheckResult] = useState<UpdateCheckResult | null>(null);
+  const [appVersion, setAppVersion] = useState<string>("1.1.3");
   const [checkingForUpdates, setCheckingForUpdates] = useState<boolean>(false);
   const [settingsTab, setSettingsTab] = useState<"model" | "updates" | "pro">("model");
   const [updateStatus, setUpdateStatus] = useState<UpdateStatus>({
@@ -255,7 +256,7 @@ export default function App() {
         success: false,
         error: err.toString(),
         core_update_available: false,
-        current_core_version: "1.0.0",
+        current_core_version: appVersion,
         remote_core_version: "",
         core_release_notes: null,
         modules: []
@@ -491,6 +492,13 @@ export default function App() {
       // Initialize directories for freeware
       try {
         await invoke("init_lexsort_dirs", { edition: "freeware" });
+        // Fetch app version from backend
+        try {
+          const ver = await invoke<string>("get_app_version");
+          setAppVersion(ver);
+        } catch (verErr) {
+          console.error("Failed to load app version:", verErr);
+        }
         // Kick off update check in background (non-blocking)
         runUpdateCheck();
       } catch (e) {
@@ -784,7 +792,7 @@ export default function App() {
   const generateDiagnosticText = () => {
     return [
       `### VERA Personal AI — Diagnostic Report`,
-      `- **VERA Version**: 1.1.0 (Freeware)`,
+      `- **VERA Version**: ${appVersion} (Freeware)`,
       `- **OS Platform**: ${hardware?.platform || "Detecting..."}`,
       `- **RAM Detected**: ${hardware?.ram_gb !== undefined ? `${hardware.ram_gb} GB` : "Detecting..."}`,
       `- **Free Storage**: ${hardware?.free_storage_gb !== undefined ? `${hardware.free_storage_gb} GB` : "Detecting..."}`,
@@ -973,6 +981,9 @@ export default function App() {
               + Add Modules
             </button>
           </nav>
+          <div className="sidebar-footer" style={{ padding: "16px 12px", borderTop: "1px solid var(--border)", fontSize: "11px", color: "var(--text-muted)", textAlign: "center", fontStyle: "normal", fontWeight: 500, letterSpacing: "0.5px" }}>
+            v{appVersion} Freeware
+          </div>
         </aside>
 
         {/* Viewport */}

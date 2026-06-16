@@ -1,6 +1,6 @@
 # VERA — MASTER DEVELOPER HANDOFF (v3.0)
 
-**Project State:** Production-Ready (v1.1.2 Shipped & Compiled)  
+**Project State:** Production-Ready (v1.1.3 Shipped & Compiled)  
 **Parent Brand:** LexSort Inc.  
 **Tech Stack:** React 19 (TypeScript) + Rust (Tauri v2) + Ollama Local HTTP API  
 
@@ -158,16 +158,17 @@ cargo check
 ### 5.2. Release Workflows & Version Control
 The production release pipeline is managed by GitHub Actions in `.github/workflows/release.yml`.
 
-To release a new version (e.g., `v1.1.2`):
+To release a new version (e.g., `v1.1.3`):
 1. **Version Bump**: Update the version metadata inside:
    - [package.json](file:///Users/williamcommu/Desktop/JUST_ME_MEDIA_VAULT/02_ACTIVE_PROJECTS/Lexsort-personal-ai/lexsort-personal-ai/package.json)
    - [tauri.conf.json](file:///Users/williamcommu/Desktop/JUST_ME_MEDIA_VAULT/02_ACTIVE_PROJECTS/Lexsort-personal-ai/lexsort-personal-ai/src-tauri/tauri.conf.json)
+   - [Cargo.toml](file:///Users/williamcommu/Desktop/JUST_ME_MEDIA_VAULT/02_ACTIVE_PROJECTS/Lexsort-personal-ai/lexsort-personal-ai/src-tauri/Cargo.toml)
 2. **Download Links Sync**: Update the version strings in `website/download.html`, `website/js/download-detector.js`, and `netlify/functions/uptime-monitor.js`.
 3. **Commit & Push**: Commit the changes and push to `main`.
-4. **Push Git Tag**: Create and push a tag starting with `v*` (e.g. `v1.1.2`):
+4. **Push Git Tag**: Create and push a tag starting with `v*` (e.g. `v1.1.3`):
    ```bash
-   git tag v1.1.2
-   git push origin v1.1.2
+   git tag v1.1.3
+   git push origin v1.1.3
    ```
 This automatically triggers the compilation matrix, codesigns/notarizes the macOS package, builds the Windows MSI and Linux AppImage/DEB, and uploads them directly to the corresponding GitHub Release tag.
 
