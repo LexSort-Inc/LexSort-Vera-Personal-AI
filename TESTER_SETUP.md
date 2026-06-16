@@ -14,7 +14,7 @@ Discord Bot → POST /api/create-tester-checkout
         ↓
 Netlify Function → Create Stripe Checkout Session
         ↓
-User completes $5.99/mo checkout (14-day free trial)
+User completes $5.99 / month checkout (14-day free trial)
         ↓
 Stripe fires webhook → POST /api/stripe-webhook
         ↓

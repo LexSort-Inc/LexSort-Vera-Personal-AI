@@ -86,7 +86,7 @@ const CATEGORIES_MAP = {
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 /** Opens a URL: tries Tauri opener, falls back to an invisible anchor click */
-async function openExternalUrl(url: string) {
+export async function openExternalUrl(url: string) {
   try {
     const { openUrl } = await import("@tauri-apps/plugin-opener");
     await openUrl(url);

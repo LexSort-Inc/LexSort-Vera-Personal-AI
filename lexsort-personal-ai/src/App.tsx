@@ -3,7 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import "./app.css";
 import veraLogo from "./assets/vera-logo.jpg";
-import SupportPanel from "./SupportPanel";
+import SupportPanel, { openExternalUrl } from "./SupportPanel";
 import { UpdateStatusIndicator, UpdateStatus } from "./UpdateStatusIndicator";
 import { QuickOrganizer } from "./components/QuickOrganizer";
 
@@ -1346,11 +1346,13 @@ export default function App() {
                       </div>
                       <a
                         href="https://lexsort.com/vera-pro.html"
-                        target="_blank"
-                        rel="noopener noreferrer"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          openExternalUrl("https://lexsort.com/vera-pro.html");
+                        }}
                         className="pro-preview__upgrade-btn"
                       >
-                        Upgrade to Pro — $5.99/mo
+                        Upgrade to Pro — $5.99 / month
                       </a>
                     </div>
                   </div>

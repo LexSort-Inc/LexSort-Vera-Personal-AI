@@ -6,6 +6,17 @@
   "permissions": [
     "core:default",
     "opener:default",
-    "opener:allow-open-url"
+    {
+      "identifier": "opener:allow-open-url",
+      "scope": {
+        "allow": [
+          { "url": "https://lexsort.com/*" },
+          { "url": "https://discord.gg/*" },
+          { "url": "https://www.reddit.com/*" },
+          { "url": "https://github.com/*" },
+          { "url": "https://buy.stripe.com/*" }
+        ]
+      }
+    }
   ]
 }
