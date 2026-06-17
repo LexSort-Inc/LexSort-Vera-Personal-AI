@@ -305,6 +305,31 @@ export function QuickOrganizer({ activeModel = "llama3.2:3b", serverPort = 11434
         setShowChatOverlay(true);
     };
 
+    // Month grid: builds a full Mon-Sun cell array for the current month
+    const getMonthGrid = () => {
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth();
+        const firstDay = new Date(year, month, 1);
+        const lastDay = new Date(year, month + 1, 0);
+        let startOffset = firstDay.getDay(); // 0=Sun
+        if (startOffset === 0) startOffset = 7;
+        startOffset -= 1; // Monday = offset 0
+        const cells: { date: Date; isCurrentMonth: boolean }[] = [];
+        for (let i = 0; i < startOffset; i++) {
+            cells.push({ date: new Date(year, month, -startOffset + i + 1), isCurrentMonth: false });
+        }
+        for (let i = 1; i <= lastDay.getDate(); i++) {
+            cells.push({ date: new Date(year, month, i), isCurrentMonth: true });
+        }
+        const rem = cells.length % 7;
+        if (rem !== 0) {
+            for (let i = 1; i <= 7 - rem; i++) {
+                cells.push({ date: new Date(year, month + 1, i), isCurrentMonth: false });
+            }
+        }
+        return cells;
+    };
+
     return (
         <div className="qo-shell">
             {/* Header */}
@@ -567,35 +592,39 @@ export function QuickOrganizer({ activeModel = "llama3.2:3b", serverPort = 11434
                             </div>
                         </div>
                     ) : (
-                        // Month View (Simple list grouped by date for this month)
+                        // Month View — proper 7-column calendar grid
                         <div className="qo-calendar-month-view">
-                            <div className="qo-month-list">
-                                {Array.from({ length: 30 }).map((_, i) => {
-                                    const d = new Date(currentDate.getFullYear(), currentDate.getMonth(), i + 1);
-                                    const dayEvents = getEventsForDate(d);
-                                    if (dayEvents.length === 0) return null;
+                            <div className="qo-month-grid-header">
+                                {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(d => (
+                                    <div key={d} className="qo-month-grid-header-cell">{d}</div>
+                                ))}
+                            </div>
+                            <div className="qo-month-grid-body">
+                                {getMonthGrid().map((cell, idx) => {
+                                    const dayEvents = cell.isCurrentMonth ? getEventsForDate(cell.date) : [];
+                                    const isToday = cell.isCurrentMonth && formatDateKey(cell.date) === formatDateKey(new Date());
+                                    const visible = dayEvents.slice(0, 3);
+                                    const moreCount = dayEvents.length - visible.length;
                                     return (
-                                        <div key={i} className="qo-month-day-row">
-                                            <div className="qo-month-day-label">
-                                                <strong>{d.getDate()}</strong>
-                                                <span>{d.toLocaleDateString('en-US', { weekday: 'short' })}</span>
-                                            </div>
-                                            <div className="qo-month-day-events">
-                                                {dayEvents.map(event => (
-                                                    <div
-                                                        key={event.id}
-                                                        className={`qo-month-event-pill qo-calendar-event-pill--${event.category || 'task'} ${event.completed ? 'completed' : ''}`}
-                                                        onClick={() => event.category !== 'system' && (setEditingTask(event), setShowEditModal(true))}
-                                                    >
-                                                        {event.start_time && !event.all_day && (
-                                                            <span style={{ marginRight: '6px', fontWeight: 600 }}>
-                                                                {new Date(event.start_time).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
-                                                            </span>
-                                                        )}
-                                                        {event.title}
-                                                    </div>
-                                                ))}
-                                            </div>
+                                        <div
+                                            key={idx}
+                                            className={`qo-month-grid-cell${!cell.isCurrentMonth ? ' outside' : ''}${isToday ? ' today' : ''}`}
+                                            onClick={() => { setCurrentDate(cell.date); setView('day'); }}
+                                        >
+                                            <div className="qo-month-grid-day-num">{cell.date.getDate()}</div>
+                                            {visible.map(event => (
+                                                <div
+                                                    key={event.id}
+                                                    className={`qo-month-grid-event qo-calendar-event-pill--${event.category || 'task'}${event.completed ? ' completed' : ''}`}
+                                                    onClick={e => {
+                                                        e.stopPropagation();
+                                                        if (event.category !== 'system') { setEditingTask(event); setShowEditModal(true); }
+                                                    }}
+                                                >
+                                                    {event.title}
+                                                </div>
+                                            ))}
+                                            {moreCount > 0 && <div className="qo-month-grid-more">+{moreCount} more</div>}
                                         </div>
                                     );
                                 })}

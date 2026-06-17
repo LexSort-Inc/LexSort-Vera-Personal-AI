@@ -2281,63 +2281,112 @@ html, body, #root {
   border-right: none;
 }
 
-/* Month list view */
+/* Month grid view */
 .qo-calendar-month-view {
   flex: 1;
-  overflow-y: auto;
+  overflow: hidden;
   border: 1px solid var(--border);
   border-radius: 12px;
   background: var(--bg-surface);
-  padding: 16px;
-}
-
-.qo-month-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
 }
 
-.qo-month-day-row {
+.qo-month-grid-header {
   display: grid;
-  grid-template-columns: 80px 1fr;
-  padding: 10px 0;
+  grid-template-columns: repeat(7, 1fr);
   border-bottom: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.15);
+  flex-shrink: 0;
 }
 
-.qo-month-day-row:last-child {
-  border-bottom: none;
-}
-
-.qo-month-day-label {
-  display: flex;
-  flex-direction: column;
-}
-
-.qo-month-day-label strong {
-  font-size: 16px;
-  color: var(--text);
-}
-
-.qo-month-day-label span {
-  font-size: 11px;
+.qo-month-grid-header-cell {
+  padding: 8px 0;
+  text-align: center;
+  font-size: 10px;
+  font-weight: 700;
   color: var(--text-muted);
-  text-transform: uppercase;
+  border-right: 1px solid var(--border);
 }
 
-.qo-month-day-events {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+.qo-month-grid-header-cell:last-child {
+  border-right: none;
 }
 
-.qo-month-event-pill {
-  padding: 6px 10px;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 600;
+.qo-month-grid-body {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  flex: 1;
+  overflow-y: auto;
+  align-content: start;
+}
+
+.qo-month-grid-cell {
+  min-height: 90px;
+  padding: 6px;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
   cursor: pointer;
+  transition: background 0.15s;
+  overflow: hidden;
+}
+
+.qo-month-grid-cell:nth-child(7n) {
+  border-right: none;
+}
+
+.qo-month-grid-cell:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.qo-month-grid-cell.outside {
+  opacity: 0.25;
+  pointer-events: none;
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.qo-month-grid-cell.today .qo-month-grid-day-num {
+  background: var(--accent);
+  color: #fff;
+  border-radius: 50%;
+}
+
+.qo-month-grid-day-num {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+  width: 22px;
+  height: 22px;
   display: flex;
   align-items: center;
+  justify-content: center;
+}
+
+.qo-month-grid-event {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 5px;
+  border-radius: 3px;
+  border-left: 2px solid var(--accent);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 2px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.qo-month-grid-event:hover {
+  opacity: 0.8;
+}
+
+.qo-month-grid-more {
+  font-size: 9px;
+  color: var(--text-muted);
+  font-weight: 600;
+  margin-top: 2px;
+  padding-left: 2px;
 }
 
 /* Right Sidebar Pane */

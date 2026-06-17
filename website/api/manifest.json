@@ -1,11 +1,11 @@
 {
   "manifest_version": "1",
-  "generated_at": "2026-06-17T08:50:00Z",
+  "generated_at": "2026-06-17T10:00:00Z",
   "core": {
     "freeware": {
-      "version": "1.1.5",
+      "version": "1.1.6",
       "min_os": { "macos": "12.0", "windows": "10" },
-      "release_notes": "CI migrated to tauri-action@v0 (all 4 platforms). In-app update confirmed working on all platforms."
+      "release_notes": "Quick Organizer month view replaced with a proper 7-column Mon–Sun calendar grid. Fixed Windows native build (better-sqlite3 MSVC 2022 env). Website updated with real app screenshots and expanded FAQ."
     },
     "pro": {
       "version": "1.0.5",
