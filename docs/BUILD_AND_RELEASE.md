@@ -84,38 +84,32 @@ CI will: compile all targets → codesign macOS (via Apple secrets) → notarize
 
 ## Website Deployment (Netlify)
 
-> ⚠️ **CRITICAL:** The Netlify site for `lexsort.com` is NOT connected to GitHub.
-> Git pushes do NOT auto-deploy the website. You must deploy manually after every `website/` change.
+> ✅ **Netlify is connected to GitHub** (`Lexsort-Core/LexSort-Vera-Personal-AI`, branch `main`, publish dir `website/`).
+> Every `git push origin main` automatically deploys lexsort.com. No manual deploy needed.
 
 **Site ID:** `charming-zuccutto-05cf6a`  
-**Publish dir:** `website/` (defined in `netlify.toml`)
+**Publish dir:** `website/` (defined in `netlify.toml`)  
+**Netlify dashboard:** https://app.netlify.com/projects/charming-zuccutto-05cf6a/deploys
 
-### Deploy command
+### How it works
+
+When you push any commit to `main` that touches the `website/` directory, Netlify detects the change and auto-deploys within ~30 seconds. The deploy log is visible in the dashboard above.
+
+### Manual fallback (if auto-deploy ever fails)
 
 ```bash
-# From the repo root (netlify.toml sets publish = "website" automatically)
-netlify deploy --prod
-
-# If netlify is not in PATH (common in AI/terminal sessions), install first:
-npm install -g netlify-cli
-netlify login   # opens browser to authenticate (one-time)
+# From the repo root
 netlify deploy --prod
 ```
 
-### Manual fallback (no CLI needed)
-1. Open https://app.netlify.com/projects/charming-zuccutto-05cf6a/deploys  
-2. Drag and drop the `website/` folder into the deploy zone
+Or drag the `website/` folder to the deploy zone at:  
+https://app.netlify.com/projects/charming-zuccutto-05cf6a/deploys
 
-### What triggers a website deploy?
-Any change to files in `website/` — HTML pages, CSS, screenshots, `api/manifest.json` — must be followed by a manual deploy. This includes:
-- New screenshot assets in `website/assets/screenshots/`
-- FAQ or page content changes
-- Manifest version bumps (so in-app updater picks up new version)
-
-### Connecting Netlify to GitHub (recommended future action)
-To enable auto-deploy, go to:  
-https://app.netlify.com/projects/charming-zuccutto-05cf6a/configuration/deploys  
-Under "Build settings" → connect to the `Lexsort-Core/LexSort-Vera-Personal-AI` repo, branch `main`, publish dir `website`.
+### What to deploy after a version bump
+After every release, the following files in `website/` will already be included in the auto-deploy:
+- `website/api/manifest.json` — tells existing users there’s a new version
+- `website/download.html` — updated download links
+- Any new screenshots in `website/assets/screenshots/`
 
 ---
 

@@ -40,19 +40,18 @@ git tag v1.1.6 && git push origin v1.1.6
 ```
 
 ### Deploy the website to lexsort.com
-> ⚠️ Netlify is NOT connected to GitHub auto-deploy.
-> Every change to `website/` must be manually deployed.
+> ✅ **Netlify is now connected to GitHub (`main` branch, `website/` publish dir).**
+> Every `git push origin main` automatically deploys the live site. No manual step needed.
 
 ```bash
-# From repo root (uses netlify.toml: publish = "website")
-netlify deploy --prod
-# If 'netlify' is not in PATH, install it first:
-npm install -g netlify-cli
+# To deploy: just push to main as usual
+git push origin main
+# Netlify picks it up automatically within ~30 seconds
 ```
 
 **Site ID:** `charming-zuccutto-05cf6a` (lexsort.com)  
-**Fallback:** Drag the `website/` folder to:  
-https://app.netlify.com/projects/charming-zuccutto-05cf6a/deploys
+**Netlify dashboard:** https://app.netlify.com/projects/charming-zuccutto-05cf6a/deploys  
+**Manual fallback:** Drag the `website/` folder to the deploy zone in the dashboard above.
 
 
 ---
