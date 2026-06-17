@@ -18,25 +18,15 @@
       "version": "1.0.0",
       "min_pro_version": "1.0.0",
       "size_bytes": 204800,
-      "release_notes": "Initial release."
-    },
-    "organizer": {
-      "version": "1.0.0",
-      "min_pro_version": "1.0.0",
-      "size_bytes": 153600,
-      "release_notes": "Initial release."
+      "release_notes": "Initial release.",
+      "supported_platforms": ["macos_aarch64", "macos_x86_64", "windows_x86_64", "linux_x86_64"]
     },
     "taxmate": {
       "version": "1.0.0",
       "min_pro_version": "1.0.0",
       "size_bytes": 307200,
-      "release_notes": "Initial release."
-    },
-    "guardian_watch": {
-      "version": "1.0.0",
-      "min_pro_version": "1.0.0",
-      "size_bytes": 102400,
-      "release_notes": "Initial release."
+      "release_notes": "Initial release.",
+      "supported_platforms": ["macos_aarch64", "macos_x86_64", "windows_x86_64", "linux_x86_64"]
     }
   }
 }
