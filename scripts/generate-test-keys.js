@@ -8,8 +8,14 @@ require('dotenv').config({ path: '.env.local' });
 const crypto = require('crypto');
 const { generateLicenseKey } = require('../netlify/functions/license-helper');
 
-// Default to the developer's active private key hex for ease of local development
-const PRIVATE_KEY_HEX = process.env.LICENSE_SIGNING_PRIVATE_KEY || '302e020100300506032b657004220420784c18c0e54397af5f30648b213d64a2a907be7f9fdf7850c9129e1eae4373af';
+// LICENSE_SIGNING_PRIVATE_KEY must be set in .env.local — never hardcode it
+const PRIVATE_KEY_HEX = process.env.LICENSE_SIGNING_PRIVATE_KEY;
+if (!PRIVATE_KEY_HEX) {
+  console.error('\n❌ LICENSE_SIGNING_PRIVATE_KEY is not set.');
+  console.error('   Create a .env.local file and add: LICENSE_SIGNING_PRIVATE_KEY=<your_hex_key>');
+  console.error('   See docs/SECURITY.md for how to obtain the signing key.\n');
+  process.exit(1);
+}
 process.env.LICENSE_SIGNING_PRIVATE_KEY = PRIVATE_KEY_HEX;
 
 const count = parseInt(process.argv[2] || '3', 10);

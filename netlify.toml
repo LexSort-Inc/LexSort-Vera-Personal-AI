@@ -1,6 +1,10 @@
 [build]
   publish = "website"
 
+[build.environment]
+  SECRETS_SCAN_OMIT_PATHS = "scripts/"
+
+
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"
