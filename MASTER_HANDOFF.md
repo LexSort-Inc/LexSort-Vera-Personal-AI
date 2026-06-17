@@ -2,7 +2,7 @@
 
 **Project:** LexSort VERA — Local-First Private AI Desktop App  
 **Parent Brand:** LexSort Inc.  
-**Current Versions:** VERA Freeware v1.1.6 · VERA Pro v1.0.5 (CI tags v1.0.6/v1.0.7 are test-only)  
+**Current Versions:** VERA Freeware v1.1.6 · VERA Pro v1.0.5 (CI test tags up to v1.0.11 are workflow-fix-only)  
 **Stack:** React 19 (TypeScript) + Rust (Tauri v2) + Ollama  
 **Launch Date:** July 1, 2026  
 
@@ -78,35 +78,45 @@ The site is already linked (`.netlify/state.json` in the repo). Logged in as wil
 
 ## ⚠️ Outstanding Items (as of Jun 17, 2026)
 
-### 1. Windows CI — better-sqlite3 native compile failure (IN PROGRESS)
+### 1. Windows CI — NEEDS VERIFICATION when GitHub Actions limits reset
 
-Both repos had `windows-latest` CI failing: `Could not find any Visual Studio installation`.
+All fixes are committed to main on the Pro repo. v1.0.11 was the last test tag but couldn't run due to GitHub Actions minute limits.
 
-**Freeware fix** (`.github/workflows/release.yml`):
-- Moved MSVC env var setup BEFORE `npm ci` ✅ committed to main
-- Not yet verified — push a new freeware tag to test
+**What was fixed in `.github/workflows/release.yml` (Pro repo):**
+- Per-platform Node.js version in matrix: macOS/Linux = Node 20, Windows = Node 24
+- `npm install -g node-gyp@latest` step added BEFORE `npm ci` (Windows only)
+- `GYP_MSVS_VERSION=2022` and `npm_config_msvs_version=2022` env vars on the `npm ci` step
 
-**Pro fix** (`.github/workflows/release.yml`):
-- v1.0.6 tag: GITHUB_ENV approach → failed
-- v1.0.7 tag: env vars set directly on the `npm ci` step → **currently running in CI**
-- Check: https://github.com/Lexsort-Core/Lexsort-Vera-Pro/actions
-- If v1.0.7 still fails, next approach: use `better-sqlite3` prebuilt binaries or switch to `sql.js`
+**What was fixed in `lexsort-vera-pro/src-tauri/Cargo.toml`:**
+- Added `winreg = "0.52"` as `[target.'cfg(target_os = "windows")'.dependencies]`
+- This crate was used in `src/lib.rs:1046` for Windows registry machine ID but was missing from Cargo.toml
 
-### 2. LICENSE_SIGNING_PRIVATE_KEY — rotation needed
+**To verify:** When limits reset, push a new Pro tag and confirm Windows passes.  
+**Actions URL:** https://github.com/Lexsort-Core/Lexsort-Vera-Pro/actions
 
-The old Ed25519 private key was hardcoded in `scripts/generate-test-keys.js` as a fallback and was caught by Netlify's secret scanner. It is in **git history**.
+### 2. Freeware Windows CI — NEEDS VERIFICATION
 
-**To rotate (do when convenient, not urgent):**
+The freeware repo `.github/workflows/release.yml` was also updated (env vars before npm ci).
+The freeware does NOT use `better-sqlite3` so the npm issue is less likely, but verify on next freeware tag push.
+
+**Note:** The freeware workflow was NOT updated to per-platform node-version yet.
+If freeware Windows CI also fails, apply the same per-platform node fix.
+
+### 3. LICENSE_SIGNING_PRIVATE_KEY — rotation needed
+
+The old Ed25519 private key was in `scripts/generate-test-keys.js` and is now in git history.
+
+**To rotate (do when convenient):**
 1. Generate new Ed25519 keypair
 2. Update `LICENSE_SIGNING_PRIVATE_KEY` in Netlify env vars (dashboard)
-3. Update the matching public key in the Tauri app source
+3. Update matching public key in Tauri app source
 4. Rebuild + release new version
 > ⚠️ Rotating breaks all existing Pro licenses — coordinate timing carefully.
 
-### 3. Pro version files not bumped
+### 4. Pro version files not bumped
 
-CI tags v1.0.6 and v1.0.7 were test-only. Version files in Pro repo still show v1.0.5.  
-After Windows CI is confirmed passing, bump `tauri.conf.json`, `package.json`, `Cargo.toml` → push proper release tag.
+CI tags v1.0.6 through v1.0.11 were workflow-fix-only. Pro version files still show **v1.0.5**.  
+After Windows CI is confirmed passing, bump `tauri.conf.json`, `package.json`, `Cargo.toml` to correct version → push proper release tag.
 
 ---
 
@@ -122,8 +132,9 @@ Lexsort-personal-ai/          # Freeware repo (public)
 └── docs/                     # This doc set
 
 Lexsort-Vera-Pro/             # Pro repo (private)
-├── lexsort-vera-pro/         # Tauri app (React + Rust)
-└── .github/workflows/        # CI/CD release pipeline
+├── lexsort-vera-pro/         # Tauri app (React + Rust) 
+│   └── src-tauri/Cargo.toml  # ← winreg = "0.52" added Jun 17
+└── .github/workflows/        # CI/CD — per-platform Node versions, node-gyp pre-install
 ```
 
 ---
