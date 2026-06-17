@@ -84,32 +84,27 @@ CI will: compile all targets → codesign macOS (via Apple secrets) → notarize
 
 ## Website Deployment (Netlify)
 
-> ✅ **Netlify is connected to GitHub** (`Lexsort-Core/LexSort-Vera-Personal-AI`, branch `main`, publish dir `website/`).
-> Every `git push origin main` automatically deploys lexsort.com. No manual deploy needed.
+The website is deployed via **Netlify CLI** — `git push` to GitHub does NOT auto-deploy.
+This is the proven working method. Do not change it.
 
 **Site ID:** `charming-zuccutto-05cf6a`  
 **Publish dir:** `website/` (defined in `netlify.toml`)  
 **Netlify dashboard:** https://app.netlify.com/projects/charming-zuccutto-05cf6a/deploys
 
-### How it works
-
-When you push any commit to `main` that touches the `website/` directory, Netlify detects the change and auto-deploys within ~30 seconds. The deploy log is visible in the dashboard above.
-
-### Manual fallback (if auto-deploy ever fails)
+### Deploy command
 
 ```bash
-# From the repo root
+# From the repo root (netlify.toml sets publish = "website" automatically)
 netlify deploy --prod
 ```
 
-Or drag the `website/` folder to the deploy zone at:  
-https://app.netlify.com/projects/charming-zuccutto-05cf6a/deploys
+The CLI uploads only the `website/` static folder. It does NOT trigger a build or touch the Netlify Functions.
 
-### What to deploy after a version bump
-After every release, the following files in `website/` will already be included in the auto-deploy:
-- `website/api/manifest.json` — tells existing users there’s a new version
-- `website/download.html` — updated download links
-- Any new screenshots in `website/assets/screenshots/`
+### When to deploy
+After any commit that changes files in `website/`:
+- HTML page edits (faq, freeware, vera-pro, download pages)
+- New screenshot assets in `website/assets/screenshots/`
+- `website/api/manifest.json` version bump (triggers in-app update for users)
 
 ---
 
