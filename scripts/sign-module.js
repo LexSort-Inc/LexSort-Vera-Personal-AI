@@ -1,0 +1,98 @@
+#!/usr/bin/env node
+/**
+ * sign-module.js — Signs a VERA module directory with Ed25519.
+ *
+ * Usage:
+ *   node scripts/sign-module.js <module-dir>
+ *
+ * Requirements:
+ *   MODULE_SIGNING_PRIVATE_KEY env var — 96-char hex (same key as LICENSE_SIGNING_PRIVATE_KEY)
+ *
+ * What it does:
+ *   1. Collects all files in <module-dir>/dist/ + manifest.json (sorted, deterministic)
+ *   2. SHA-256 hashes their contents in order
+ *   3. Signs the hash with Ed25519
+ *   4. Writes <module-dir>/dist/signature.sig (64 raw bytes)
+ */
+
+const fs = require('fs');
+const path = require('path');
+const crypto = require('crypto');
+
+const moduleDir = process.argv[2];
+if (!moduleDir) {
+  console.error('Usage: node sign-module.js <module-dir>');
+  process.exit(1);
+}
+
+const privateKeyHex = process.env.MODULE_SIGNING_PRIVATE_KEY;
+if (!privateKeyHex || privateKeyHex.length !== 96) {
+  console.error('Error: MODULE_SIGNING_PRIVATE_KEY env var must be a 96-char hex string.');
+  console.error('Use: cd scripts && node generate-test-keys.js to generate a keypair.');
+  process.exit(1);
+}
+
+// Convert 96-char hex to the 48-byte seed used by Ed25519
+// The first 32 bytes are the private key seed, last 32 are the public key
+const keyBytes = Buffer.from(privateKeyHex, 'hex');
+const seed = keyBytes.slice(0, 32); // Ed25519 seed
+
+// Collect files to sign: dist/* + manifest.json
+const distDir = path.join(moduleDir, 'dist');
+const manifestPath = path.join(moduleDir, 'manifest.json');
+
+if (!fs.existsSync(distDir)) {
+  console.error(`Error: dist/ directory not found in ${moduleDir}. Run npm run build first.`);
+  process.exit(1);
+}
+
+function collectFiles(dir, baseDir) {
+  const results = [];
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
+  for (const entry of entries) {
+    const fullPath = path.join(dir, entry.name);
+    if (entry.name === 'signature.sig') continue; // Skip existing sig
+    if (entry.isDirectory()) {
+      results.push(...collectFiles(fullPath, baseDir));
+    } else {
+      results.push(fullPath);
+    }
+  }
+  return results;
+}
+
+const filesToSign = [
+  manifestPath,
+  ...collectFiles(distDir, distDir),
+].sort(); // Deterministic order
+
+console.log(`Signing ${filesToSign.length} files:`);
+filesToSign.forEach(f => console.log(`  ${path.relative(moduleDir, f)}`));
+
+// Hash all file contents
+const hash = crypto.createHash('sha256');
+for (const filePath of filesToSign) {
+  const content = fs.readFileSync(filePath);
+  hash.update(content);
+}
+const digest = hash.digest();
+
+// Sign with Ed25519
+const privateKey = crypto.createPrivateKey({
+  key: Buffer.concat([
+    Buffer.from('302e020100300506032b657004220420', 'hex'), // DER header for Ed25519 private key
+    seed,
+  ]),
+  format: 'der',
+  type: 'pkcs8',
+});
+
+const signature = crypto.sign(null, digest, privateKey);
+
+// Write signature.sig to dist/
+const sigPath = path.join(distDir, 'signature.sig');
+fs.writeFileSync(sigPath, signature);
+
+console.log(`\n✅ Signature written to: ${sigPath}`);
+console.log(`   Signature length: ${signature.length} bytes`);
+console.log(`   Files signed: ${filesToSign.length}`);
