@@ -41,15 +41,26 @@ git tag v1.1.6 && git push origin v1.1.6
 
 ### Deploy the website to lexsort.com
 
-The website is deployed via **Netlify CLI** (`netlify deploy --prod`). GitHub pushes do NOT auto-deploy.
+> ⚠️ **GitHub is NOT connected to Netlify and must NEVER be connected.**
+> GitHub auto-deploy causes build failures (Netlify tries to bundle Stripe functions
+> which don't resolve on Netlify's servers). CLI-only is the correct workflow.
 
+**Step 1 — Ensure netlify-cli is installed (one-time):**
 ```bash
-# From repo root (netlify.toml sets publish = "website" automatically)
-netlify deploy --prod
+npm install -g netlify-cli
 ```
 
+**Step 2 — Deploy:**
+```bash
+# From repo root
+netlify deploy --prod --dir=website
+```
+
+The site is already linked (`.netlify/state.json` in the repo). No login needed after first install.
+
 **Site ID:** `charming-zuccutto-05cf6a` (lexsort.com)  
-**Netlify dashboard:** https://app.netlify.com/projects/charming-zuccutto-05cf6a/deploys
+**Netlify dashboard:** https://app.netlify.com/projects/charming-zuccutto-05cf6a/deploys  
+**If unlinking happens:** `netlify link --id charming-zuccutto-05cf6a`
 
 
 ---

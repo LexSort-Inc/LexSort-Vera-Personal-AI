@@ -84,21 +84,36 @@ CI will: compile all targets → codesign macOS (via Apple secrets) → notarize
 
 ## Website Deployment (Netlify)
 
-The website is deployed via **Netlify CLI** — `git push` to GitHub does NOT auto-deploy.
-This is the proven working method. Do not change it.
+> ❌ **DO NOT connect Netlify to GitHub.** GitHub auto-deploy triggers a build that
+> fails because Netlify tries to bundle the Stripe serverless functions, which
+> cannot resolve the `stripe` npm dependency on Netlify's build servers.
+> **CLI-only is the correct and proven deployment method.**
 
 **Site ID:** `charming-zuccutto-05cf6a`  
-**Publish dir:** `website/` (defined in `netlify.toml`)  
-**Netlify dashboard:** https://app.netlify.com/projects/charming-zuccutto-05cf6a/deploys
+**Netlify dashboard:** https://app.netlify.com/projects/charming-zuccutto-05cf6a/deploys  
+**Site is already linked** via `.netlify/state.json` in the repo.
 
-### Deploy command
+### One-time setup (if netlify-cli is not installed)
 
 ```bash
-# From the repo root (netlify.toml sets publish = "website" automatically)
-netlify deploy --prod
+npm install -g netlify-cli
+# Verify you're logged in:
+netlify status
+# If not logged in:
+netlify login
+# If site is unlinked:
+netlify link --id charming-zuccutto-05cf6a
 ```
 
-The CLI uploads only the `website/` static folder. It does NOT trigger a build or touch the Netlify Functions.
+### Deploy command (run after every website change)
+
+```bash
+# From the repo root — deploys only the website/ static folder + functions
+netlify deploy --prod --dir=website
+```
+
+The CLI uploads `website/` as static files and bundles `netlify/functions/` locally
+(where `node_modules` exist). This is why it works but GitHub auto-deploy does not.
 
 ### When to deploy
 After any commit that changes files in `website/`:
