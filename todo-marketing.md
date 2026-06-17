@@ -50,14 +50,14 @@ The freeware sub-page ([website/freeware.html](freeware.html)) is already deploy
 - [x] **Feature Comparison** — Current free features vs. upcoming Pro add-ons and Core workstations:
   - **VERA Pro**: Auto Emailer, Guardian Watch, LexSort-GO Mobile
   - **LexSort Core**: Finance Module (Personal/Business Organizer) & Tax Module (Tax Prep & Credit Discovery)
-- [x] **Community Integration** — Discord, Reddit, X (@LexSortAI - temporarily removed due to suspension) linked
+- [x] **Community Integration** — Discord, Reddit, X (@LexSortAI) linked
 
 ---
 
 ## 🚀 Phase 4 — Execution Checklist
 
 - [ ] **Cross-Promotion Setup**
-  - Update the bio and links on the official X profile [@LexSortAI](https://x.com/LexSortAI) to point to the Freeware Foundation landing page (suspended, appeal pending).
+  - Update the bio and links on the official X profile [@LexSortAI](https://x.com/LexSortAI) to point to the Freeware Foundation landing page.
 - [x] **GitHub-First Growth Funnel** *(CI/CD active — binaries available once build completes)*
   - [x] Confirm Windows and Linux binaries appear on [GitHub Releases](https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/releases).
   - [x] Update download.html platform links when all binaries are confirmed.

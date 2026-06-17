@@ -1,6 +1,6 @@
 # VERA — MASTER DEVELOPER HANDOFF (v3.0)
 
-**Project State:** Production-Ready (v1.1.3 Shipped & Compiled)  
+**Project State:** Production-Ready (v1.1.4 Shipped & Compiled)  
 **Parent Brand:** LexSort Inc.  
 **Tech Stack:** React 19 (TypeScript) + Rust (Tauri v2) + Ollama Local HTTP API  
 
@@ -158,20 +158,98 @@ cargo check
 ### 5.2. Release Workflows & Version Control
 The production release pipeline is managed by GitHub Actions in `.github/workflows/release.yml`.
 
-To release a new version (e.g., `v1.1.3`):
+To release a new version (e.g., `v1.1.4`):
 1. **Version Bump**: Update the version metadata inside:
    - [package.json](file:///Users/williamcommu/Desktop/JUST_ME_MEDIA_VAULT/02_ACTIVE_PROJECTS/Lexsort-personal-ai/lexsort-personal-ai/package.json)
    - [tauri.conf.json](file:///Users/williamcommu/Desktop/JUST_ME_MEDIA_VAULT/02_ACTIVE_PROJECTS/Lexsort-personal-ai/lexsort-personal-ai/src-tauri/tauri.conf.json)
    - [Cargo.toml](file:///Users/williamcommu/Desktop/JUST_ME_MEDIA_VAULT/02_ACTIVE_PROJECTS/Lexsort-personal-ai/lexsort-personal-ai/src-tauri/Cargo.toml)
 2. **Download Links Sync**: Update the version strings in `website/download.html`, `website/js/download-detector.js`, and `netlify/functions/uptime-monitor.js`.
 3. **Commit & Push**: Commit the changes and push to `main`.
-4. **Push Git Tag**: Create and push a tag starting with `v*` (e.g. `v1.1.3`):
+4. **Push Git Tag**: Create and push a tag starting with `v*` (e.g. `v1.1.4`):
    ```bash
-   git tag v1.1.3
-   git push origin v1.1.3
+   git tag v1.1.4
+   git push origin v1.1.4
    ```
 This automatically triggers the compilation matrix, codesigns/notarizes the macOS package, builds the Windows MSI and Linux AppImage/DEB, and uploads them directly to the corresponding GitHub Release tag.
 
+## 🔄 6. Hybrid Update System (Approve-then-Auto)
+
+VERA uses a custom-built, lightweight hybrid update flow designed to preserve the application's glassmorphic visual style, bypass GitHub API rate limits, and safely launch installers without file-lock collisions.
+
+### 6.1. Update Discovery
+- The app checks for updates on launch by calling the `check_for_updates` Tauri command.
+- Rather than querying GitHub's API (which enforces a strict rate-limit of 60 requests/hour), it pulls from a global static CDN manifest: `https://lexsort.com/api/manifest.json`.
+
+### 6.2. Background Downloading & Staging
+- When an update is available, the settings tab provides an **"Approve & Download"** button.
+- Clicking this triggers `approve_core_update(version)`. The Rust backend spawns a Tokio task to download the platform-specific installer (DMG, MSI, or AppImage) from GitHub Releases directly to `~/.lexsort/updates/`.
+- Download progress is streamed to React in real-time via the `core_update_progress` event. Once finished, the path is stored in `~/.lexsort/installed.json` under `update_downloaded_path`.
+
+### 6.3. Intercept on Exit (Auto-Install)
+- The React frontend registers an `onCloseRequested` intercept listener using Tauri's `getCurrentWindow()` API.
+- If a downloaded update is waiting (verified via `get_pending_update_info`), close events are stopped (`event.preventDefault()`) and a custom, frosted-glass modal overlay is displayed.
+- The user can choose:
+  1. **Install & Restart**: Triggers `launch_installer_and_exit`, which runs the native platform shell command to execute the installer (e.g., `open` on macOS) and exits VERA immediately (`std::process::exit(0)`). Exiting immediately is critical as it drops SQLite and port locks, allowing the installer to run without conflict.
+  2. **Later**: Bypasses the intercept flag and closes the app immediately. The update will be detected and prompt again next time the app is launched and exited.
+  3. **Cancel**: Dismisses the exit dialog to resume using the app.
+
+## 🧠 7. Zero-Config AI Engine Onboarding (Auto-Install Ollama)
+
+VERA includes a zero-config, portable onboarding system that automatically handles installing and configuring the local AI engine (Ollama) if it is missing from the user's system.
+
+### 7.1. Detection & Priority
+- During startup (`bootSequence`), VERA executes `check_engine_installed`.
+- The command checks for the `ollama` executable. It checks a local portable path `~/.lexsort/bin/ollama` first, before scanning system candidate folders.
+- It executes `ollama --version` to verify the binary is active. If missing, it transitions VERA to `PHASE.ENGINE_SETUP`, halting boot.
+
+### 7.2. Sandboxed Installer Setup
+- Clicking "Download & Configure Engine" runs `setup_engine`, spawning a background task to download and configure the platform binary:
+  - **macOS**: Downloads `Ollama-darwin.zip`. Spawns system `unzip` command to extract and copy `Ollama.app/Contents/Resources/ollama` to `~/.lexsort/bin/ollama`.
+  - **Windows**: Downloads `ollama-windows-amd64.zip` (portable). Spawns `powershell` with `Expand-Archive` to extract `ollama.exe` to `~/.lexsort/bin/ollama`. This runs without UAC prompts.
+  - **Linux**: Downloads standalone binary `ollama-linux-amd64` directly to `~/.lexsort/bin/ollama`.
+- On macOS and Linux, the backend sets Unix permission mode `0o755` on the copied binary to make it executable.
+- Immediately after copying, the downloaded archive and extracted temporary files are deleted to free disk space.
+
+### 7.3. Signature & Retry Resiliency
+- The engine download task verifies the signature of the downloaded package against embedded SHA-256 hashes:
+  - macOS: `56fd727e2c2cd7388bcb3ad10ea50482bf3f326143a18814d0de38cabd7c08dd`
+  - Windows: `a095dce6739c4635e7f4b856c08d1429598d3eae5c632995653f5339e15b5933`
+  - Linux: `7641b21e9d0822ba44e494f5ed3d3796d9e9fcdf4dbb66064f8c34c865bbec0b`
+- If a hash mismatch or a connection interruption occurs, the downloader retries up to 3 times before returning an error state.
+
+---
+
+## 🔮 8. First-Launch Model Selection Onboarding
+
+VERA includes a comprehensive model selection onboarding system (`PHASE.MODEL_SELECTION`) triggered on first launch when no active model is configured in the backend registry.
+
+### 8.1. Discovery & Local Model Prioritization
+- During first launch, VERA queries `list_installed_models` on the backend to detect any previously installed Ollama models.
+- If local models are found, they are displayed first in a dedicated "Detected Local Models" section, marked with a green `Local` badge.
+- Selecting a detected local model and confirming skips the download phase (`PHASE.DOWNLOADING`) entirely, starting the local inference server and booting directly to the chat.
+
+### 8.2. Dropdown Recommendations & Bandwidth Awareness
+- Recommended models from `MODELS_LIST` (e.g., Qwen 2.5 14B, Llama 3.1 8B, Mistral 7B, Llama 3.2 3B, Phi-3 Mini) are presented in a select dropdown, showing their download sizes (e.g., `9.0 GB`) and detailed descriptions.
+- This lets users review the bandwidth requirements before triggering a download.
+
+### 8.3. RAM Capacity Warnings & Hard Blocks
+- VERA cross-references the selected model's minimum RAM requirement with the system RAM (`hardware.ram_gb`).
+- If a remote model's RAM requirement exceeds system capacity, VERA displays a prominent warning block and disables the "Confirm & Download" button to prevent out-of-memory crashes or bandwidth waste.
+- If a local model exceeds system RAM, a warning is shown to notify the user of potential lag, but the confirmation action remains enabled, honoring user preference since the model is already downloaded.
+
+### 8.4. Onboarding Skip Option
+- Users can choose "Skip Onboarding / Use Lightweight Default" at the bottom of the card.
+- This immediately configures `phi3:mini` as the active model and initiates the boot sequence, allowing power users or testers to quickly access the app with minimal setup.
+
+---
+
+## 📋 9. Future Roadmap & Build List
+
+### 9.1. Voice Input & Speech-to-Text (STT) Native Integration
+- **Status**: Hidden (feature flag `supported: false` enabled inside `useSpeechRecognition.ts` in both Freeware and Pro repositories).
+- **Issue**: Standard browser-level Web Speech API (`webkitSpeechRecognition` / `SpeechRecognition`) triggers a security crash (SIGABRT/SIGKILL) in WKWebView on macOS when running in development mode (`tauri dev`), unless the parent Terminal/IDE has microphone permission.
+- **Future Resolution**: Implement a native Rust-based audio capture layer using `cpal` or migrate to a local whisper.cpp model to make speech input robust, offline, and bypass OS browser permission issues.
+
 ---
 *VERA is a LexSort Inc. project.*  
-*All rights reserved.*  
+*All rights reserved.*    

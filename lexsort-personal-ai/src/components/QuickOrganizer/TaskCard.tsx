@@ -59,6 +59,7 @@ export function TaskCard({
                             value={title} 
                             onChange={e => setTitle(e.target.value)} 
                             placeholder="Task title"
+                            onKeyDown={e => e.key === 'Enter' && handleSave()}
                         />
                         <textarea 
                             className="qo-add-input"
@@ -66,6 +67,11 @@ export function TaskCard({
                             value={notes} 
                             onChange={e => setNotes(e.target.value)} 
                             placeholder="Add notes..."
+                            onKeyDown={e => {
+                                if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                                    handleSave();
+                                }
+                            }}
                         />
                         <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
                             <button className="qo-add-btn" onClick={handleSave}>Save</button>

@@ -1,11 +1,83 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import "./app.css";
 import veraLogo from "./assets/vera-logo.jpg";
 import SupportPanel, { openExternalUrl } from "./SupportPanel";
 import { UpdateStatusIndicator, UpdateStatus } from "./UpdateStatusIndicator";
 import { QuickOrganizer } from "./components/QuickOrganizer";
+import { useSpeechRecognition } from "./hooks/useSpeechRecognition";
+import { VeraModule } from "./types/module";
+import ModuleDrawer from "./components/ModuleDrawer";
+import FeedbackBanner from "./components/FeedbackBanner";
+import { ModuleErrorBoundary } from "./components/ModuleErrorBoundary";
+
+declare global {
+  interface Window {
+    registerVeraModule: (name: string, Component: React.ComponentType<any>) => void;
+  }
+}
+
+const MODULES_LIST: VeraModule[] = [
+  {
+    id: "quick-organizer",
+    name: "quick-organizer",
+    display_name: "Quick Organizer",
+    status: "installed",
+    icon: "📋",
+    description: "AI-assisted task management, daily scheduling, and voice quick-add. Included free.",
+    isFree: true
+  },
+  {
+    id: "emailer",
+    name: "emailer",
+    display_name: "ProMailer",
+    status: "installed",
+    icon: "✉️",
+    description: "Automated cold email outreach campaigns and lead generation engine."
+  },
+  {
+    id: "research-lab",
+    name: "research-lab",
+    display_name: "Research Lab",
+    status: "installed",
+    icon: "🧪",
+    description: "Local model benchmark, latency instrumentation, and semantic testbed."
+  },
+  {
+    id: "guardian-watch",
+    name: "guardian-watch",
+    display_name: "Guardian Watch",
+    status: "installed",
+    icon: "🛡️",
+    description: "Real-time system health monitor and AI diagnostic assistant."
+  },
+  {
+    id: "lexsort-go",
+    name: "lexsort-go",
+    display_name: "LexSort-GO",
+    status: "design",
+    icon: "📱",
+    description: "LAN Mobile Bridge. Scan QR code to chat with VERA from your mobile browser."
+  },
+  {
+    id: "business-organizer",
+    name: "business-organizer",
+    display_name: "Business Organizer",
+    status: "design",
+    icon: "💼",
+    description: "Personal and business ledger, receipt scanning, and tax worksheets."
+  },
+  {
+    id: "finance-tax",
+    name: "finance-tax",
+    display_name: "Wealth & Tax Intel",
+    status: "soon",
+    icon: "📈",
+    description: "Automated tax matches, wealth planning, and portfolio optimization."
+  }
+];
 
 interface ModelInfo {
   id: string;
@@ -33,6 +105,13 @@ interface Message {
   id: number;
   role: "system" | "user" | "assistant";
   content: string;
+}
+
+interface Conversation {
+  id: string;
+  title: string;
+  created_at: string;
+  updated_at: string;
 }
 
 interface DownloadProgress {
@@ -184,6 +263,8 @@ const PRO_MODULES_PREVIEW = [
 // ─── States ──────────────────────────────────────────────────────────────────
 const PHASE = {
   DETECTING:   "detecting",
+  ENGINE_SETUP: "engine_setup",
+  MODEL_SELECTION: "model_selection",
   DOWNLOADING: "downloading",
   BOOTING:     "booting",
   BENCHMARKING: "benchmarking",
@@ -193,15 +274,22 @@ const PHASE = {
 
 export default function App() {
   const [phase,            setPhase]            = useState<string>(PHASE.DETECTING);
+  const [localModels,      setLocalModels]      = useState<string[]>([]);
+  const [selectedOnboardingModelId, setSelectedOnboardingModelId] = useState<string>("");
   const [hardware,         setHardware]         = useState<HardwareInfo | null>(null);
   const [dlProgress,       setDlProgress]       = useState<DownloadProgress>({ status: "", percent: 0, downloaded: 0, total: 0 });
   const [messages,         setMessages]         = useState<Message[]>([]);
+  const [conversations,    setConversations]    = useState<Conversation[]>([]);
+  const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
+  const [showHistory,      setShowHistory]      = useState<boolean>(true);
   const [input,            setInput]            = useState<string>("");
   const [streaming,        setStreaming]        = useState<boolean>(false);
   const [error,            setError]            = useState<string>("");
   const [serverPort,       setServerPort]       = useState<number>(11434);
   const [showSupport,      setShowSupport]      = useState<boolean>(false);
-  const [activeView,       setActiveView]       = useState<"chat" | "organizer">("chat");
+  const [activeModule,     setActiveModule]     = useState<string>("chat");
+  const [showModulesDrawer, setShowModulesDrawer] = useState<boolean>(false);
+  const [dynamicComponents, setDynamicComponents] = useState<Record<string, React.ComponentType<any>>>({});
 
   // Settings and Switcher States
   const [showSettings, setShowSettings] = useState<boolean>(false);
@@ -214,9 +302,11 @@ export default function App() {
 
   // Update check states
   const [updateCheckResult, setUpdateCheckResult] = useState<UpdateCheckResult | null>(null);
-  const [appVersion, setAppVersion] = useState<string>("1.1.3");
+  const [appVersion, setAppVersion] = useState<string>("1.1.4");
   const [checkingForUpdates, setCheckingForUpdates] = useState<boolean>(false);
-  const [settingsTab, setSettingsTab] = useState<"model" | "updates" | "pro">("model");
+  const [settingsTab, setSettingsTab] = useState<"model" | "updates" | "pro" | "calendar">("model");
+  const [calendarImported, setCalendarImported] = useState<string | null>(() => localStorage.getItem('vera_calendar_imported'));
+  const [calendarLastImport, setCalendarLastImport] = useState<string | null>(() => localStorage.getItem('vera_calendar_last_import'));
   const [updateStatus, setUpdateStatus] = useState<UpdateStatus>({
       phase: 'idle',
       moduleId: null,
@@ -225,8 +315,53 @@ export default function App() {
       errorDetail: null,
   });
 
+  const [updateDownloadStatus, setUpdateDownloadStatus] = useState<'idle' | 'downloading' | 'downloaded' | 'error'>('idle');
+  const [downloadProgress, setDownloadProgress] = useState<number>(0);
+  const [approvedVersion, setApprovedVersion] = useState<string | null>(null);
+  const [showExitPrompt, setShowExitPrompt] = useState<boolean>(false);
+  const [isRunningFromDmg, setIsRunningFromDmg] = useState<boolean>(false);
+
+  const [engineSetupStatus, setEngineSetupStatus] = useState<'idle' | 'downloading' | 'verifying' | 'extracting' | 'completed' | 'error'>('idle');
+  const [engineSetupProgress, setEngineSetupProgress] = useState<number>(0);
+  const [engineSetupAttempt, setEngineSetupAttempt] = useState<number>(1);
+  const [engineSetupError, setEngineSetupError] = useState<string | null>(null);
+
+  const pendingUpdateRef = useRef<{ version: string; path: string } | null>(null);
+  const allowCloseRef = useRef<boolean>(false);
+
   const [showFallbackReport, setShowFallbackReport] = useState(false);
   const [fallbackReportText, setFallbackReportText] = useState('');
+
+  // Voice Input (Speech to Text) Logic
+  const initialTextRef = useRef("");
+  const speech = useSpeechRecognition({
+    onResult: (transcript) => {
+      const base = initialTextRef.current;
+      const space = base && !base.endsWith(" ") ? " " : "";
+      setInput(base + space + transcript);
+    },
+    onError: (err) => {
+      console.error("Speech Recognition Error in Main Chat:", err);
+    }
+  });
+
+  const toggleSpeech = () => {
+    if (speech.isListening) {
+      speech.stop();
+    } else {
+      initialTextRef.current = input;
+      speech.start();
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const val = e.target.value;
+    setInput(val);
+    if (speech.isListening) {
+      initialTextRef.current = val;
+      speech.restart();
+    }
+  };
 
   const runUpdateCheck = async () => {
     setCheckingForUpdates(true);
@@ -306,7 +441,10 @@ export default function App() {
               'https://lexsort.com/.netlify/functions/submit-bug-report',
               {
                   method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
+                  headers: { 
+                      'Content-Type': 'application/json',
+                      'X-Vera-Token': 'vera-sovereign-intelligence-v1-token-2026'
+                  },
                   body: JSON.stringify(payload),
               }
           );
@@ -337,6 +475,19 @@ export default function App() {
 
   useEffect(() => {
     bootSequence();
+    
+    // Register the global dynamic module mounting function
+    window.registerVeraModule = (name: string, Component: React.ComponentType<any>) => {
+      console.log(`[VERA Freeware] Dynamically registered module component: ${name}`);
+      setDynamicComponents(prev => ({
+        ...prev,
+        [name]: Component
+      }));
+    };
+
+    // Pre-register built-in core modules for Freeware
+    window.registerVeraModule("quick-organizer", QuickOrganizer);
+
     return () => {
       abortRef.current?.abort();
       if (unlistenRef.current) {
@@ -344,6 +495,212 @@ export default function App() {
       }
     };
   }, []);
+
+  // Listen to local AI engine setup progress
+  useEffect(() => {
+    let unlisten: (() => void) | null = null;
+    
+    const setupListener = async () => {
+      try {
+        unlisten = await listen("engine_setup_progress", (event) => {
+          const payload = event.payload as any;
+          if (payload.status === "downloading") {
+            setEngineSetupStatus("downloading");
+            setEngineSetupProgress(payload.percent);
+            if (payload.attempt) setEngineSetupAttempt(payload.attempt);
+          } else if (payload.status === "verifying") {
+            setEngineSetupStatus("verifying");
+            setEngineSetupProgress(100);
+          } else if (payload.status === "extracting") {
+            setEngineSetupStatus("extracting");
+            setEngineSetupProgress(100);
+          } else if (payload.status === "completed") {
+            setEngineSetupStatus("completed");
+            setEngineSetupProgress(100);
+            setTimeout(() => {
+              bootSequence();
+            }, 1000);
+          } else if (payload.status === "error") {
+            setEngineSetupStatus("error");
+            setEngineSetupError(payload.error || "An unknown error occurred during engine setup.");
+          }
+        });
+      } catch (err) {
+        console.error("Failed to listen to engine_setup_progress:", err);
+      }
+    };
+
+    setupListener();
+    return () => {
+      if (unlisten) unlisten();
+    };
+  }, []);
+
+  const handleConfirmOnboardingModel = async (modelId: string) => {
+    try {
+      await invoke("set_active_model", { modelId });
+
+      if (hardware) {
+        const matchingModel = MODELS_LIST.find(m => m.id === modelId);
+        const updatedHw = { ...hardware };
+        updatedHw.model = {
+          id: modelId,
+          name: matchingModel?.name || modelId,
+          description: matchingModel?.desc || `Custom model: ${modelId}`,
+          ollama_tag: modelId
+        };
+        
+        const isLocal = localModels.includes(modelId) || localModels.some(m => m.startsWith(modelId + ":") || modelId.startsWith(m + ":"));
+        updatedHw.model_exists = isLocal;
+        setHardware(updatedHw);
+      }
+
+      bootSequence();
+    } catch (err: any) {
+      setError(String(err));
+      setPhase(PHASE.ERROR);
+    }
+  };
+
+  const handleSkipOnboarding = async () => {
+    try {
+      await invoke("set_active_model", { modelId: "phi3:mini" });
+      bootSequence();
+    } catch (err: any) {
+      console.error("Failed to skip onboarding:", err);
+      setError(String(err));
+      setPhase(PHASE.ERROR);
+    }
+  };
+
+  const handleStartEngineSetup = async () => {
+    setEngineSetupStatus("downloading");
+    setEngineSetupProgress(0);
+    setEngineSetupAttempt(1);
+    setEngineSetupError(null);
+    try {
+      await invoke("setup_engine");
+    } catch (err: any) {
+      setEngineSetupStatus("error");
+      setEngineSetupError(err.toString());
+    }
+  };
+
+  // Listen to update download progress
+  useEffect(() => {
+    let unlisten: (() => void) | null = null;
+    
+    const setupListener = async () => {
+      try {
+        unlisten = await listen("core_update_progress", (event) => {
+          const payload = event.payload as any;
+          if (payload.status === "downloading") {
+            setUpdateDownloadStatus("downloading");
+            setDownloadProgress(payload.percent);
+          } else if (payload.status === "downloaded") {
+            setUpdateDownloadStatus("downloaded");
+            setDownloadProgress(100);
+            
+            setApprovedVersion(prev => {
+              const ver = prev || "New Version";
+              pendingUpdateRef.current = { version: ver, path: payload.path };
+              return ver;
+            });
+          } else if (payload.status === "error") {
+            setUpdateDownloadStatus("error");
+            alert(`Core update download failed: ${payload.error}`);
+          }
+        });
+      } catch (err) {
+        console.error("Failed to listen to core_update_progress:", err);
+      }
+    };
+
+    setupListener();
+    return () => {
+      if (unlisten) unlisten();
+    };
+  }, []);
+
+  // Intercept Close Requests to show update prompt
+  useEffect(() => {
+    let unlisten: (() => void) | null = null;
+    
+    const setupCloseListener = async () => {
+      try {
+        const currentWindow = getCurrentWindow();
+        unlisten = await currentWindow.onCloseRequested((event) => {
+          if (allowCloseRef.current) {
+            return;
+          }
+          if (pendingUpdateRef.current) {
+            event.preventDefault();
+            setApprovedVersion(pendingUpdateRef.current.version);
+            setShowExitPrompt(true);
+          }
+        });
+      } catch (err) {
+        console.error("Failed to setup close requested listener:", err);
+      }
+    };
+
+    setupCloseListener();
+
+    return () => {
+      if (unlisten) unlisten();
+    };
+  }, []);
+
+  const handleApproveUpdate = async () => {
+    if (!updateCheckResult || !updateCheckResult.remote_core_version) return;
+    
+    const version = updateCheckResult.remote_core_version;
+    setApprovedVersion(version);
+    setUpdateDownloadStatus("downloading");
+    setDownloadProgress(0);
+    
+    try {
+      await invoke("approve_core_update", { edition: "freeware", version });
+    } catch (err: any) {
+      setUpdateDownloadStatus("error");
+      alert(`Failed to approve core update: ${err.toString()}`);
+    }
+  };
+
+  const handleInstallNow = async () => {
+    try {
+      await invoke("launch_installer_and_exit");
+    } catch (e: any) {
+      alert(`Failed to launch installer: ${e.toString()}`);
+      setShowExitPrompt(false);
+    }
+  };
+
+  const handleInstallLater = async () => {
+    setShowExitPrompt(false);
+    try {
+      await invoke("exit_app");
+    } catch (e) {
+      console.error("Failed to exit app:", e);
+    }
+  };
+
+  const handleCancelClose = () => {
+    setShowExitPrompt(false);
+  };
+
+  const checkPendingUpdate = async () => {
+    try {
+      const info = await invoke<{ version: string; path: string } | null>("get_pending_update_info");
+      if (info) {
+        pendingUpdateRef.current = info;
+        setApprovedVersion(info.version);
+        setUpdateDownloadStatus("downloaded");
+      }
+    } catch (e) {
+      console.error("Failed to check pending update:", e);
+    }
+  };
 
   // ── Auto-scroll ────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -499,6 +856,21 @@ export default function App() {
         } catch (verErr) {
           console.error("Failed to load app version:", verErr);
         }
+        
+        // Check if AI engine (Ollama) is installed
+        setPhase(PHASE.DETECTING);
+        const engineInstalled = await invoke<boolean>("check_engine_installed");
+        if (!engineInstalled) {
+          setPhase(PHASE.ENGINE_SETUP);
+          return;
+        }
+        await checkPendingUpdate();
+        try {
+          const isDmg = await invoke<boolean>("is_running_from_dmg");
+          setIsRunningFromDmg(isDmg);
+        } catch (dmgErr) {
+          console.error("Failed to check DMG execution:", dmgErr);
+        }
         // Kick off update check in background (non-blocking)
         runUpdateCheck();
       } catch (e) {
@@ -520,7 +892,7 @@ export default function App() {
       setPhase(PHASE.DETECTING);
       const hw = await invoke("detect_hardware") as HardwareInfo;
 
-      // Apply local model override if user stepped down previously
+      // Apply local model override if user stepped down previously (or selected via onboarding)
       const overrideModelId = await invoke<string | null>("get_active_model");
       if (overrideModelId) {
         const names: Record<string, string> = {
@@ -534,12 +906,33 @@ export default function App() {
         hw.model.name = names[overrideModelId] || overrideModelId;
         
         // Check if the overridden model actually exists cached in Ollama
+        let isLocal = false;
         try {
-          await invoke<string>("download_model", { modelId: overrideModelId });
+          const installed = await invoke<string[]>("list_installed_models") as string[];
+          isLocal = installed.includes(overrideModelId) || installed.some(m => m.startsWith(overrideModelId + ":") || overrideModelId.startsWith(m + ":"));
+        } catch (e) {
+          console.error("Error checking installed models:", e);
+        }
+
+        if (isLocal) {
           hw.model_exists = true;
-        } catch {
+        } else {
           hw.model_exists = false;
         }
+      } else {
+        // First launch onboarding: get local models
+        let installed: string[] = [];
+        try {
+          installed = await invoke<string[]>("list_installed_models") as string[];
+          setLocalModels(installed);
+        } catch (err) {
+          console.error("Failed to query installed models:", err);
+        }
+
+        setHardware(hw);
+        setSelectedOnboardingModelId(hw.model.id); // Default to suggested model
+        setPhase(PHASE.MODEL_SELECTION);
+        return;
       }
 
       setHardware(hw);
@@ -630,6 +1023,7 @@ export default function App() {
 
       setPhase(PHASE.READY);
       inputRef.current?.focus();
+      loadConversationsList();
 
     } catch (e) {
       setError(String(e));
@@ -637,10 +1031,107 @@ export default function App() {
     }
   }
 
+  const loadConversationsList = async () => {
+    try {
+      const list = await invoke<Conversation[]>("get_conversations");
+      setConversations(list);
+    } catch (err) {
+      console.error("Failed to load conversations:", err);
+    }
+  };
+
+  const selectConversation = async (id: string) => {
+    if (streaming) abortRef.current?.abort();
+    setStreaming(false);
+    setActiveConversationId(id);
+    try {
+      const dbMessages = await invoke<Message[]>("load_messages", { conversationId: id });
+      setMessages(dbMessages);
+    } catch (err) {
+      console.error("Failed to load messages for conversation:", err);
+    }
+    inputRef.current?.focus();
+  };
+
+  const handleNewChat = () => {
+    if (streaming) abortRef.current?.abort();
+    setStreaming(false);
+    setMessages([]);
+    setActiveConversationId(null);
+    inputRef.current?.focus();
+  };
+
+  const handleDeleteConversation = async (id: string) => {
+    const confirmed = window.confirm("Are you sure you want to delete this conversation?");
+    if (!confirmed) return;
+    try {
+      await invoke("delete_conversation", { id });
+      await loadConversationsList();
+      if (activeConversationId === id) {
+        setMessages([]);
+        setActiveConversationId(null);
+      }
+    } catch (err) {
+      console.error("Failed to delete conversation:", err);
+    }
+  };
+
+  const handleRenameConversation = async (id: string, currentTitle: string) => {
+    const newTitle = window.prompt("Rename conversation topic:", currentTitle);
+    if (newTitle === null || !newTitle.trim()) return;
+    try {
+      await invoke("rename_conversation", { id, title: newTitle.trim() });
+      await loadConversationsList();
+    } catch (err) {
+      console.error("Failed to rename conversation:", err);
+    }
+  };
+
+  const handleSaveActiveChat = async () => {
+    if (!messages.length) return;
+    let currentId = activeConversationId;
+    
+    try {
+      if (!currentId) {
+        currentId = `conv_${Date.now()}`;
+        const autoTitle = messages[0]?.content.slice(0, 30) || "Saved Conversation";
+        await invoke("create_conversation", { id: currentId, title: autoTitle });
+        setActiveConversationId(currentId);
+      }
+      
+      await invoke("save_messages", { conversationId: currentId, messages });
+      await loadConversationsList();
+      alert("Conversation saved successfully!");
+    } catch (err) {
+      console.error("Failed to save chat:", err);
+      alert("Failed to save conversation.");
+    }
+  };
+
+  const autoSaveChat = async (convId: string | null, msgList: Message[], firstUserText: string) => {
+    try {
+      let id = convId;
+      if (!id) {
+        id = `conv_${Date.now()}`;
+        const autoTitle = firstUserText.slice(0, 30) || "New Conversation";
+        await invoke("create_conversation", { id, title: autoTitle });
+        setActiveConversationId(id);
+      }
+      await invoke("save_messages", { conversationId: id, messages: msgList });
+      await loadConversationsList();
+    } catch (err) {
+      console.error("Auto-save failed:", err);
+    }
+  };
+
   // ── Send message ───────────────────────────────────────────────────────────
   const sendMessage = useCallback(async (overrideText?: string) => {
     const text = (typeof overrideText === "string" ? overrideText : input).trim();
     if (!text || streaming) return;
+
+    if (speech.isListening) {
+      speech.stop();
+    }
 
     setInput("");
     setStreaming(true);
@@ -665,7 +1156,7 @@ export default function App() {
     const isExactHelp = cleanMsg === "help" || cleanMsg === "?";
     const hasHelpKeyword = isExactHelp || helpKeywords.some(k => lowerMsg.includes(k));
     const hasModuleKeyword = moduleKeywords.some(k => lowerMsg.includes(k));
-    const isInModule = activeView === 'organizer';
+    const isInModule = activeModule === 'quick-organizer';
 
     if (hasHelpKeyword && (hasModuleKeyword || isInModule)) {
       try {
@@ -713,6 +1204,7 @@ export default function App() {
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
 
+      let assistantResponse = "";
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
@@ -728,6 +1220,7 @@ export default function App() {
             const token  = json.choices?.[0]?.delta?.content ?? "";
             if (!token) continue;
 
+            assistantResponse += token;
             setMessages(prev => {
               const next = [...prev];
               const last = next[next.length - 1];
@@ -739,25 +1232,35 @@ export default function App() {
           } catch { /* partial chunk — skip */ }
         }
       }
+
+      const finalAssistMsg: Message = { ...assistMsg, content: assistantResponse };
+      const updatedMessages = [...messages, userMsg, finalAssistMsg];
+      await autoSaveChat(activeConversationId, updatedMessages, text);
+
     } catch (e: any) {
       if (e.name !== "AbortError") {
+        const errorMsg = "⚠ Connection to local inference server lost. Please restart.";
         setMessages(prev => {
           const next = [...prev];
           const last = next[next.length - 1];
           if (last && last.role === "assistant") {
             next[next.length - 1] = {
               ...last,
-              content: last.content || "⚠ Connection to local inference server lost. Please restart.",
+              content: last.content || errorMsg,
             };
           }
           return next;
         });
+        
+        const finalAssistMsg: Message = { ...assistMsg, content: errorMsg };
+        const updatedMessages = [...messages, userMsg, finalAssistMsg];
+        await autoSaveChat(activeConversationId, updatedMessages, text);
       }
     } finally {
       setStreaming(false);
       inputRef.current?.focus();
     }
-  }, [input, messages, streaming, serverPort, hardware, activeView]);
+  }, [input, messages, streaming, serverPort, hardware, activeModule, speech, activeConversationId]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -766,27 +1269,7 @@ export default function App() {
     }
   };
 
-  const clearChat = () => {
-    if (streaming) abortRef.current?.abort();
-    setMessages([]);
-    setStreaming(false);
-    inputRef.current?.focus();
-  };
 
-  // ── Save transcript ────────────────────────────────────────────────────────
-  const saveChat = () => {
-    if (!messages.length) return;
-    const text = messages
-      .map(m => `[${m.role.toUpperCase()}]\n${m.content}`)
-      .join("\n\n---\n\n");
-    const blob = new Blob([text], { type: "text/plain" });
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement("a");
-    a.href     = url;
-    a.download = `lexsort-chat-${new Date().toISOString().slice(0, 10)}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
 
   // ── Diagnostics Generator ──────────────────────────────────────────────────
   const generateDiagnosticText = () => {
@@ -824,6 +1307,228 @@ export default function App() {
           <div className="boot-status">
             <Spinner />
             <p>Detecting hardware…</p>
+          </div>
+        )}
+
+        {phase === PHASE.ENGINE_SETUP && (
+          <div className="boot-status engine-setup-card glassmorphism" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "32px", borderRadius: "16px", border: "1px solid var(--border)", background: "rgba(22, 22, 26, 0.8)", maxWidth: "480px", margin: "0 auto", textAlign: "center" }}>
+            <div className="engine-setup-icon" style={{ fontSize: "44px", background: "rgba(91, 106, 245, 0.15)", width: "80px", height: "80px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "50%", border: "1px solid rgba(91, 106, 245, 0.3)", boxShadow: "0 8px 24px rgba(91, 106, 245, 0.15)", marginBottom: "16px" }}>🧠</div>
+            <h3 style={{ fontSize: "18px", fontWeight: 700, marginBottom: "8px", color: "var(--text)" }}>Set Up Local AI Engine</h3>
+            <p className="engine-setup-desc" style={{ fontSize: "13px", color: "var(--text-muted)", lineHeight: 1.5, margin: "0 0 20px 0", maxWidth: "420px" }}>
+              VERA runs entirely on your local machine to protect your privacy. 
+              To begin, we need to download and set up the local AI inference engine (Ollama).
+            </p>
+            
+            {engineSetupStatus === "idle" && (
+              <>
+                <button className="update-btn-active engine-setup-btn" onClick={handleStartEngineSetup} style={{ width: "auto", minWidth: "260px" }}>
+                  Download & Configure Engine (~180MB)
+                </button>
+                <p className="boot-note" style={{ marginTop: "12px", fontSize: "11px", color: "var(--text-muted)" }}>One-time download. No account required. Zero cloud dependencies.</p>
+              </>
+            )}
+
+            {engineSetupStatus === "downloading" && (
+              <div className="engine-setup-progress-block" style={{ width: "100%", maxWidth: "360px" }}>
+                <p style={{ fontSize: "13px", marginBottom: "8px", color: "var(--text)" }}>Downloading AI Engine...</p>
+                <div className="progress-bar-track">
+                  <div className="progress-bar-fill" style={{ width: `${engineSetupProgress}%` }} />
+                </div>
+                <p className="progress-label" style={{ marginTop: "6px", fontSize: "12px", color: "var(--text-muted)" }}>
+                  Attempt {engineSetupAttempt} of 3 · {engineSetupProgress}% Complete
+                </p>
+              </div>
+            )}
+
+            {engineSetupStatus === "verifying" && (
+              <div className="engine-setup-progress-block">
+                <Spinner />
+                <p style={{ marginTop: "10px", fontSize: "13px", color: "var(--text)" }}>Verifying binary signatures (SHA-256)...</p>
+              </div>
+            )}
+
+            {engineSetupStatus === "extracting" && (
+              <div className="engine-setup-progress-block">
+                <Spinner />
+                <p style={{ marginTop: "10px", fontSize: "13px", color: "var(--text)" }}>Extracting and configuring portable engine...</p>
+              </div>
+            )}
+
+            {engineSetupStatus === "completed" && (
+              <div className="engine-setup-progress-block completed">
+                <p style={{ color: "var(--green)", fontWeight: 700 }}>✓ Local AI Engine Configured Successfully!</p>
+                <p style={{ fontSize: "13px", color: "var(--text-muted)", marginTop: "4px" }}>Resuming VERA boot sequence...</p>
+              </div>
+            )}
+
+            {engineSetupStatus === "error" && (
+              <div className="engine-setup-progress-block error">
+                <p style={{ color: "var(--red)", fontWeight: 700 }}>⚠️ Engine Setup Failed</p>
+                <p className="error-detail" style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "6px", maxWidth: "340px", wordBreak: "break-word" }}>
+                  {engineSetupError}
+                </p>
+                <button className="retry-btn" onClick={handleStartEngineSetup} style={{ marginTop: "16px" }}>
+                  Retry Installation
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {phase === PHASE.MODEL_SELECTION && hardware && (
+          <div className="model-selection-card glassmorphism">
+            <div className="onboarding-header">
+              <div className="onboarding-icon">🔮</div>
+              <h3>Choose Your AI Model</h3>
+              <p className="onboarding-subtitle">
+                Select a model to power VERA. All processing remains 100% local and private.
+              </p>
+            </div>
+
+            {/* Hardware Profile Summary */}
+            <div className="hardware-profile">
+              <span className="profile-title">Hardware Profile</span>
+              <div className="profile-row">
+                <span className="profile-label">System RAM:</span>
+                <span className="profile-val">{hardware.ram_gb} GB</span>
+              </div>
+              <div className="profile-row">
+                <span className="profile-label">CPU Cores:</span>
+                <span className="profile-val">{hardware.cpu_cores} Cores</span>
+              </div>
+              {hardware.apple_chip && (
+                <div className="profile-row">
+                  <span className="profile-label">Processor:</span>
+                  <span className="profile-val">{hardware.apple_chip}</span>
+                </div>
+              )}
+              {hardware.has_nvidia_gpu && (
+                <div className="profile-row">
+                  <span className="profile-label">Graphics:</span>
+                  <span className="profile-val">NVIDIA GPU Detected</span>
+                </div>
+              )}
+            </div>
+
+            {/* Model Selection List */}
+            <div className="onboarding-model-selector">
+              {/* Local Models Section (if any detected) */}
+              {localModels.length > 0 && (
+                <div className="onboarding-section">
+                  <label className="section-label">Detected Local Models</label>
+                  <div className="local-models-list">
+                    {localModels.map((modelTag) => {
+                      const isSelected = selectedOnboardingModelId === modelTag;
+                      return (
+                        <div
+                          key={modelTag}
+                          className={`model-option-card local-option ${isSelected ? "selected" : ""}`}
+                          onClick={() => setSelectedOnboardingModelId(modelTag)}
+                        >
+                          <span className="model-name-text">{modelTag}</span>
+                          <span className="badge-local">Local</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Downloadable Models Dropdown */}
+              <div className="onboarding-section">
+                <label className="section-label">Download a Recommended Model</label>
+                <div className="select-wrapper">
+                  <select
+                    className="onboarding-select"
+                    value={MODELS_LIST.some(m => m.id === selectedOnboardingModelId) ? selectedOnboardingModelId : ""}
+                    onChange={(e) => {
+                      if (e.target.value) {
+                        setSelectedOnboardingModelId(e.target.value);
+                      }
+                    }}
+                  >
+                    <option value="" disabled>-- Select a model to download --</option>
+                    {MODELS_LIST.map((model) => {
+                      const isLocal = localModels.includes(model.id) ||
+                                      localModels.some(m => m.startsWith(model.id + ":") || model.id.startsWith(m + ":"));
+                      return (
+                        <option key={model.id} value={model.id}>
+                          {model.name} ({model.size}){isLocal ? " - Already Local" : ""}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+                
+                {/* Details of the selected recommended model if selected */}
+                {(() => {
+                  const recommended = MODELS_LIST.find(m => m.id === selectedOnboardingModelId);
+                  if (recommended) {
+                    return (
+                      <div className="recommended-detail-card">
+                        <div className="recommended-desc">{recommended.desc}</div>
+                        <div className="recommended-meta">
+                          <span>Size: {recommended.size}</span>
+                          <span>·</span>
+                          <span>Min RAM: {recommended.minRam === 0 ? "Any" : `${recommended.minRam} GB`}</span>
+                        </div>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
+              </div>
+            </div>
+
+            {/* Capacity Warnings */}
+            {(() => {
+              const selectedModel = MODELS_LIST.find(m => m.id === selectedOnboardingModelId);
+              const isLocalSelected = localModels.includes(selectedOnboardingModelId) || 
+                                      localModels.some(m => m.startsWith(selectedOnboardingModelId + ":") || selectedOnboardingModelId.startsWith(m + ":"));
+              
+              if (selectedModel && hardware.ram_gb < selectedModel.minRam) {
+                if (isLocalSelected) {
+                  return (
+                    <div className="capacity-warning warning-label">
+                      ⚠️ This model recommends at least {selectedModel.minRam} GB RAM. It may run slowly or crash on your {hardware.ram_gb} GB RAM system.
+                    </div>
+                  );
+                } else {
+                  return (
+                    <div className="capacity-warning warning-label error-label">
+                      🚫 Selected model requires {selectedModel.minRam} GB RAM. Your system only has {hardware.ram_gb} GB RAM. Please choose a lighter model.
+                    </div>
+                  );
+                }
+              }
+              
+              return null;
+            })()}
+
+            {/* Confirmation Action */}
+            {(() => {
+              const selectedModel = MODELS_LIST.find(m => m.id === selectedOnboardingModelId);
+              const isLocalSelected = localModels.includes(selectedOnboardingModelId) || 
+                                      localModels.some(m => m.startsWith(selectedOnboardingModelId + ":") || selectedOnboardingModelId.startsWith(m + ":"));
+              
+              const isBlocked = selectedModel && hardware.ram_gb < selectedModel.minRam && !isLocalSelected;
+              
+              return (
+                <div className="onboarding-actions">
+                  <button
+                    className="update-btn-active confirm-selection-btn"
+                    disabled={isBlocked}
+                    onClick={() => handleConfirmOnboardingModel(selectedOnboardingModelId)}
+                  >
+                    {isLocalSelected ? "Confirm & Launch" : "Confirm & Download"}
+                  </button>
+
+                  <button className="skip-onboarding-link" onClick={handleSkipOnboarding}>
+                    Skip Onboarding / Use Lightweight Default
+                  </button>
+                </div>
+              );
+            })()}
           </div>
         )}
 
@@ -904,6 +1609,11 @@ export default function App() {
   // ── Render: Chat ───────────────────────────────────────────────────────────
   return (
     <div className="app">
+      {isRunningFromDmg && (
+        <div className="dmg-warning-banner">
+          ⚠️ VERA is running directly from a mounted disk image. To prevent duplicate disks and issues, please drag VERA to your Applications folder and open it from there.
+        </div>
+      )}
       <header className="header">
         <div className="header-left">
           <img src={veraLogo} alt="LexSort Personal AI" className="header-logo-img" />
@@ -934,15 +1644,18 @@ export default function App() {
           <button
             onClick={() => setShowSettings(true)}
             className="hdr-btn"
-            style={{ borderColor: "var(--accent)", color: "var(--text)", fontWeight: 600 }}
+            style={{ borderColor: "var(--accent)", color: "var(--text)", fontWeight: 600, position: "relative" }}
             title="Settings"
           >
             ⚙️ Settings
+            {(updateCheckResult?.core_update_available || updateDownloadStatus === "downloaded") && (
+              <span className="settings-badge-dot" />
+            )}
           </button>
-          {messages.length > 0 && activeView === 'chat' && (
+          {messages.length > 0 && activeModule === 'chat' && (
             <>
-              <button onClick={saveChat}  className="hdr-btn" title="Save transcript">Save</button>
-              <button onClick={clearChat} className="hdr-btn hdr-btn-clear" title="Clear chat">Clear</button>
+              <button onClick={handleSaveActiveChat} className="hdr-btn" title="Save to local database">Save</button>
+              <button onClick={handleNewChat} className="hdr-btn hdr-btn-clear" title="Clear chat screen">Clear</button>
             </>
           )}
         </div>
@@ -951,46 +1664,182 @@ export default function App() {
       <div className="app-container" style={{ display: "flex", flex: 1, overflow: "hidden" }}>
         {/* Sidebar */}
         <aside className="sidebar">
+          {/* Brand mark */}
+          <div className="sidebar-brand">
+            <img src={veraLogo} alt="VERA" className="sidebar-logo" />
+            <div className="sidebar-brand-text">
+              <span className="sidebar-brand-name">LexSort VERA</span>
+              <span className="sidebar-brand-tier">FREEWARE</span>
+            </div>
+          </div>
+
           <nav className="sidebar-nav">
             <button
-              className={`sidebar-item ${activeView === 'chat' ? 'sidebar-item--active' : ''}`}
-              onClick={() => setActiveView('chat')}
+              className={`sidebar-item ${activeModule === 'chat' && !showHistory ? 'sidebar-item--active' : ''}`}
+              onClick={() => {
+                setActiveModule('chat');
+                setShowHistory(false);
+                setShowModulesDrawer(false);
+              }}
             >
               <span className="sidebar-icon">💬</span>
               <span className="sidebar-label">VERA Chat</span>
             </button>
 
+            {/* Saved Chats Sidebar Item */}
             <button
-              className={`sidebar-item ${activeView === 'organizer' ? 'sidebar-item--active' : ''}`}
-              onClick={() => setActiveView('organizer')}
-            >
-              <span className="sidebar-icon">📋</span>
-              <span className="sidebar-label">Quick Organizer</span>
-              <span className="sidebar-item-badge sidebar-item-badge--free">Free</span>
-            </button>
-
-            <div className="sidebar-divider" />
-
-            <button 
-              className="sidebar-add-modules" 
-              onClick={() => { 
-                setSettingsTab("pro"); 
-                setShowSettings(true); 
+              className={`sidebar-item ${activeModule === 'chat' && showHistory ? 'sidebar-item--active' : ''}`}
+              onClick={() => {
+                setActiveModule('chat');
+                setShowHistory(true);
+                setShowModulesDrawer(false);
               }}
             >
-              + Add Modules
+              <span className="sidebar-icon">📜</span>
+              <span className="sidebar-label">Saved Chats</span>
+            </button>
+
+            {/* Modules Trigger */}
+            <button
+              className={`sidebar-item ${showModulesDrawer ? 'sidebar-item--active' : ''}`}
+              onClick={() => {
+                setShowModulesDrawer(prev => !prev);
+                if (!showModulesDrawer) {
+                  setShowHistory(false);
+                }
+              }}
+            >
+              <span className="sidebar-icon">🧩</span>
+              <span className="sidebar-label">Modules</span>
             </button>
           </nav>
+
+          <button 
+            className="sidebar-item sidebar-exit-item"
+            onClick={async () => {
+              if (pendingUpdateRef.current) {
+                setApprovedVersion(pendingUpdateRef.current.version);
+                setShowExitPrompt(true);
+              } else {
+                try {
+                  await invoke("exit_app");
+                } catch (e) {
+                  console.error("Failed to exit app:", e);
+                }
+              }
+            }}
+            style={{ 
+              margin: "0 12px 12px 12px", 
+              borderRadius: "8px", 
+              border: "1px solid rgba(240, 82, 82, 0.2)", 
+              background: "rgba(240, 82, 82, 0.04)", 
+              color: "#ff6b6b",
+              display: "flex",
+              alignItems: "center",
+              gap: "12px",
+              padding: "12px 14px",
+              cursor: "pointer",
+              transition: "all 0.2s ease",
+              width: "calc(100% - 24px)"
+            }}
+          >
+            <span className="sidebar-icon">🚪</span>
+            <span className="sidebar-label" style={{ fontWeight: 600 }}>Exit VERA</span>
+          </button>
+
           <div className="sidebar-footer" style={{ padding: "16px 12px", borderTop: "1px solid var(--border)", fontSize: "11px", color: "var(--text-muted)", textAlign: "center", fontStyle: "normal", fontWeight: 500, letterSpacing: "0.5px" }}>
             v{appVersion} Freeware
           </div>
         </aside>
 
+        {showModulesDrawer && (
+          <ModuleDrawer
+            modulesList={MODULES_LIST}
+            activeModule={activeModule}
+            isPro={false}
+            onSelectModule={(modId) => {
+              const modObj = MODULES_LIST.find(m => m.id === modId);
+              if (!modObj?.isFree) {
+                alert("VERA Pro Suite is required to run workspace modules. Upgrade now to unlock ProMailer, Research Lab, and local-first diagnostics.");
+                setSettingsTab("pro");
+                setShowSettings(true);
+                return;
+              }
+              setActiveModule(modId);
+              setShowModulesDrawer(false);
+            }}
+            onClose={() => setShowModulesDrawer(false)}
+          />
+        )}
+
         {/* Viewport */}
         <div className="viewport" style={{ flex: 1, height: "100%", overflow: "hidden", display: "flex", flexDirection: "column" }}>
-          {activeView === 'chat' && (
-            <div style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%" }}>
-              <main className="chat-area">
+          {activeModule === 'chat' && (
+            <div style={{ display: "flex", flexDirection: "row", height: "100%", width: "100%", overflow: "hidden" }}>
+              {showHistory && (
+                <aside className="chat-history-sidebar">
+                  <div className="chat-history-header">
+                    <span className="chat-history-title">Saved Chats</span>
+                    <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                      <button onClick={handleNewChat} className="chat-history-new-btn" title="New Chat">
+                        ＋ New
+                      </button>
+                      <button 
+                        className="history-close-toggle-btn"
+                        onClick={() => setShowHistory(false)}
+                        title="Close History"
+                      >
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="3" y="3" width="18" height="18" rx="2" />
+                          <path d="M9 3v18" />
+                          <path d="m16 15-3-3 3-3" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                  <div className="chat-history-list">
+                    {conversations.length === 0 ? (
+                      <p style={{ textAlign: "center", color: "var(--text-muted)", fontSize: "12px", marginTop: "24px" }}>
+                        No saved chats.
+                      </p>
+                    ) : (
+                      conversations.map((c) => (
+                        <div
+                          key={c.id}
+                          onClick={() => selectConversation(c.id)}
+                          className={`history-item ${activeConversationId === c.id ? "active" : ""}`}
+                        >
+                          <span className="history-item-label">{c.title}</span>
+                          <div className="history-actions">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleRenameConversation(c.id, c.title);
+                              }}
+                              className="history-action-btn"
+                              title="Rename"
+                            >
+                              ✏️
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteConversation(c.id);
+                              }}
+                              className="history-action-btn"
+                              title="Delete"
+                            >
+                              🗑️
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </aside>
+              )}
+              <div style={{ display: "flex", flexDirection: "column", flex: 1, height: "100%", overflow: "hidden" }}>
+                <main className="chat-area">
                 {messages.length === 0 && (
                   <div className="vera-greeting">
                     <div className="vera-greeting__header">
@@ -1045,12 +1894,27 @@ export default function App() {
                   ref={inputRef}
                   className="input-box"
                   value={input}
-                  onChange={e => setInput(e.target.value)}
+                  onChange={handleInputChange}
                   onKeyDown={handleKeyDown}
                   placeholder="Message Vera..."
                   rows={1}
                   disabled={streaming}
                 />
+                {speech.supported && (
+                  <button
+                    className={`chat-mic-btn ${speech.isListening ? "active" : ""}`}
+                    onClick={toggleSpeech}
+                    disabled={streaming}
+                    title={speech.isListening ? "Stop Voice Input" : "Start Voice Input"}
+                    type="button"
+                  >
+                    {speech.isListening ? (
+                      <span className="mic-icon-active">🔴 🎤</span>
+                    ) : (
+                      <span className="mic-icon-inactive">🎤</span>
+                    )}
+                  </button>
+                )}
                 <button
                   className={`send-btn ${streaming ? "sending" : ""}`}
                   onClick={() => sendMessage()}
@@ -1061,13 +1925,84 @@ export default function App() {
                 </button>
               </footer>
             </div>
-          )}
+          </div>
+        )}
 
-          {activeView === 'organizer' && (
-            <QuickOrganizer 
-              activeModel={hardware?.model?.id || "llama3.2:3b"}
-              serverPort={serverPort}
-            />
+          {activeModule !== 'chat' && (
+            <div style={{
+              display: "flex",
+              flexDirection: "column",
+              width: "100%",
+              height: "100%",
+              flexGrow: 1,
+              overflow: "hidden"
+            }}>
+              {(() => {
+                const activeModObj = MODULES_LIST.find(m => m.id === activeModule);
+                return (
+                  <div style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    padding: "8px 16px",
+                    background: "var(--bg-surface)",
+                    borderBottom: "1px solid var(--border)",
+                    flexShrink: 0
+                  }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      <span style={{ fontSize: "16px" }}>{activeModObj?.icon || "🧩"}</span>
+                      <span style={{ fontSize: "13px", fontWeight: 700, color: "var(--text)" }}>
+                        {activeModObj?.display_name || "Module"}
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => setActiveModule("chat")}
+                      style={{
+                        background: "rgba(255, 255, 255, 0.03)",
+                        border: "1px solid var(--border)",
+                        borderRadius: "6px",
+                        color: "var(--text-muted)",
+                        cursor: "pointer",
+                        fontSize: "11px",
+                        fontWeight: 600,
+                        padding: "4px 10px",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "4px",
+                        transition: "all 0.2s"
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.color = "var(--text)";
+                        e.currentTarget.style.background = "rgba(255, 255, 255, 0.08)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.color = "var(--text-muted)";
+                        e.currentTarget.style.background = "rgba(255, 255, 255, 0.03)";
+                      }}
+                    >
+                      ✕ Close Tab
+                    </button>
+                  </div>
+                );
+              })()}
+              <FeedbackBanner activeModule={activeModule} modulesList={MODULES_LIST} />
+              <div style={{ flexGrow: 1, height: "100%", overflow: "hidden", position: "relative" }}>
+                <ModuleErrorBoundary moduleName={activeModule}>
+                  {(() => {
+                    const DynComp = dynamicComponents[activeModule];
+                    if (DynComp) {
+                      return <DynComp />;
+                    }
+                    return (
+                      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", color: "var(--text-muted)" }}>
+                        <div className="spinner" style={{ width: "32px", height: "32px", border: "3px solid var(--border)", borderTopColor: "var(--accent)", borderRadius: "50%", animation: "spin 1s linear infinite", marginBottom: "16px" }} />
+                        <p>Loading module interface…</p>
+                      </div>
+                    );
+                  })()}
+                </ModuleErrorBoundary>
+              </div>
+            </div>
           )}
         </div>
       </div>
@@ -1122,14 +2057,24 @@ export default function App() {
                   <button 
                     className={`settings-tab-btn ${settingsTab === "updates" ? "active" : ""}`} 
                     onClick={() => setSettingsTab("updates")}
+                    style={{ position: "relative" }}
                   >
                     Updates
+                    {(updateCheckResult?.core_update_available || updateDownloadStatus === "downloaded") && (
+                      <span className="settings-badge-dot" style={{ top: "4px", right: "4px" }} />
+                    )}
                   </button>
                   <button 
                     className={`settings-tab-btn ${settingsTab === "pro" ? "active" : ""}`} 
                     onClick={() => setSettingsTab("pro")}
                   >
                     Pro Features
+                  </button>
+                  <button 
+                    className={`settings-tab-btn ${settingsTab === "calendar" ? "active" : ""}`} 
+                    onClick={() => setSettingsTab("calendar")}
+                  >
+                    Calendar
                   </button>
                 </div>
 
@@ -1259,12 +2204,63 @@ export default function App() {
                                   </span>
                                 </div>
                                 <div className="update-btn-container">
-                                  <button className="update-btn-disabled" disabled>
-                                    {updateCheckResult.core_update_available ? "Update Core" : "Up to date"}
-                                  </button>
-                                  <div className="tooltip-box">Coming soon — update system in progress</div>
+                                  {!updateCheckResult.core_update_available ? (
+                                    <button className="update-btn-disabled" disabled>
+                                      Up to date
+                                    </button>
+                                  ) : updateDownloadStatus === "idle" ? (
+                                    <button className="update-btn-active" onClick={handleApproveUpdate}>
+                                      Approve & Download
+                                    </button>
+                                  ) : updateDownloadStatus === "downloading" ? (
+                                    <button className="update-btn-disabled" disabled>
+                                      Downloading...
+                                    </button>
+                                  ) : updateDownloadStatus === "downloaded" ? (
+                                    <button className="btn-update-install" onClick={handleInstallNow}>
+                                      Restart & Install
+                                    </button>
+                                  ) : (
+                                    <button className="update-btn-active" onClick={handleApproveUpdate}>
+                                      Retry Download
+                                    </button>
+                                  )}
                                 </div>
                               </div>
+
+                              {/* Download Progress Bar */}
+                              {updateDownloadStatus === "downloading" && (
+                                <div className="updates-progress-container">
+                                  <div className="updates-progress-label-row">
+                                    <span>Downloading update package...</span>
+                                    <span className="updates-progress-percent">{downloadProgress}%</span>
+                                  </div>
+                                  <div className="updates-progress-bar-track">
+                                    <div className="updates-progress-bar-fill" style={{ width: `${downloadProgress}%` }} />
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Download Completed Message & Quick Install */}
+                              {updateDownloadStatus === "downloaded" && (
+                                <div className="updates-progress-container" style={{ borderColor: "var(--green)" }}>
+                                  <div className="updates-progress-label-row">
+                                    <span style={{ color: "var(--green)", fontWeight: 700 }}>✓ Download Complete</span>
+                                    <span>Ready to Install</span>
+                                  </div>
+                                  <p style={{ fontSize: "12px", color: "var(--text-muted)", margin: "4px 0 0 0" }}>
+                                    VERA {approvedVersion} is staged. You can install it now or it will install automatically next time you close the application.
+                                  </p>
+                                  <div className="update-ready-actions">
+                                    <button className="btn-update-install" onClick={handleInstallNow}>
+                                      Install & Restart Now
+                                    </button>
+                                    <button className="btn-update-later" onClick={() => setShowSettings(false)}>
+                                      Install Later
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           </>
                         ) : (
@@ -1279,6 +2275,7 @@ export default function App() {
                             className="hdr-btn" 
                             onClick={runUpdateCheck}
                             style={{ border: "1px solid var(--accent)", color: "var(--text)" }}
+                            disabled={updateDownloadStatus === "downloading"}
                           >
                             Check Again
                           </button>
@@ -1368,6 +2365,88 @@ export default function App() {
                     </div>
                   </div>
                 )}
+
+                {settingsTab === "calendar" && (
+                  <div className="settings-section" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    <span className="settings-section-title">System Calendar Integration</span>
+                    
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)', padding: '16px', borderRadius: '12px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '14px', fontWeight: 600 }}>Connection Status</span>
+                        <span className={`model-status-badge ${calendarImported === 'approved' ? 'cached' : 'download'}`} style={{ textTransform: 'uppercase' }}>
+                          {calendarImported === 'approved' ? 'Connected' : 'Disconnected'}
+                        </span>
+                      </div>
+
+                      {calendarImported === 'approved' && calendarLastImport && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border)', paddingTop: '10px' }}>
+                          <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Last Import</span>
+                          <span style={{ fontSize: '12px', color: 'var(--text)' }}>{calendarLastImport}</span>
+                        </div>
+                      )}
+
+                      <p style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: '1.4', margin: '4px 0 8px 0', textAlign: 'left' }}>
+                        VERA imports events from your local system calendar (macOS Calendar.app or Windows Calendar) to help you view and plan around your schedules. VERA never sends your calendar data online.
+                      </p>
+
+                      <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', borderTop: '1px solid var(--border)', paddingTop: '12px' }}>
+                        {calendarImported === 'approved' ? (
+                          <>
+                            <button className="hdr-btn" onClick={() => {
+                              localStorage.setItem('vera_calendar_imported', 'declined');
+                              localStorage.removeItem('vera_calendar_last_import');
+                              setCalendarImported('declined');
+                              setCalendarLastImport(null);
+                              window.dispatchEvent(new CustomEvent('vera-calendar-disconnect'));
+                            }} style={{ border: '1px solid var(--red)', color: 'var(--red)', cursor: 'pointer', background: 'transparent' }}>
+                              Disconnect Calendar
+                            </button>
+                            <button className="hdr-btn" onClick={async () => {
+                              try {
+                                const allowed = await invoke<boolean>('request_calendar_permission');
+                                if (allowed) {
+                                  localStorage.setItem('vera_calendar_imported', 'approved');
+                                  const nowStr = new Date().toLocaleString();
+                                  localStorage.setItem('vera_calendar_last_import', nowStr);
+                                  setCalendarImported('approved');
+                                  setCalendarLastImport(nowStr);
+                                  window.dispatchEvent(new CustomEvent('vera-calendar-refresh'));
+                                }
+                              } catch (e) {
+                                console.error('Failed to refresh calendar:', e);
+                              }
+                            }} style={{ border: '1px solid var(--accent)', color: 'var(--text)', cursor: 'pointer', background: 'transparent' }}>
+                              Refresh Now
+                            </button>
+                          </>
+                        ) : (
+                          <button className="hdr-btn" onClick={async () => {
+                            try {
+                              const allowed = await invoke<boolean>('request_calendar_permission');
+                              if (allowed) {
+                                localStorage.setItem('vera_calendar_imported', 'approved');
+                                const nowStr = new Date().toLocaleString();
+                                localStorage.setItem('vera_calendar_last_import', nowStr);
+                                setCalendarImported('approved');
+                                setCalendarLastImport(nowStr);
+                                window.dispatchEvent(new CustomEvent('vera-calendar-refresh'));
+                              } else {
+                                localStorage.setItem('vera_calendar_imported', 'declined');
+                                setCalendarImported('declined');
+                              }
+                            } catch (e) {
+                              console.error('Failed to connect calendar:', e);
+                              localStorage.setItem('vera_calendar_imported', 'declined');
+                              setCalendarImported('declined');
+                            }
+                          }} style={{ border: '1px solid var(--accent)', color: 'var(--text)', cursor: 'pointer', background: 'transparent' }}>
+                            Connect Calendar
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -1396,6 +2475,33 @@ export default function App() {
                   </div>
               </div>
           </div>
+      )}
+      {showExitPrompt && (
+        <div className="exit-modal-overlay">
+          <div className="exit-modal">
+            <div className="exit-modal-icon">⬆️</div>
+            <h2>Update Ready to Install</h2>
+            <p>
+              VERA <strong>{approvedVersion}</strong> has been downloaded and is ready to install.
+              <br />
+              Would you like to install it now before exiting?
+            </p>
+            <div className="exit-modal-actions">
+              <button className="exit-install-btn" onClick={handleInstallNow}>
+                Install & Restart
+              </button>
+              <button className="exit-later-btn" onClick={handleInstallLater}>
+                Later (Exit App)
+              </button>
+              <button className="exit-cancel-btn" onClick={handleCancelClose}>
+                Cancel Exit
+              </button>
+            </div>
+            <p className="exit-modal-footnote">
+              Your tasks and configurations will be saved safely.
+            </p>
+          </div>
+        </div>
       )}
     </div>
   );

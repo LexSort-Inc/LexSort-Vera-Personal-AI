@@ -1,4 +1,5 @@
 export type TaskList = 'today' | 'this_week' | 'someday';
+export type TaskCategory = 'task' | 'urgent' | 'personal' | 'system';
 
 export interface Task {
     id: string;
@@ -9,6 +10,10 @@ export interface Task {
     created_at: string;
     completed_at: string | null;
     ai_breakdown: string | null;
+    start_time?: string | null;
+    end_time?: string | null;
+    category?: TaskCategory;
+    all_day?: boolean;
 }
 
 export interface AskVERARequest {

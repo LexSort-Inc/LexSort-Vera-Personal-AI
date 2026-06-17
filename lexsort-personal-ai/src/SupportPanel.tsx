@@ -125,7 +125,7 @@ export default function SupportPanel({
   const [tab, setTab] = useState<Tab>("community");
 
   const parsedInfo = useMemo(() => {
-    let version = "1.1.3";
+    let version = "1.1.4";
     let model = "unknown";
     let ram = "unknown";
     
@@ -149,16 +149,21 @@ export default function SupportPanel({
 
   // Bug report state
   const [bugCategory, setBugCategory] = useState(BUG_CATEGORIES[0]);
+  const [bugComponent, setBugComponent] = useState("Core VERA Chat");
+  const [bugSeverity, setBugSeverity] = useState("App completely crashes / freezes");
   const [bugDesc, setBugDesc]         = useState("");
   const [bugSending, setBugSending]   = useState(false);
   const [bugStatus, setBugStatus]     = useState<"idle"|"ok"|"err">("idle");
+  const [bugErrorMessage, setBugErrorMessage] = useState("");
 
   // Feedback state
   const [stars, setStars]               = useState(0);
   const [hoverStar, setHoverStar]       = useState(0);
+  const [feedbackTags, setFeedbackTags] = useState<string[]>([]);
   const [feedbackText, setFeedbackText] = useState("");
   const [feedbackSending, setFeedbackSending] = useState(false);
   const [feedbackStatus, setFeedbackStatus]   = useState<"idle"|"ok"|"err">("idle");
+  const [feedbackErrorMessage, setFeedbackErrorMessage] = useState("");
 
   // ── Community actions ─────────────────────────────────────────────────────
 
@@ -184,12 +189,21 @@ export default function SupportPanel({
   // ── Bug report — submits to Discord Forum via Netlify function ────────────
 
   const submitBugToDiscord = useCallback(async () => {
-    if (!bugDesc.trim()) {
+    const cleanDesc = bugDesc.trim();
+    if (!cleanDesc) {
       alert("Please describe the issue before submitting.");
       return;
     }
+
+    const hasLink = /https?:\/\/[^\s]+/i.test(cleanDesc) || /www\.[a-z0-9.-]+/i.test(cleanDesc) || cleanDesc.includes("http://") || cleanDesc.includes("https://");
+    if (hasLink) {
+      alert("To prevent spam, external web links are not allowed in bug reports. If you need to share a link, please use our Discord server.");
+      return;
+    }
+
     setBugSending(true);
     setBugStatus("idle");
+    setBugErrorMessage("");
 
     try {
       // Extract system details from diagnosticText if possible
@@ -211,31 +225,42 @@ export default function SupportPanel({
 
       const res = await fetch("https://lexsort.com/.netlify/functions/submit-bug-report", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "X-Vera-Token": "vera-sovereign-intelligence-v1-token-2026"
+        },
         body: JSON.stringify({
           platform,
           ramGb,
           freeStorageGb,
           hasNvidiaGpu,
           category: bugCategory,
-          description: bugDesc,
+          description: `**Component:** ${bugComponent}\n**Severity:** ${bugSeverity}\n\n**Details:**\n${cleanDesc}`,
           diagnostics: diagnosticText,
           appName,
           isPro,
         }),
       });
 
-      if (!res.ok) throw new Error(`Server returned ${res.status}`);
+      if (!res.ok) {
+        let errMsg = `Server returned ${res.status}`;
+        try {
+          const data = await res.json();
+          if (data && data.message) errMsg = data.message;
+        } catch {}
+        throw new Error(errMsg);
+      }
       
       setBugStatus("ok");
       setBugDesc("");
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
       setBugStatus("err");
+      setBugErrorMessage(err.message || "Submission failed. Please verify your internet connection.");
     } finally {
       setBugSending(false);
     }
-  }, [bugCategory, bugDesc, diagnosticText, appName, isPro]);
+  }, [bugCategory, bugComponent, bugSeverity, bugDesc, diagnosticText, appName, isPro]);
 
   const openGitHubIssue = useCallback(async () => {
     setBugSending(true);
@@ -243,13 +268,15 @@ export default function SupportPanel({
 
     const body = [
       `## Category\n${bugCategory}`,
+      `## Component\n${bugComponent}`,
+      `## Severity\n${bugSeverity}`,
       `## Description\n${bugDesc || "(no description provided)"}`,
       `## Diagnostic Info\n\`\`\`\n${diagnosticText || "Not available"}\n\`\`\``,
       `## App\n${appName}${isPro ? " (Pro)" : " (Freeware)"}`,
     ].join("\n\n");
 
     const params = new URLSearchParams({
-      title:    `[${bugCategory}] User-reported issue`,
+      title:    `[${bugCategory}][${bugComponent}] User-reported issue`,
       body,
       labels:   isPro ? "bug,vera-pro" : "bug,vera-freeware",
     });
@@ -263,38 +290,61 @@ export default function SupportPanel({
     } finally {
       setBugSending(false);
     }
-  }, [bugCategory, bugDesc, diagnosticText, appName, isPro]);
+  }, [bugCategory, bugComponent, bugSeverity, bugDesc, diagnosticText, appName, isPro]);
 
   // ── Feedback — posts to Netlify function → Discord webhook ────────────────
 
   const submitFeedback = useCallback(async () => {
-    if (!feedbackText.trim() && stars === 0) return;
+    const cleanFeedback = feedbackText.trim();
+    if (!cleanFeedback && stars === 0) return;
+
+    const hasLink = /https?:\/\/[^\s]+/i.test(cleanFeedback) || /www\.[a-z0-9.-]+/i.test(cleanFeedback) || cleanFeedback.includes("http://") || cleanFeedback.includes("https://");
+    if (hasLink) {
+      alert("To prevent spam, external web links are not allowed in feedback. If you need to share a link, please use our Discord server.");
+      return;
+    }
+
     setFeedbackSending(true);
     setFeedbackStatus("idle");
+    setFeedbackErrorMessage("");
 
     try {
       const res = await fetch(FEEDBACK_ENDPOINT, {
         method:  "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "X-Vera-Token": "vera-sovereign-intelligence-v1-token-2026"
+        },
         body: JSON.stringify({
           app:     appName,
           rating:  stars,
-          message: feedbackText.trim(),
+          tags:    feedbackTags,
+          message: cleanFeedback,
           version: parsedInfo.version,
         }),
       });
 
-      if (!res.ok) throw new Error(`Server ${res.status}`);
+      if (!res.ok) {
+        let errMsg = `Server returned ${res.status}`;
+        try {
+          const data = await res.json();
+          if (data && data.message) errMsg = data.message;
+        } catch {}
+        throw new Error(errMsg);
+      }
+
       setFeedbackStatus("ok");
       setStars(0);
+      setFeedbackTags([]);
       setFeedbackText("");
-    } catch {
-      // If the Netlify function is unreachable, fall back gracefully
+    } catch (err: any) {
+      console.error(err);
       setFeedbackStatus("err");
+      setFeedbackErrorMessage(err.message || "Couldn't reach server. Please try again.");
     } finally {
       setFeedbackSending(false);
     }
-  }, [stars, feedbackText, appName]);
+  }, [stars, feedbackTags, feedbackText, appName, parsedInfo.version]);
 
   // ── Render ────────────────────────────────────────────────────────────────
 
@@ -473,30 +523,67 @@ export default function SupportPanel({
                 Submit your report directly to our Discord Support Forum. OS and RAM info will be auto-tagged to help solve issues faster. You can also open a GitHub issue as a fallback.
               </p>
 
+              <div style={{ display: "flex", gap: "12px", width: "100%", marginBottom: "12px" }}>
+                <div className="sp-field" style={{ flex: 1, margin: 0 }}>
+                  <label className="sp-label">Category</label>
+                  <select
+                    className="sp-select"
+                    value={bugCategory}
+                    onChange={(e) => setBugCategory(e.target.value)}
+                  >
+                    {BUG_CATEGORIES.map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="sp-field" style={{ flex: 1, margin: 0 }}>
+                  <label className="sp-label">Affected Component</label>
+                  <select
+                    className="sp-select"
+                    value={bugComponent}
+                    onChange={(e) => setBugComponent(e.target.value)}
+                  >
+                    <option value="Core VERA Chat">Core VERA Chat</option>
+                    <option value="ProMailer / Emailer">ProMailer / Emailer</option>
+                    <option value="Guardian Watch">Guardian Watch</option>
+                    <option value="LexSort-GO / Mobile Bridge">LexSort-GO / Mobile Bridge</option>
+                    <option value="Settings / Licensing">Settings / Licensing</option>
+                    <option value="Other Module / Extension">Other Module / Extension</option>
+                  </select>
+                </div>
+              </div>
+
               <div className="sp-field">
-                <label className="sp-label">Category</label>
+                <label className="sp-label">Issue Severity / Type</label>
                 <select
                   className="sp-select"
-                  value={bugCategory}
-                  onChange={(e) => setBugCategory(e.target.value)}
+                  value={bugSeverity}
+                  onChange={(e) => setBugSeverity(e.target.value)}
                 >
-                  {BUG_CATEGORIES.map((c) => (
-                    <option key={c} value={c}>{c}</option>
-                  ))}
+                  <option value="App completely crashes / freezes">App completely crashes / freezes</option>
+                  <option value="Feature fails to load / 404 error">Feature fails to load / 404 error</option>
+                  <option value="AI is slow or unresponsive">AI is slow or unresponsive</option>
+                  <option value="Display/UI formatting glitch">Display/UI formatting glitch</option>
+                  <option value="Other problem">Other problem</option>
                 </select>
               </div>
 
               <div className="sp-field">
                 <label className="sp-label">
-                  Describe the issue <span className="sp-label-hint">(required for Discord submit)</span>
+                  Describe the issue <span className="sp-label-hint">(required, max 300 chars, no links)</span>
                 </label>
                 <textarea
                   className="sp-textarea"
                   rows={4}
+                  maxLength={300}
                   placeholder="What happened? What were you doing when it occurred?"
                   value={bugDesc}
                   onChange={(e) => setBugDesc(e.target.value)}
                 />
+                <div style={{ fontSize: "10px", color: "var(--text-muted)", textAlign: "right", marginTop: "2px" }}>
+                  {bugDesc.length}/300
+                </div>
               </div>
 
               {diagnosticText && (
@@ -512,8 +599,8 @@ export default function SupportPanel({
                 </div>
               )}
               {bugStatus === "err" && (
-                <div className="sp-alert sp-alert--error">
-                  ⚠ Submission failed. Please verify your internet connection or join Discord manually to post.
+                <div className="sp-alert sp-alert--error" style={{ whiteSpace: "pre-line" }}>
+                  ⚠ {bugErrorMessage || "Submission failed. Please verify your internet connection or join Discord manually to post."}
                 </div>
               )}
 
@@ -544,7 +631,7 @@ export default function SupportPanel({
           {tab === "feedback" && (
             <div className="sp-feedback-form">
               <p style={{ fontSize: "0.83rem", color: "#64748b", margin: "0 0 0.5rem" }}>
-                Your feedback goes directly to our Discord and Reddit — no account required. All feedback is anonymous.
+                Your feedback goes directly to our Discord — no account required. All feedback is anonymous.
               </p>
 
               <div className="sp-field">
@@ -554,7 +641,10 @@ export default function SupportPanel({
                     <button
                       key={n}
                       className={`sp-star${(hoverStar || stars) >= n ? " sp-star--active" : ""}`}
-                      onClick={() => setStars(n)}
+                      onClick={() => {
+                        setStars(n);
+                        setFeedbackTags([]);
+                      }}
                       onMouseEnter={() => setHoverStar(n)}
                       onMouseLeave={() => setHoverStar(0)}
                       aria-label={`${n} star${n !== 1 ? "s" : ""}`}
@@ -570,34 +660,73 @@ export default function SupportPanel({
                 </div>
               </div>
 
+              {stars > 0 && (
+                <div className="sp-field">
+                  <label className="sp-label">Select highlights / areas of feedback</label>
+                  <div className="sp-feedback-checkboxes" style={{ display: "flex", flexDirection: "column", gap: "6px", marginTop: "4px" }}>
+                    {(stars >= 4
+                      ? [
+                          "AI Chat is fast & helpful",
+                          "Clean & intuitive UI design",
+                          "Love the local-first privacy",
+                          "Useful module integrations",
+                          "Everything works great!"
+                        ]
+                      : [
+                          "AI Chat is too slow / laggy",
+                          "Tauri app uses too much RAM/CPU",
+                          "Module is locked or fails to run",
+                          "Found a layout/display bug",
+                          "Instructions are unclear"
+                        ]
+                    ).map((tag) => {
+                      const isChecked = feedbackTags.includes(tag);
+                      return (
+                        <label key={tag} style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.83rem", cursor: "pointer", color: "var(--text-main)" }}>
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={() => {
+                              if (isChecked) {
+                                setFeedbackTags(prev => prev.filter(t => t !== tag));
+                              } else {
+                                setFeedbackTags(prev => [...prev, tag]);
+                              }
+                            }}
+                          />
+                          {tag}
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
               <div className="sp-field">
                 <label className="sp-label">
-                  Your thoughts <span className="sp-label-hint">(optional)</span>
+                  Your thoughts <span className="sp-label-hint">(optional, max 200 chars, no links)</span>
                 </label>
                 <textarea
                   className="sp-textarea"
                   rows={4}
+                  maxLength={200}
                   placeholder="What do you love? What should we improve? Feature requests? We read every message."
                   value={feedbackText}
                   onChange={(e) => setFeedbackText(e.target.value)}
                 />
+                <div style={{ fontSize: "10px", color: "var(--text-muted)", textAlign: "right", marginTop: "2px" }}>
+                  {feedbackText.length}/200
+                </div>
               </div>
 
               {feedbackStatus === "ok" && (
                 <div className="sp-alert sp-alert--success">
-                  ✅ Thank you! Your feedback was sent to our Discord and Reddit.
+                  ✅ Thank you! Your feedback was sent to our Discord.
                 </div>
               )}
               {feedbackStatus === "err" && (
-                <div className="sp-alert sp-alert--error">
-                  ⚠ Couldn't reach server. Join our{" "}
-                  <button
-                    style={{ background: "none", border: "none", color: "#c4b5fd", cursor: "pointer", padding: 0, textDecoration: "underline" }}
-                    onClick={joinDiscord}
-                  >
-                    Discord
-                  </button>{" "}
-                  and share your feedback there directly.
+                <div className="sp-alert sp-alert--error" style={{ whiteSpace: "pre-line" }}>
+                  ⚠ {feedbackErrorMessage || "Couldn't reach server. Please try again."}
                 </div>
               )}
 
@@ -606,7 +735,7 @@ export default function SupportPanel({
                 <button
                   className="sp-btn sp-btn--primary"
                   onClick={submitFeedback}
-                  disabled={feedbackSending || (stars === 0 && !feedbackText.trim())}
+                  disabled={feedbackSending || (stars === 0 && !feedbackText.trim() && feedbackTags.length === 0)}
                 >
                   {feedbackSending
                     ? <><span className="sp-spinner" /> Sending…</>

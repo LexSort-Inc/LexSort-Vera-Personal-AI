@@ -90,6 +90,10 @@ fn quick_organizer_task_roundtrip() {
         created_at: Utc::now().to_rfc3339(),
         completed_at: None,
         ai_breakdown: None,
+        start_time: None,
+        end_time: None,
+        category: None,
+        all_day: None,
     };
     let json = serde_json::to_string(&task).unwrap();
     let restored: lexsort_personal_ai_lib::quick_organizer::Task = serde_json::from_str(&json).unwrap();

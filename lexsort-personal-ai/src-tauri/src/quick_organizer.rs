@@ -19,6 +19,10 @@ pub struct Task {
     pub created_at: String,
     pub completed_at: Option<String>,
     pub ai_breakdown: Option<String>,
+    pub start_time: Option<String>,
+    pub end_time: Option<String>,
+    pub category: Option<String>,
+    pub all_day: Option<bool>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
@@ -36,10 +40,28 @@ fn quick_organizer_path() -> PathBuf {
 
 fn load_task_store() -> TaskStore {
     let path = quick_organizer_path();
-    std::fs::read_to_string(&path)
+    let mut store: TaskStore = std::fs::read_to_string(&path)
         .ok()
         .and_then(|s| serde_json::from_str(&s).ok())
-        .unwrap_or_default()
+        .unwrap_or_default();
+
+    let mut migrated = false;
+    for task in &mut store.tasks {
+        if task.category.is_none() {
+            task.category = Some("task".to_string());
+            migrated = true;
+        }
+        if task.all_day.is_none() {
+            task.all_day = Some(false);
+            migrated = true;
+        }
+    }
+
+    if migrated {
+        let _ = save_task_store(&store);
+    }
+
+    store
 }
 
 fn save_task_store(store: &TaskStore) -> Result<(), String> {
@@ -75,7 +97,14 @@ pub fn get_tasks() -> Result<Vec<Task>, String> {
 }
 
 #[tauri::command]
-pub fn create_task(title: String, list: TaskList) -> Result<Task, String> {
+pub fn create_task(
+    title: String,
+    list: TaskList,
+    start_time: Option<String>,
+    end_time: Option<String>,
+    category: Option<String>,
+    all_day: Option<bool>,
+) -> Result<Task, String> {
     let mut store = load_task_store();
     let task = Task {
         id: format!("task_{}", chrono::Utc::now().timestamp_millis()),
@@ -86,6 +115,10 @@ pub fn create_task(title: String, list: TaskList) -> Result<Task, String> {
         created_at: chrono::Utc::now().to_rfc3339(),
         completed_at: None,
         ai_breakdown: None,
+        start_time,
+        end_time,
+        category,
+        all_day,
     };
     store.tasks.push(task.clone());
     store.last_modified = chrono::Utc::now().to_rfc3339();

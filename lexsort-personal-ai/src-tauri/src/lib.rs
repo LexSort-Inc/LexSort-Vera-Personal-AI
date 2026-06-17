@@ -5,6 +5,8 @@ use std::path::PathBuf;
 use serde::{Deserialize, Serialize};
 use sysinfo::{System, Disks};
 pub mod quick_organizer;
+pub mod calendar_bridge;
+pub mod conversations;
 
 pub struct ServerProcess(pub Mutex<Option<Child>>);
 
@@ -85,6 +87,10 @@ pub struct InstalledRegistry {
     pub core_version: String,
     pub installed_at: String,
     pub modules: std::collections::HashMap<String, InstalledModuleEntry>,
+    #[serde(default)]
+    pub approved_update_version: Option<String>,
+    #[serde(default)]
+    pub update_downloaded_path: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -145,6 +151,17 @@ fn is_newer_version(current: &str, remote: &str) -> bool {
 fn ensure_lexsort_dirs(edition: &str) -> Result<(), String> {
     let base = lexsort_dir();
     std::fs::create_dir_all(&base).map_err(|e| e.to_string())?;
+    
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        if let Ok(meta) = std::fs::metadata(&base) {
+            let mut perms = meta.permissions();
+            perms.set_mode(0o700);
+            let _ = std::fs::set_permissions(&base, perms);
+        }
+    }
+
     std::fs::create_dir_all(base.join("modules")).map_err(|e| e.to_string())?;
     std::fs::create_dir_all(base.join("data")).map_err(|e| e.to_string())?;
 
@@ -168,6 +185,8 @@ fn ensure_lexsort_dirs(edition: &str) -> Result<(), String> {
             core_version: env!("CARGO_PKG_VERSION").to_string(),
             installed_at: chrono::Utc::now().to_rfc3339(),
             modules: std::collections::HashMap::new(),
+            approved_update_version: None,
+            update_downloaded_path: None,
         };
         let json = serde_json::to_string_pretty(&registry).map_err(|e| e.to_string())?;
         std::fs::write(registry_path, json).map_err(|e| e.to_string())?;
@@ -178,6 +197,8 @@ fn ensure_lexsort_dirs(edition: &str) -> Result<(), String> {
                 let mut changed = false;
                 if reg.core_version != current_version {
                     reg.core_version = current_version;
+                    reg.approved_update_version = None;
+                    reg.update_downloaded_path = None;
                     changed = true;
                 }
                 if reg.edition != edition {
@@ -389,6 +410,12 @@ fn select_model(
 
 /// Resolve the absolute path to the ollama binary in a cross-platform way.
 fn ollama_path() -> PathBuf {
+    // Check local VERA bin directory first for portable installation
+    let local_path = lexsort_dir().join("bin").join(if cfg!(target_os = "windows") { "ollama.exe" } else { "ollama" });
+    if local_path.exists() {
+        return local_path;
+    }
+
     #[cfg(target_os = "windows")]
     {
         if let Ok(local_app_data) = std::env::var("LOCALAPPDATA") {
@@ -746,7 +773,19 @@ pub mod commands {
 
     fn save_app_config(config: &AppConfig) -> Result<(), String> {
         let json = serde_json::to_string_pretty(config).map_err(|e| e.to_string())?;
-        std::fs::write(app_config_path(), json).map_err(|e| e.to_string())
+        let path = app_config_path();
+        std::fs::write(&path, json).map_err(|e| e.to_string())?;
+
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            if let Ok(meta) = std::fs::metadata(&path) {
+                let mut perms = meta.permissions();
+                perms.set_mode(0o600);
+                let _ = std::fs::set_permissions(&path, perms);
+            }
+        }
+        Ok(())
     }
 
     #[tauri::command]
@@ -952,6 +991,609 @@ pub mod commands {
         })
     }
 
+    fn calculate_sha256(path: &std::path::Path) -> Result<String, String> {
+        use sha2::{Sha256, Digest};
+        use std::io::Read;
+
+        let mut file = std::fs::File::open(path).map_err(|e| format!("Failed to open file for hashing: {}", e))?;
+        let mut hasher = Sha256::new();
+        let mut buffer = [0; 65536];
+
+        loop {
+            let n = file.read(&mut buffer).map_err(|e| format!("Failed to read file for hashing: {}", e))?;
+            if n == 0 {
+                break;
+            }
+            hasher.update(&buffer[..n]);
+        }
+
+        let result = hasher.finalize();
+        Ok(hex::encode(result))
+    }
+
+    #[tauri::command]
+    pub fn check_engine_installed() -> bool {
+        let path = super::ollama_path();
+        if !path.exists() {
+            return false;
+        }
+        std::process::Command::new(path)
+            .arg("--version")
+            .output()
+            .map(|out| out.status.success())
+            .unwrap_or(false)
+    }
+
+    #[tauri::command]
+    pub async fn setup_engine(app: AppHandle) -> Result<(), String> {
+        let (url, filename, expected_sha) = match std::env::consts::OS {
+            "macos" => (
+                "https://github.com/ollama/ollama/releases/download/v0.1.48/Ollama-darwin.zip",
+                "Ollama-darwin.zip",
+                "56fd727e2c2cd7388bcb3ad10ea50482bf3f326143a18814d0de38cabd7c08dd"
+            ),
+            "windows" => (
+                "https://github.com/ollama/ollama/releases/download/v0.1.48/ollama-windows-amd64.zip",
+                "ollama-windows-amd64.zip",
+                "a095dce6739c4635e7f4b856c08d1429598d3eae5c632995653f5339e15b5933"
+            ),
+            "linux" => (
+                "https://github.com/ollama/ollama/releases/download/v0.1.48/ollama-linux-amd64",
+                "ollama-linux-amd64",
+                "7641b21e9d0822ba44e494f5ed3d3796d9e9fcdf4dbb66064f8c34c865bbec0b"
+            ),
+            os => return Err(format!("Unsupported operating system: {}", os)),
+        };
+
+        let downloads_dir = super::lexsort_dir().join("downloads");
+        std::fs::create_dir_all(&downloads_dir).map_err(|e| e.to_string())?;
+        let archive_path = downloads_dir.join(filename);
+
+        let bin_dir = super::lexsort_dir().join("bin");
+        std::fs::create_dir_all(&bin_dir).map_err(|e| e.to_string())?;
+        let target_path = bin_dir.join(if cfg!(target_os = "windows") { "ollama.exe" } else { "ollama" });
+
+        tokio::spawn(async move {
+            let mut success = false;
+            for attempt in 1..=3 {
+                let _ = app.emit("engine_setup_progress", serde_json::json!({
+                    "status": "downloading",
+                    "percent": 0u8,
+                    "attempt": attempt
+                }));
+
+                let client = match reqwest::Client::builder()
+                    .timeout(std::time::Duration::from_secs(300))
+                    .build() {
+                        Ok(c) => c,
+                        Err(e) => {
+                            if attempt == 3 {
+                                let _ = app.emit("engine_setup_progress", serde_json::json!({
+                                    "status": "error",
+                                    "error": format!("Failed to build reqwest client: {}", e)
+                                }));
+                                return;
+                            }
+                            continue;
+                        }
+                    };
+
+                let response = match client.get(url).send().await {
+                    Ok(resp) => resp,
+                    Err(e) => {
+                        if attempt == 3 {
+                            let _ = app.emit("engine_setup_progress", serde_json::json!({
+                                "status": "error",
+                                "error": format!("Failed to connect: {}", e)
+                            }));
+                            return;
+                        }
+                        continue;
+                    }
+                };
+
+                if !response.status().is_success() {
+                    if attempt == 3 {
+                        let _ = app.emit("engine_setup_progress", serde_json::json!({
+                            "status": "error",
+                            "error": format!("Server returned status: {}", response.status())
+                        }));
+                        return;
+                    }
+                    continue;
+                }
+
+                let total_size = response.content_length().unwrap_or(0);
+                let mut file = match tokio::fs::File::create(&archive_path).await {
+                    Ok(f) => f,
+                    Err(e) => {
+                        let _ = app.emit("engine_setup_progress", serde_json::json!({
+                            "status": "error",
+                            "error": format!("Failed to create local file: {}", e)
+                        }));
+                        return;
+                    }
+                };
+
+                use tokio::io::AsyncWriteExt;
+                let mut stream = response.bytes_stream();
+                let mut downloaded = 0u64;
+                let mut last_progress = 0u8;
+                let mut download_err = false;
+
+                while let Some(chunk_result) = futures_util::StreamExt::next(&mut stream).await {
+                    let chunk = match chunk_result {
+                        Ok(c) => c,
+                        Err(_) => {
+                            download_err = true;
+                            break;
+                        }
+                    };
+
+                    if let Err(_) = file.write_all(&chunk).await {
+                        download_err = true;
+                        break;
+                    }
+
+                    downloaded += chunk.len() as u64;
+                    if total_size > 0 {
+                        let progress = ((downloaded as f64 / total_size as f64) * 100.0) as u8;
+                        if progress != last_progress && progress % 5 == 0 {
+                            last_progress = progress;
+                            let _ = app.emit("engine_setup_progress", serde_json::json!({
+                                "status": "downloading",
+                                "percent": progress,
+                                "attempt": attempt
+                            }));
+                        }
+                    }
+                }
+
+                if download_err {
+                    continue;
+                }
+
+                if let Err(_) = file.flush().await {
+                    continue;
+                }
+
+                // Verify SHA-256
+                let _ = app.emit("engine_setup_progress", serde_json::json!({
+                    "status": "verifying",
+                    "percent": 100u8,
+                    "attempt": attempt
+                }));
+
+                match calculate_sha256(&archive_path) {
+                    Ok(hash) => {
+                        if hash == expected_sha {
+                            success = true;
+                            break;
+                        } else {
+                            eprintln!("SHA-256 mismatch on attempt {}: expected {}, got {}", attempt, expected_sha, hash);
+                        }
+                    }
+                    Err(e) => {
+                        eprintln!("Failed to calculate hash on attempt {}: {}", attempt, e);
+                    }
+                }
+            }
+
+            if !success {
+                let _ = app.emit("engine_setup_progress", serde_json::json!({
+                    "status": "error",
+                    "error": "Failed to verify signature after 3 attempts."
+                }));
+                let _ = std::fs::remove_file(&archive_path);
+                return;
+            }
+
+            let _ = app.emit("engine_setup_progress", serde_json::json!({
+                "status": "extracting",
+                "percent": 100u8
+            }));
+
+            let setup_result = match std::env::consts::OS {
+                "macos" => {
+                    let extracted_dir = downloads_dir.join("extracted");
+                    let _ = std::fs::remove_dir_all(&extracted_dir);
+                    let unzip_status = std::process::Command::new("unzip")
+                        .args(&["-q", "-o", "-d", extracted_dir.to_str().unwrap(), archive_path.to_str().unwrap()])
+                        .status();
+                    
+                    match unzip_status {
+                        Ok(status) if status.success() => {
+                            let source_bin = extracted_dir.join("Ollama.app").join("Contents").join("Resources").join("ollama");
+                            if source_bin.exists() {
+                                if let Err(e) = std::fs::copy(&source_bin, &target_path) {
+                                    Err(format!("Failed to copy binary: {}", e))
+                                } else {
+                                    #[cfg(target_family = "unix")]
+                                    {
+                                        use std::os::unix::fs::PermissionsExt;
+                                        let mut perms = std::fs::metadata(&target_path).unwrap().permissions();
+                                        perms.set_mode(0o755);
+                                        let _ = std::fs::set_permissions(&target_path, perms);
+                                    }
+                                    Ok(())
+                                }
+                            } else {
+                                Err("Extracted folder does not match Ollama bundle structure.".to_string())
+                            }
+                        }
+                        Ok(status) => Err(format!("Unzip failed with status: {}", status)),
+                        Err(e) => Err(format!("Failed to run unzip: {}", e)),
+                    }
+                }
+                "windows" => {
+                    let extracted_dir = downloads_dir.join("extracted");
+                    let _ = std::fs::remove_dir_all(&extracted_dir);
+                    let ps_status = std::process::Command::new("powershell")
+                        .args(&[
+                            "-Command",
+                            &format!(
+                                "Expand-Archive -Force -Path '{}' -DestinationPath '{}'",
+                                archive_path.to_str().unwrap(),
+                                extracted_dir.to_str().unwrap()
+                            )
+                        ])
+                        .status();
+
+                    match ps_status {
+                        Ok(status) if status.success() => {
+                            let source_bin = extracted_dir.join("ollama.exe");
+                            if source_bin.exists() {
+                                if let Err(e) = std::fs::copy(&source_bin, &target_path) {
+                                    Err(format!("Failed to copy binary: {}", e))
+                                } else {
+                                    Ok(())
+                                }
+                            } else {
+                                Err("Extracted contents do not contain ollama.exe.".to_string())
+                            }
+                        }
+                        Ok(status) => Err(format!("Extraction failed: {}", status)),
+                        Err(e) => Err(format!("Failed to run extraction command: {}", e)),
+                    }
+                }
+                "linux" => {
+                    if let Err(e) = std::fs::copy(&archive_path, &target_path) {
+                        Err(format!("Failed to copy binary: {}", e))
+                    } else {
+                        #[cfg(target_family = "unix")]
+                        {
+                            use std::os::unix::fs::PermissionsExt;
+                            let mut perms = std::fs::metadata(&target_path).unwrap().permissions();
+                            perms.set_mode(0o755);
+                            let _ = std::fs::set_permissions(&target_path, perms);
+                        }
+                        Ok(())
+                    }
+                }
+                _ => Err("Unsupported OS".to_string()),
+            };
+
+            let _ = std::fs::remove_file(&archive_path);
+            let _ = std::fs::remove_dir_all(downloads_dir.join("extracted"));
+            let _ = std::fs::remove_dir_all(&downloads_dir);
+
+            match setup_result {
+                Ok(_) => {
+                    let _ = app.emit("engine_setup_progress", serde_json::json!({
+                        "status": "completed",
+                        "percent": 100u8
+                    }));
+                }
+                Err(e) => {
+                    let _ = app.emit("engine_setup_progress", serde_json::json!({
+                        "status": "error",
+                        "error": e
+                    }));
+                }
+            }
+        });
+
+        Ok(())
+    }
+
+    fn get_installer_info(version: &str) -> Result<(String, String), String> {
+        let os = std::env::consts::OS;
+        let arch = std::env::consts::ARCH;
+        
+        let (filename, _ext) = match os {
+            "macos" => {
+                let suffix = if arch == "aarch64" { "aarch64" } else { "x64" };
+                (format!("LexSort.Personal.AI_{}_{}.dmg", version, suffix), "dmg")
+            }
+            "windows" => {
+                (format!("LexSort.Personal.AI_{}_x64_en-US.msi", version), "msi")
+            }
+            "linux" => {
+                (format!("LexSort.Personal.AI_{}_amd64.AppImage", version), "AppImage")
+            }
+            _ => return Err(format!("Unsupported operating system: {}", os)),
+        };
+        
+        let url = format!(
+            "https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/releases/download/v{}/{}",
+            version,
+            filename
+        );
+        
+        Ok((filename, url))
+    }
+
+    #[tauri::command]
+    pub async fn approve_core_update(
+        _edition: String,
+        version: String,
+        app: AppHandle,
+    ) -> Result<(), String> {
+        let registry_path = super::installed_registry_path();
+        if !registry_path.exists() {
+            return Err("Registry not initialized".to_string());
+        }
+
+        let (filename, url) = get_installer_info(&version)?;
+
+        let content = std::fs::read_to_string(&registry_path).map_err(|e| e.to_string())?;
+        let mut registry: super::InstalledRegistry = serde_json::from_str(&content).map_err(|e| e.to_string())?;
+        registry.approved_update_version = Some(version.clone());
+        registry.update_downloaded_path = None;
+        let json = serde_json::to_string_pretty(&registry).map_err(|e| e.to_string())?;
+        std::fs::write(&registry_path, json).map_err(|e| e.to_string())?;
+
+        let updates_dir = super::lexsort_dir().join("updates");
+        std::fs::create_dir_all(&updates_dir).map_err(|e| e.to_string())?;
+        let dest_path = updates_dir.join(&filename);
+
+        tokio::spawn(async move {
+            let client = match reqwest::Client::builder()
+                .timeout(std::time::Duration::from_secs(300))
+                .build() {
+                    Ok(c) => c,
+                    Err(e) => {
+                        let _ = app.emit("core_update_progress", serde_json::json!({
+                            "status": "error",
+                            "percent": 0.0,
+                            "error": format!("Failed to build reqwest client: {}", e)
+                        }));
+                        return;
+                    }
+                };
+
+            let response = match client.get(&url).send().await {
+                Ok(resp) => resp,
+                Err(e) => {
+                    let _ = app.emit("core_update_progress", serde_json::json!({
+                        "status": "error",
+                        "percent": 0.0,
+                        "error": format!("Failed to connect: {}", e)
+                    }));
+                    return;
+                }
+            };
+
+            if !response.status().is_success() {
+                let _ = app.emit("core_update_progress", serde_json::json!({
+                    "status": "error",
+                    "percent": 0.0,
+                    "error": format!("Server returned status: {}", response.status())
+                }));
+                return;
+            }
+
+            let total_size = response.content_length().unwrap_or(0);
+            let mut file = match tokio::fs::File::create(&dest_path).await {
+                Ok(f) => f,
+                Err(e) => {
+                    let _ = app.emit("core_update_progress", serde_json::json!({
+                        "status": "error",
+                        "percent": 0.0,
+                        "error": format!("Failed to create local file: {}", e)
+                    }));
+                    return;
+                }
+            };
+
+            use tokio::io::AsyncWriteExt;
+            let mut stream = response.bytes_stream();
+            let mut downloaded = 0u64;
+            let mut last_progress = 0u8;
+
+            while let Some(chunk_result) = futures_util::StreamExt::next(&mut stream).await {
+                let chunk = match chunk_result {
+                    Ok(c) => c,
+                    Err(e) => {
+                        let _ = app.emit("core_update_progress", serde_json::json!({
+                            "status": "error",
+                            "percent": 0.0,
+                            "error": format!("Error reading stream chunk: {}", e)
+                        }));
+                        return;
+                    }
+                };
+
+                if let Err(e) = file.write_all(&chunk).await {
+                    let _ = app.emit("core_update_progress", serde_json::json!({
+                        "status": "error",
+                        "percent": 0.0,
+                        "error": format!("Failed to write to file: {}", e)
+                    }));
+                    return;
+                }
+
+                downloaded += chunk.len() as u64;
+                if total_size > 0 {
+                    let progress = ((downloaded as f64 / total_size as f64) * 100.0) as u8;
+                    if progress != last_progress && progress % 5 == 0 {
+                        last_progress = progress;
+                        let _ = app.emit("core_update_progress", serde_json::json!({
+                            "percent": progress,
+                            "bytes_downloaded": downloaded,
+                            "total_bytes": total_size,
+                            "status": "downloading"
+                        }));
+                    }
+                }
+            }
+
+            if let Err(e) = file.flush().await {
+                let _ = app.emit("core_update_progress", serde_json::json!({
+                    "status": "error",
+                    "percent": 0.0,
+                    "error": format!("Failed to flush file: {}", e)
+                }));
+                return;
+            }
+
+            let content = match std::fs::read_to_string(&registry_path) {
+                Ok(c) => c,
+                Err(e) => {
+                    let _ = app.emit("core_update_progress", serde_json::json!({
+                        "status": "error",
+                        "percent": 0.0,
+                        "error": format!("Failed to read registry: {}", e)
+                    }));
+                    return;
+                }
+            };
+            let mut registry: super::InstalledRegistry = match serde_json::from_str(&content) {
+                Ok(r) => r,
+                Err(e) => {
+                    let _ = app.emit("core_update_progress", serde_json::json!({
+                        "status": "error",
+                        "percent": 0.0,
+                        "error": format!("Failed to parse registry: {}", e)
+                    }));
+                    return;
+                }
+            };
+
+            let path_str = dest_path.to_string_lossy().to_string();
+            registry.update_downloaded_path = Some(path_str.clone());
+            if let Ok(json) = serde_json::to_string_pretty(&registry) {
+                let _ = std::fs::write(&registry_path, json);
+            }
+
+            let _ = app.emit("core_update_progress", serde_json::json!({
+                "percent": 100,
+                "status": "downloaded",
+                "path": path_str
+            }));
+        });
+
+        Ok(())
+    }
+
+    #[tauri::command]
+    pub fn launch_installer_and_exit(_app: AppHandle) -> Result<(), String> {
+        let registry_path = super::installed_registry_path();
+        if !registry_path.exists() {
+            return Err("Registry not initialized".to_string());
+        }
+
+        let content = std::fs::read_to_string(&registry_path).map_err(|e| e.to_string())?;
+        let registry: super::InstalledRegistry = serde_json::from_str(&content).map_err(|e| e.to_string())?;
+
+        let path_str = registry.update_downloaded_path.ok_or_else(|| "No update downloaded".to_string())?;
+        let path = std::path::Path::new(&path_str);
+
+        if !path.exists() {
+            return Err(format!("Installer file does not exist at: {}", path_str));
+        }
+
+        let os = std::env::consts::OS;
+        match os {
+            "macos" => {
+                Command::new("open")
+                    .arg(path)
+                    .spawn()
+                    .map_err(|e| format!("Failed to launch installer: {}", e))?;
+            }
+            "windows" => {
+                Command::new("cmd")
+                    .args(&["/c", "start", "", path.to_str().unwrap()])
+                    .spawn()
+                    .map_err(|e| format!("Failed to launch installer: {}", e))?;
+            }
+            "linux" => {
+                Command::new("chmod")
+                    .args(&["+x", path.to_str().unwrap()])
+                    .spawn()
+                    .map_err(|e| format!("Failed to make installer executable: {}", e))?;
+                Command::new("xdg-open")
+                    .arg(path)
+                    .spawn()
+                    .map_err(|e| format!("Failed to launch installer: {}", e))?;
+            }
+            _ => return Err(format!("Unsupported OS: {}", os)),
+        }
+
+        std::process::exit(0);
+    }
+
+    #[tauri::command]
+    pub fn get_pending_update_info() -> Result<Option<serde_json::Value>, String> {
+        let registry_path = super::installed_registry_path();
+        if !registry_path.exists() {
+            return Ok(None);
+        }
+        let content = std::fs::read_to_string(&registry_path).map_err(|e| e.to_string())?;
+        let registry: super::InstalledRegistry = serde_json::from_str(&content).map_err(|e| e.to_string())?;
+        if let (Some(version), Some(path)) = (registry.approved_update_version, registry.update_downloaded_path) {
+            if std::path::Path::new(&path).exists() {
+                return Ok(Some(serde_json::json!({
+                    "version": version,
+                    "path": path,
+                })));
+            }
+        }
+        Ok(None)
+    }
+
+    #[tauri::command]
+    pub fn list_installed_models() -> Result<Vec<String>, String> {
+        let path = super::ollama_path();
+        if !path.exists() {
+            return Ok(Vec::new());
+        }
+
+        let mut output = std::process::Command::new(&path)
+            .arg("list")
+            .output();
+
+        if output.is_err() || !output.as_ref().unwrap().status.success() {
+            let _serve = std::process::Command::new(&path)
+                .arg("serve")
+                .spawn();
+            std::thread::sleep(std::time::Duration::from_millis(1500));
+            output = std::process::Command::new(&path)
+                .arg("list")
+                .output();
+        }
+
+        let out = match output {
+            Ok(o) if o.status.success() => o,
+            _ => return Ok(Vec::new()),
+        };
+
+        let stdout_str = String::from_utf8_lossy(&out.stdout);
+        let mut models = Vec::new();
+
+        let mut lines = stdout_str.lines();
+        let _header = lines.next();
+
+        for line in lines {
+            let parts: Vec<&str> = line.split_whitespace().collect();
+            if !parts.is_empty() {
+                models.push(parts[0].to_string());
+            }
+        }
+
+        Ok(models)
+    }
+
     const QUICK_ORGANIZER_DOCS: &str = include_str!("docs/quick_organizer.md");
 
     #[tauri::command]
@@ -978,10 +1620,72 @@ pub mod commands {
         }
         std::process::exit(0);
     }
+
+    #[tauri::command]
+    pub fn exit_app(server: State<'_, super::ServerProcess>) {
+        if let Ok(mut guard) = server.0.lock() {
+            if let Some(mut child) = guard.take() {
+                let _ = child.kill();
+            }
+        }
+        std::process::exit(0);
+    }
+
+    #[tauri::command]
+    pub fn is_running_from_dmg() -> bool {
+        #[cfg(target_os = "macos")]
+        {
+            if let Ok(current_exe) = std::env::current_exe() {
+                let path_str = current_exe.to_string_lossy().to_lowercase();
+                if path_str.contains("/volumes/lexsort personal ai") || path_str.contains("/volumes/lexsort.personal.ai") {
+                    return true;
+                }
+            }
+        }
+        false
+    }
+}
+
+#[cfg(target_os = "macos")]
+fn cleanup_unused_mounted_dmg_volumes() {
+    // 1. Get current exe path
+    let current_exe = match std::env::current_exe() {
+        Ok(p) => p,
+        Err(_) => return,
+    };
+
+    // 2. Read contents of /Volumes
+    let volumes_dir = std::path::Path::new("/Volumes");
+    if let Ok(entries) = std::fs::read_dir(volumes_dir) {
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.is_dir() {
+                if let Some(name) = path.file_name().and_then(|n| n.to_str()) {
+                    let name_lower = name.to_lowercase();
+                    if name_lower.starts_with("lexsort personal ai") || name_lower.starts_with("lexsort.personal.ai") {
+                        // Check if current exe is running from this volume path.
+                        if current_exe.starts_with(&path) {
+                            println!("[VERA] Running from mounted volume: {:?}. Skipping eject.", path);
+                            continue;
+                        }
+                        
+                        // Otherwise, eject it!
+                        println!("[VERA] Detaching unused mounted volume: {:?}", path);
+                        let _ = std::process::Command::new("hdiutil")
+                            .args(&["detach", &path.to_string_lossy(), "-force"])
+                            .output();
+                    }
+                }
+            }
+        }
+    }
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    #[cfg(target_os = "macos")]
+    cleanup_unused_mounted_dmg_volumes();
+
     // Single-instance lock to prevent concurrent DB lock conflicts
     let _instance_lock = match std::net::TcpListener::bind("127.0.0.1:58737") {
         Ok(listener) => listener,
@@ -1013,8 +1717,16 @@ pub fn run() {
             commands::get_installed_registry,
             commands::get_app_version,
             commands::check_for_updates,
+            commands::approve_core_update,
+            commands::launch_installer_and_exit,
+            commands::get_pending_update_info,
+            commands::list_installed_models,
+            commands::check_engine_installed,
+            commands::setup_engine,
             commands::get_module_docs,
             commands::factory_reset,
+            commands::exit_app,
+            commands::is_running_from_dmg,
             quick_organizer::get_tasks,
             quick_organizer::create_task,
             quick_organizer::update_task,
@@ -1022,6 +1734,15 @@ pub fn run() {
             quick_organizer::delete_task,
             quick_organizer::move_task,
             quick_organizer::cache_ai_breakdown,
+            calendar_bridge::request_calendar_permission,
+            calendar_bridge::import_calendar_events,
+            calendar_bridge::refresh_calendar_events,
+            conversations::get_conversations,
+            conversations::create_conversation,
+            conversations::save_messages,
+            conversations::delete_conversation,
+            conversations::rename_conversation,
+            conversations::load_messages,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

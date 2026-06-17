@@ -2,27 +2,103 @@
 // Securely forwards bug reports and diagnostics from VERA to the Discord Forum channel
 
 exports.handler = async (event, context) => {
+  const headers = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Vera-Token',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Content-Type': 'application/json'
+  };
+
+  // Handle OPTIONS preflight
+  if (event.httpMethod === 'OPTIONS') {
+    return {
+      statusCode: 200,
+      headers,
+      body: ''
+    };
+  }
+
+  // Verify secret token to prevent abuse (outdated clients will fail and be prompted to upgrade)
+  const clientToken = event.headers['x-vera-token'] || event.headers['X-Vera-Token'];
+  if (clientToken !== 'vera-sovereign-intelligence-v1-token-2026') {
+    console.warn('[SECURITY] Unauthorized submit-bug-report attempt without valid signature.');
+    return {
+      statusCode: 401,
+      headers,
+      body: JSON.stringify({ 
+        error: 'Unauthorized',
+        message: 'Please update your VERA application to the latest version to submit bug reports.' 
+      })
+    };
+  }
+
   // Only allow POST
   if (event.httpMethod !== 'POST') {
     return { 
       statusCode: 405, 
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({ error: 'Method not allowed' }) 
     };
   }
 
   try {
+    const bodyObj = JSON.parse(event.body || '{}');
+
+    // Honeypot check: Bots auto-fill standard fields like "email", "url", "website"
+    if (bodyObj.email || bodyObj.url || bodyObj.website || bodyObj.honeypot) {
+      console.warn('[SECURITY] Bot honeypot triggered on submit-bug-report. Discarding.');
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({ success: true, message: 'Bug report received.' })
+      };
+    }
+
+    const userDescription = bodyObj.description?.toLowerCase() || '';
+    const category = bodyObj.category?.toLowerCase() || '';
+    const diagnostics = bodyObj.diagnostics?.toLowerCase() || '';
+
+    // Spam content moderation
+    const spamKeywords = [
+      'replica watch', 'crypto investment', 'quick cash', 'bitcoin profit', 
+      'casino slots', 'cheap pharmacy', 'cialis', 'viagra', 'seo ranking'
+    ];
+
+    const isSpam = spamKeywords.some(keyword => 
+      userDescription.includes(keyword) || 
+      category.includes(keyword) || 
+      diagnostics.includes(keyword)
+    );
+
+    // Block any external URLs/links to prevent abuse
+    const urlMatches = userDescription.match(/https?:\/\/[^\s]+/g) || [];
+    const hasLinks = urlMatches.length > 0;
+
+    if (isSpam || hasLinks) {
+      console.warn(`[SECURITY] Spam or URL filter triggered (isSpam: ${isSpam}, hasLinks: ${hasLinks}). Discarding.`);
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({ success: true, message: 'Bug report received.' })
+      };
+    }
+
+    const platform = bodyObj.platform || bodyObj.os;
+    let ramGb = bodyObj.ramGb || bodyObj.ramSize;
+    if (typeof ramGb === 'string') {
+      const parsedRam = parseFloat(ramGb);
+      ramGb = isNaN(parsedRam) ? null : parsedRam;
+    }
+
     const { 
-      platform, 
-      ramGb, 
       freeStorageGb,
       hasNvidiaGpu,
-      category, 
+      category: rawCategory, 
       description, 
-      diagnostics, 
+      diagnostics: parsedDiagnostics, 
       appName, 
       isPro 
-    } = JSON.parse(event.body || '{}');
+    } = bodyObj;
 
     const botToken = process.env.DISCORD_BOT_TOKEN;
     const forumChannelId = process.env.DISCORD_FORUM_CHANNEL_ID;
@@ -31,7 +107,7 @@ exports.handler = async (event, context) => {
       console.error('Missing configuration: DISCORD_BOT_TOKEN or DISCORD_FORUM_CHANNEL_ID is not set.');
       return {
         statusCode: 500,
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({ error: 'Server configuration error' }),
       };
     }
@@ -71,7 +147,7 @@ exports.handler = async (event, context) => {
 
     if (ramTag) applied_tags.push(ramTag);
 
-    const cTag = categoryTags[category];
+    const cTag = categoryTags[rawCategory];
     if (cTag) applied_tags.push(cTag);
 
     if (hasNvidiaGpu && process.env.DISCORD_TAG_GPU_NVIDIA) {
@@ -94,12 +170,13 @@ exports.handler = async (event, context) => {
     const formattedRam = ramGb ? `${ramGb}GB RAM` : 'UNKNOWN RAM';
     
     // Thread Title (max 100 characters in Discord)
-    const rawTitle = `[${formattedPlatform} | ${formattedRam}] ${category}`;
+    const displayCategory = rawCategory || 'Bug Report';
+    const rawTitle = `[${formattedPlatform} | ${formattedRam}] ${displayCategory}`;
     const threadTitle = rawTitle.length > 100 ? rawTitle.substring(0, 97) + '...' : rawTitle;
 
     // Embed description (handles truncation safely if description is very long)
-    const userDescription = description?.trim() || '(No description provided)';
-    const cleanDescription = userDescription.length > 2000 ? userDescription.substring(0, 1997) + '...' : userDescription;
+    const userDescriptionText = description?.trim() || '(No description provided)';
+    const cleanDescription = userDescriptionText.length > 2000 ? userDescriptionText.substring(0, 1997) + '...' : userDescriptionText;
 
     // Create Discord Forum Thread using REST API
     const discordUrl = `https://discord.com/api/v10/channels/${forumChannelId}/threads`;
@@ -117,7 +194,7 @@ exports.handler = async (event, context) => {
         message: {
           embeds: [
             {
-              title: `🐛 New Bug Report — ${appName} ${isPro ? '(Pro)' : '(Freeware)'}`,
+              title: `🐛 New Bug Report — ${appName || 'VERA'} ${isPro ? '(Pro)' : '(Freeware)'}`,
               description: `**User Report:**\n${cleanDescription}`,
               color: 0xef4444, // Red
               fields: [
@@ -128,12 +205,12 @@ exports.handler = async (event, context) => {
                 },
                 {
                   name: '📁 Category',
-                  value: category,
+                  value: displayCategory,
                   inline: true,
                 },
                 {
                   name: '📋 Diagnostic Details',
-                  value: diagnostics ? `\`\`\`markdown\n${diagnostics}\n\`\`\`` : 'No diagnostic details attached.',
+                  value: parsedDiagnostics ? `\`\`\`markdown\n${parsedDiagnostics}\n\`\`\`` : 'No diagnostic details attached.',
                   inline: false,
                 }
               ],
@@ -157,7 +234,7 @@ exports.handler = async (event, context) => {
 
     return {
       statusCode: 200,
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({
         success: true,
         threadId: threadData.id,
@@ -169,7 +246,7 @@ exports.handler = async (event, context) => {
     console.error('Submit bug report error:', error);
     return {
       statusCode: 500,
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({ error: 'Failed to submit bug report', details: error.message }),
     };
   }
