@@ -2,7 +2,7 @@
 
 **Project:** LexSort VERA — Local-First Private AI Desktop App  
 **Parent Brand:** LexSort Inc.  
-**Current Versions:** VERA Freeware v1.1.6 · VERA Pro v1.0.5 (CI test tags up to v1.0.11 are workflow-fix-only)  
+**Current Versions:** VERA Freeware v1.1.6 ✅ · VERA Pro v1.0.5 (CI fix committed, awaiting GH Actions limits)  
 **Stack:** React 19 (TypeScript) + Rust (Tauri v2) + Ollama  
 **Launch Date:** July 1, 2026  
 
@@ -86,23 +86,29 @@ All fixes are committed to main on the Pro repo. v1.0.11 was the last test tag b
 - Per-platform Node.js version in matrix: macOS/Linux = Node 20, Windows = Node 24
 - `npm install -g node-gyp@latest` step added BEFORE `npm ci` (Windows only)
 - `GYP_MSVS_VERSION=2022` and `npm_config_msvs_version=2022` env vars on the `npm ci` step
+- Removed broken `npm config set msvs_version` step (not a valid npm option in npm v10+)
 
 **What was fixed in `lexsort-vera-pro/src-tauri/Cargo.toml`:**
 - Added `winreg = "0.52"` as `[target.'cfg(target_os = "windows")'.dependencies]`
-- This crate was used in `src/lib.rs:1046` for Windows registry machine ID but was missing from Cargo.toml
+- Crate was used in `src/lib.rs:1046` for Windows registry machine ID but was missing
 
 **To verify:** When limits reset, push a new Pro tag and confirm Windows passes.  
 **Actions URL:** https://github.com/Lexsort-Core/Lexsort-Vera-Pro/actions
 
-### 2. Freeware Windows CI — NEEDS VERIFICATION
+### 2. Pro "Update Core" button — FIXED (Jun 17)
 
-The freeware repo `.github/workflows/release.yml` was also updated (env vars before npm ci).
-The freeware does NOT use `better-sqlite3` so the npm issue is less likely, but verify on next freeware tag push.
+The Settings → Updates → "Update Core" button was hardcoded as `disabled` with "Coming soon" tooltip.
+Fixed by passing `onDownloadCoreUpdate`, `onInstallCoreUpdate`, `coreUpdateDownloadStatus`,
+`coreUpdateDownloadPercent` props from `App.tsx` → `ChatModule.tsx`.
 
-**Note:** The freeware workflow was NOT updated to per-platform node-version yet.
-If freeware Windows CI also fails, apply the same per-platform node fix.
+**Now shows:** idle → clickable Update Core → downloading % → Install & Restart (green)
 
-### 3. LICENSE_SIGNING_PRIVATE_KEY — rotation needed
+### 3. Freeware in-app update — VERIFIED WORKING ✅
+
+Freeware v1.1.4 → v1.1.6 update downloaded and installed successfully via the in-app update UI.
+"Install & Restart Now" / "Install Later" buttons both present and functional.
+
+### 4. LICENSE_SIGNING_PRIVATE_KEY — rotation needed
 
 The old Ed25519 private key was in `scripts/generate-test-keys.js` and is now in git history.
 
@@ -113,10 +119,10 @@ The old Ed25519 private key was in `scripts/generate-test-keys.js` and is now in
 4. Rebuild + release new version
 > ⚠️ Rotating breaks all existing Pro licenses — coordinate timing carefully.
 
-### 4. Pro version files not bumped
+### 5. Pro version files not bumped
 
 CI tags v1.0.6 through v1.0.11 were workflow-fix-only. Pro version files still show **v1.0.5**.  
-After Windows CI is confirmed passing, bump `tauri.conf.json`, `package.json`, `Cargo.toml` to correct version → push proper release tag.
+After Windows CI is confirmed passing, bump `tauri.conf.json`, `package.json`, `Cargo.toml` → push proper release tag.
 
 ---
 
