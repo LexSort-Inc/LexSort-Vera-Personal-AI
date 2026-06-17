@@ -1,11 +1,11 @@
 // netlify/functions/uptime-monitor.js
 
 const BINARY_URLS = {
-  mac_arm:   'https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/releases/download/v1.1.4/LexSort.Personal.AI_1.1.4_aarch64.dmg',
-  mac_intel: 'https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/releases/download/v1.1.4/LexSort.Personal.AI_1.1.4_x64.dmg',
-  windows:   'https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/releases/download/v1.1.4/LexSort.Personal.AI_1.1.4_x64_en-US.msi',
-  linux_app: 'https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/releases/download/v1.1.4/LexSort.Personal.AI_1.1.4_amd64.AppImage',
-  linux_deb: 'https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/releases/download/v1.1.4/LexSort.Personal.AI_1.1.4_amd64.deb'
+  mac_arm:   'https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/releases/download/v1.1.5/LexSort.Personal.AI_1.1.5_aarch64.dmg',
+  mac_intel: 'https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/releases/download/v1.1.5/LexSort.Personal.AI_1.1.5_x64.dmg',
+  windows:   'https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/releases/download/v1.1.5/LexSort.Personal.AI_1.1.5_x64_en-US.msi',
+  linux_app: 'https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/releases/download/v1.1.5/LexSort.Personal.AI_1.1.5_amd64.AppImage',
+  linux_deb: 'https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/releases/download/v1.1.5/LexSort.Personal.AI_1.1.5_amd64.deb'
 };
 
 exports.handler = async (event, context) => {

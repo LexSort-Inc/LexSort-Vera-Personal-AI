@@ -6,8 +6,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ── GitHub Release Base URL ──────────────────────────────────────────────
   // Update version string here when a new release ships
-  const VERSION_LATEST = "v1.1.4";
-  const VERSION_FALLBACK = "v1.1.4";
+  const VERSION_LATEST = "v1.1.5";
+  const VERSION_FALLBACK = "v1.1.5";
 
   const GITHUB_BASE_LATEST = `https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/releases/download/${VERSION_LATEST}`;
   const GITHUB_BASE_FALLBACK = `https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/releases/download/${VERSION_FALLBACK}`;
