@@ -533,6 +533,63 @@
         <p>Never. VERA is engineered to be network-isolated by design. The inference engine binds strictly to your loopback address (<code>127.0.0.1</code>). No analytics, telemetry, crash reports, or user inputs ever leave your machine. You can verify this by turning off your WiFi entirely; VERA runs 100% offline.</p>
       </div>
 
+      <!-- FAQ 6: In-App Updates -->
+      <div class="faq-item" id="faq-updates">
+        <h3>🔄 How do in-app updates work?</h3>
+        <p>VERA includes a built-in auto-updater. When a new version is available, you'll see an update prompt directly inside the app — no need to visit the website or manually download anything.</p>
+        <ul>
+          <li><strong>How it checks:</strong> On launch, VERA silently queries a signed <code>manifest.json</code> hosted at <code>lexsort.com/api/manifest.json</code>. This is the only outbound request the app ever makes — it contains the latest version number and download URL only.</li>
+          <li><strong>How to update:</strong> Click <strong>Install Update</strong> in the notification banner. VERA downloads the installer, verifies its cryptographic signature, and then relaunches into the new version automatically.</li>
+          <li><strong>Forced updates:</strong> Updates are never forced. You can dismiss the prompt and continue using your current version indefinitely.</li>
+          <li><strong>Manual update:</strong> You can also always download the latest installer directly from the <a href="download.html" style="color: var(--accent);">Download page</a>.</li>
+        </ul>
+      </div>
+
+      <!-- FAQ 7: Ollama - Is it pre-bundled? -->
+      <div class="faq-item" id="faq-ollama">
+        <h3>🤖 Do I need to install Ollama separately?</h3>
+        <p>No. VERA ships with a bundled, sandboxed version of the Ollama inference engine. You do <strong>not</strong> need to install Ollama from the Ollama website. The bundled engine is locked to local loopback communications only, and VERA manages it entirely automatically.</p>
+        <ul>
+          <li><strong>Conflict note:</strong> If you already have a system-wide Ollama installation running in your menu bar, it may occupy port 11434 before VERA's bundled engine can start. If this happens, quit the system Ollama daemon first (see the Port 11434 FAQ above).</li>
+          <li><strong>Models:</strong> On first boot, VERA auto-selects and downloads the right model based on your system RAM — Llama 3.2 3B for ≥8 GB, Llama 3.2 1B for lower specs. No configuration needed.</li>
+        </ul>
+      </div>
+
+      <!-- FAQ 8: Pro License Activation -->
+      <div class="faq-item" id="faq-pro-activation">
+        <h3>🔑 How do I activate VERA Pro after purchasing?</h3>
+        <p>VERA Pro uses offline Ed25519 cryptographic license verification — no internet connection is needed after activation:</p>
+        <ol>
+          <li>Complete checkout on the <a href="vera-pro.html" style="color: var(--accent);">VERA Pro page</a> via Stripe. Your license key is displayed immediately on the Stripe success screen.</li>
+          <li>Open the LexSort Vera app. Click the <strong>Settings</strong> icon (⚙️) in the top-right corner.</li>
+          <li>Navigate to <strong>Pro License</strong> and paste your key into the activation field, then click <strong>Activate</strong>.</li>
+          <li>VERA verifies the key cryptographically using a public key embedded in the app binary — no server call is made. Pro modules unlock instantly.</li>
+        </ol>
+        <p style="margin-top: 10px;">If you lose your key, check your Stripe receipt email. Keys are permanent and do not expire between app versions as long as your subscription is active.</p>
+      </div>
+
+      <!-- FAQ 9: Linux AppImage -->
+      <div class="faq-item" id="faq-linux">
+        <h3>🐧 Linux: Running the AppImage</h3>
+        <p>VERA for Linux ships as a portable AppImage. No system-wide installation required:</p>
+        <ol>
+          <li>Download the <code>.AppImage</code> file from the <a href="download.html" style="color: var(--accent);">Download page</a>.</li>
+          <li>Make it executable:
+            <div class="code-cmd">
+              <span id="cmd-linux-chmod">chmod +x LexSort-Personal-AI_*.AppImage</span>
+              <button onclick="copyText('cmd-linux-chmod')">Copy</button>
+            </div>
+          </li>
+          <li>Run it directly — no install wizard, no root access needed:
+            <div class="code-cmd">
+              <span id="cmd-linux-run">./LexSort-Personal-AI_*.AppImage</span>
+              <button onclick="copyText('cmd-linux-run')">Copy</button>
+            </div>
+          </li>
+          <li>If you see a <em>FUSE</em> error, install the libfuse2 package: <code>sudo apt install libfuse2</code></li>
+        </ol>
+      </div>
+
     </div>
   </main>
 
