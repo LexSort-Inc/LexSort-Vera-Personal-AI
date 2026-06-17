@@ -689,6 +689,46 @@
     </div>
   </section>
 
+  <!-- Research Lab Screenshots Section -->
+  <section style="padding: 80px 0; border-top: 1px solid var(--border);">
+    <div class="container">
+      <h2 class="section-title">Model Research Lab</h2>
+      <p class="section-subtitle">A full-featured AI benchmark and tuning workstation — runs 100% on your hardware. Pull any GGUF/Ollama model, test performance, audit prompts, and export results.</p>
+
+      <div style="display: flex; justify-content: center; gap: 8px; margin-bottom: 32px; flex-wrap: wrap;">
+        <button id="pro-tab-btn-1" class="pro-preview-tab active" onclick="switchProTab(1)" style="background: rgba(139,92,246,0.12); border: 1px solid var(--accent); color: #c084fc; padding: 10px 20px; font-size: 13px; font-weight: 600; border-radius: 8px; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.2s;">🏃 Workflow Runner</button>
+        <button id="pro-tab-btn-2" class="pro-preview-tab" onclick="switchProTab(2)" style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); color: var(--text-muted); padding: 10px 20px; font-size: 13px; font-weight: 600; border-radius: 8px; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.2s;">📚 Prompt Library</button>
+        <button id="pro-tab-btn-3" class="pro-preview-tab" onclick="switchProTab(3)" style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); color: var(--text-muted); padding: 10px 20px; font-size: 13px; font-weight: 600; border-radius: 8px; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.2s;">📦 Model Manager</button>
+        <button id="pro-tab-btn-4" class="pro-preview-tab" onclick="switchProTab(4)" style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); color: var(--text-muted); padding: 10px 20px; font-size: 13px; font-weight: 600; border-radius: 8px; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.2s;">🎮 Playground</button>
+      </div>
+
+      <div id="pro-pane-1" style="display:block;">
+        <div style="border-radius:12px; overflow:hidden; border:1px solid var(--border); box-shadow:0 20px 60px rgba(0,0,0,0.6);">
+          <img src="assets/research-lab-benchmark.png" alt="VERA Pro Workflow Runner — benchmark local LLM inference speed in tokens per second" style="width:100%;height:auto;display:block;" loading="lazy" />
+        </div>
+        <p style="text-align:center;margin-top:16px;font-size:13px;color:var(--text-muted);">Workflow Runner — measure real-time TPS across Tax, Grant, Legal, and custom business prompt suites.</p>
+      </div>
+      <div id="pro-pane-2" style="display:none;">
+        <div style="border-radius:12px; overflow:hidden; border:1px solid var(--border); box-shadow:0 20px 60px rgba(0,0,0,0.6);">
+          <img src="assets/research-lab-prompts.png" alt="VERA Pro Prompt Library — manage and export evaluation prompt templates" style="width:100%;height:auto;display:block;" loading="lazy" />
+        </div>
+        <p style="text-align:center;margin-top:16px;font-size:13px;color:var(--text-muted);">Prompt Library — manage templates, customize evaluation workflows, import/export prompt sets.</p>
+      </div>
+      <div id="pro-pane-3" style="display:none;">
+        <div style="border-radius:12px; overflow:hidden; border:1px solid var(--border); box-shadow:0 20px 60px rgba(0,0,0,0.6);">
+          <img src="assets/research-lab-models.png" alt="VERA Pro Model Manager — view installed GGUF and Ollama models with disk usage" style="width:100%;height:auto;display:block;" loading="lazy" />
+        </div>
+        <p style="text-align:center;margin-top:16px;font-size:13px;color:var(--text-muted);">Model Manager — view disk usage, manage downloaded GGUF/Ollama models, toggle background execution.</p>
+      </div>
+      <div id="pro-pane-4" style="display:none;">
+        <div style="border-radius:12px; overflow:hidden; border:1px solid var(--border); box-shadow:0 20px 60px rgba(0,0,0,0.6);">
+          <img src="assets/research-lab-playground.png" alt="VERA Pro Playground — test system prompts and model parameters with side-by-side output" style="width:100%;height:auto;display:block;" loading="lazy" />
+        </div>
+        <p style="text-align:center;margin-top:16px;font-size:13px;color:var(--text-muted);">Playground — test temperature, system prompts, and context window dynamically with live model output.</p>
+      </div>
+    </div>
+  </section>
+
   <!-- Feature Comparison Table -->
   <section class="comparison-section">
     <div class="container">
@@ -834,6 +874,24 @@
       <p class="footer-copyright">&copy; 2026 LexSort Inc. All rights reserved. Sovereign local intelligence systems.</p>
     </div>
   </footer>
-
+  <script>
+    function switchProTab(n) {
+      for (let i = 1; i <= 4; i++) {
+        const pane = document.getElementById('pro-pane-' + i);
+        const btn  = document.getElementById('pro-tab-btn-' + i);
+        if (i === n) {
+          pane.style.display = 'block';
+          btn.style.background = 'rgba(139,92,246,0.12)';
+          btn.style.borderColor = 'var(--accent)';
+          btn.style.color = '#c084fc';
+        } else {
+          pane.style.display = 'none';
+          btn.style.background = 'rgba(255,255,255,0.03)';
+          btn.style.borderColor = 'var(--border)';
+          btn.style.color = 'var(--text-muted)';
+        }
+      }
+    }
+  </script>
 </body>
 </html>

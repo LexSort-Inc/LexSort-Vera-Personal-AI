@@ -56,6 +56,14 @@ jobs:
         run: npm ci
         working-directory: lexsort-personal-ai
 
+      - name: Configure Windows native build environment (better-sqlite3)
+        if: matrix.platform == 'windows-latest'
+        shell: pwsh
+        run: |
+          # Set MSVC 2022 as the target toolchain for node-gyp / better-sqlite3
+          echo "npm_config_msvs_version=2022" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          echo "GYP_MSVS_VERSION=2022" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
       - name: Setup Apple signing (macOS only)
         if: startsWith(matrix.platform, 'macos')
         env:

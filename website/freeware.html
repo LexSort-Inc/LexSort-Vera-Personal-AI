@@ -427,6 +427,79 @@
       padding-top: 24px;
     }
 
+    /* App Preview Section */
+    .preview-section {
+      padding: 70px 0 60px;
+      border-top: 1px solid var(--border);
+    }
+
+    .preview-tabs {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+    }
+
+    .preview-tab-btn {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 10px 20px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .preview-tab-btn:hover {
+      color: #fff;
+      border-color: #3b82f6;
+    }
+
+    .preview-tab-btn.active {
+      color: #fff;
+      background: rgba(59, 130, 246, 0.12);
+      border-color: #3b82f6;
+    }
+
+    .preview-pane {
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .preview-pane.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .preview-img-wrapper {
+      position: relative;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+    }
+
+    .preview-img-wrapper img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .preview-caption {
+      text-align: center;
+      margin-top: 16px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
     /* Responsive Design */
     @media (max-width: 768px) {
       .hero h1 { font-size: 40px; }
@@ -485,6 +558,41 @@
         </a>
       </div>
       <p class="cta-subtext">Apache 2.0 Open Source &nbsp;·&nbsp; For macOS, Windows, and Linux</p>
+    </div>
+  </section>
+
+  <!-- App Preview Section -->
+  <section class="preview-section">
+    <div class="container">
+      <h2 class="section-title">See It In Action</h2>
+      <p class="section-subtitle">Real screenshots from LexSort Vera v1.1.5. No demos, no mock-ups — this is the actual app.</p>
+
+      <div class="preview-tabs">
+        <button class="preview-tab-btn active" onclick="switchPreview(event, 'prev-chat')">💬 VERA Chat</button>
+        <button class="preview-tab-btn" onclick="switchPreview(event, 'prev-model')">⚡ Model Selection</button>
+        <button class="preview-tab-btn" onclick="switchPreview(event, 'prev-organizer')">📅 Quick Organizer</button>
+      </div>
+
+      <div id="prev-chat" class="preview-pane active">
+        <div class="preview-img-wrapper">
+          <img src="assets/screenshots/vera-welcome-chat.png" alt="LexSort Vera VERA Chat — Private AI assistant running locally on your machine" loading="lazy" />
+        </div>
+        <p class="preview-caption">VERA Chat — your fully private AI assistant. Runs 100% on-device, no account required.</p>
+      </div>
+
+      <div id="prev-model" class="preview-pane">
+        <div class="preview-img-wrapper">
+          <img src="assets/screenshots/vera-model-select.png" alt="LexSort Vera model selection — automatic hardware detection with Llama, Qwen, Mistral support" loading="lazy" />
+        </div>
+        <p class="preview-caption">Automatic hardware detection selects the best local model for your machine — Llama, Qwen, Mistral and more.</p>
+      </div>
+
+      <div id="prev-organizer" class="preview-pane">
+        <div class="preview-img-wrapper">
+          <img src="assets/screenshots/vera-quick-organizer.png" alt="LexSort Vera Quick Organizer module — AI-powered calendar and task management" loading="lazy" />
+        </div>
+        <p class="preview-caption">Quick Organizer module — AI-powered task and calendar management, fully offline.</p>
+      </div>
     </div>
   </section>
 
@@ -596,6 +704,13 @@
       </div>
     </div>
   </footer>
-
+  <script>
+    function switchPreview(e, id) {
+      document.querySelectorAll('.preview-tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.preview-pane').forEach(p => p.classList.remove('active'));
+      e.currentTarget.classList.add('active');
+      document.getElementById(id).classList.add('active');
+    }
+  </script>
 </body>
 </html>
