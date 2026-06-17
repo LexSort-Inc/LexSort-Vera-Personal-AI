@@ -2,7 +2,7 @@
 
 **Project:** LexSort VERA — Local-First Private AI Desktop App  
 **Parent Brand:** LexSort Inc.  
-**Current Versions:** VERA Freeware v1.1.5 · VERA Pro v1.0.5  
+**Current Versions:** VERA Freeware v1.1.6 · VERA Pro v1.0.5  
 **Stack:** React 19 (TypeScript) + Rust (Tauri v2) + Ollama  
 **Launch Date:** July 1, 2026  
 
@@ -36,11 +36,24 @@ cd lexsort-personal-ai && npm run tauri dev
 ```bash
 # 1. Bump version in: tauri.conf.json, package.json, Cargo.toml (both repos)
 # 2. Commit & push, then tag:
-git tag v1.1.5 && git push origin v1.1.5
+git tag v1.1.6 && git push origin v1.1.6
 ```
 
-### Test in-app update
-Bump `website/api/manifest.json` version above current app version → relaunch app → update banner appears.
+### Deploy the website to lexsort.com
+> ⚠️ Netlify is NOT connected to GitHub auto-deploy.
+> Every change to `website/` must be manually deployed.
+
+```bash
+# From repo root (uses netlify.toml: publish = "website")
+netlify deploy --prod
+# If 'netlify' is not in PATH, install it first:
+npm install -g netlify-cli
+```
+
+**Site ID:** `charming-zuccutto-05cf6a` (lexsort.com)  
+**Fallback:** Drag the `website/` folder to:  
+https://app.netlify.com/projects/charming-zuccutto-05cf6a/deploys
+
 
 ---
 

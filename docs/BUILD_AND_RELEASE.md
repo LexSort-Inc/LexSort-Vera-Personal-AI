@@ -66,10 +66,10 @@ Bump the version number in **all 3 files per repo** — they must stay in sync:
 
 ```bash
 # Freeware
-git add -A && git commit -m "chore: bump to v1.1.5"
+git add -A && git commit -m "chore: bump to v1.1.6"
 git push
-git tag v1.1.5
-git push origin v1.1.5
+git tag v1.1.6
+git push origin v1.1.6
 
 # Pro (same pattern)
 git add -A && git commit -m "chore: bump to v1.0.5"
@@ -79,6 +79,43 @@ git push origin v1.0.5
 ```
 
 CI will: compile all targets → codesign macOS (via Apple secrets) → notarize → create GitHub Release → upload all binaries.
+
+---
+
+## Website Deployment (Netlify)
+
+> ⚠️ **CRITICAL:** The Netlify site for `lexsort.com` is NOT connected to GitHub.
+> Git pushes do NOT auto-deploy the website. You must deploy manually after every `website/` change.
+
+**Site ID:** `charming-zuccutto-05cf6a`  
+**Publish dir:** `website/` (defined in `netlify.toml`)
+
+### Deploy command
+
+```bash
+# From the repo root (netlify.toml sets publish = "website" automatically)
+netlify deploy --prod
+
+# If netlify is not in PATH (common in AI/terminal sessions), install first:
+npm install -g netlify-cli
+netlify login   # opens browser to authenticate (one-time)
+netlify deploy --prod
+```
+
+### Manual fallback (no CLI needed)
+1. Open https://app.netlify.com/projects/charming-zuccutto-05cf6a/deploys  
+2. Drag and drop the `website/` folder into the deploy zone
+
+### What triggers a website deploy?
+Any change to files in `website/` — HTML pages, CSS, screenshots, `api/manifest.json` — must be followed by a manual deploy. This includes:
+- New screenshot assets in `website/assets/screenshots/`
+- FAQ or page content changes
+- Manifest version bumps (so in-app updater picks up new version)
+
+### Connecting Netlify to GitHub (recommended future action)
+To enable auto-deploy, go to:  
+https://app.netlify.com/projects/charming-zuccutto-05cf6a/configuration/deploys  
+Under "Build settings" → connect to the `Lexsort-Core/LexSort-Vera-Personal-AI` repo, branch `main`, publish dir `website`.
 
 ---
 
@@ -104,18 +141,18 @@ After binaries are live on GitHub Releases, update the CDN manifest so existing 
 ```json
 // website/api/manifest.json
 {
-  "version": "1.1.5",
+  "version": "1.1.6",
   "freeware_download": {
-    "windows": "https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/releases/download/v1.1.5/LexSort-Personal-AI_1.1.5_x64-setup.msi",
-    "macos_arm": "https://github.com/Lexsort-Core/.../v1.1.5/LexSort-Personal-AI_1.1.5_aarch64.dmg",
-    "macos_x64": "https://github.com/Lexsort-Core/.../v1.1.5/LexSort-Personal-AI_1.1.5_x64.dmg",
-    "linux": "https://github.com/Lexsort-Core/.../v1.1.5/lexsort-personal-ai_1.1.5_amd64.AppImage"
+    "windows": "https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/releases/download/v1.1.6/LexSort-Personal-AI_1.1.6_x64-setup.msi",
+    "macos_arm": "https://github.com/Lexsort-Core/.../v1.1.6/LexSort-Personal-AI_1.1.6_aarch64.dmg",
+    "macos_x64": "https://github.com/Lexsort-Core/.../v1.1.6/LexSort-Personal-AI_1.1.6_x64.dmg",
+    "linux": "https://github.com/Lexsort-Core/.../v1.1.6/lexsort-personal-ai_1.1.6_amd64.AppImage"
   },
-  "notes": "Windows CI fixed. Pro in-app updates. Freeware CI migrated to tauri-action."
+  "notes": "Quick Organizer month view fix. Windows CI fixed (MSVC 2022 env)."
 }
 ```
 
-Deploy the updated `manifest.json` to Netlify (it's in `website/api/` which is static-served).
+After updating manifest.json, **deploy the website** (see above).
 
 ---
 
