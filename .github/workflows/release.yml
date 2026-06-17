@@ -6,77 +6,58 @@ on:
       - 'v*'
 
 jobs:
-  # Windows build
-  build-windows:
-    runs-on: windows-latest
+  publish-tauri:
+    permissions:
+      contents: write
     strategy:
+      fail-fast: false
       matrix:
-        target: [x86_64-pc-windows-msvc]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      - name: Install Rust target
-        run: rustup target add ${{ matrix.target }}
-      - name: Install frontend dependencies
-        run: npm ci
-        working-directory: lexsort-personal-ai
-      - name: Build Tauri app
-        run: npm run tauri build -- --target ${{ matrix.target }}
-        working-directory: lexsort-personal-ai
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-${{ matrix.target }}
-          path: lexsort-personal-ai/src-tauri/target/${{ matrix.target }}/release/bundle/msi/*.msi
+        include:
+          - platform: 'macos-latest' # M1/M2/M3 Apple Silicon
+            args: '--target aarch64-apple-darwin'
+            target: 'aarch64-apple-darwin'
+          - platform: 'macos-latest' # Intel x86_64 Mac (cross-compiled on Apple Silicon)
+            args: '--target x86_64-apple-darwin'
+            target: 'x86_64-apple-darwin'
+          - platform: 'ubuntu-22.04' # Linux AppImage + .deb
+            args: ''
+            target: ''
+          - platform: 'windows-latest' # Windows MSI
+            args: ''
+            target: ''
 
-  # Linux builds
-  build-linux:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        target: [x86_64-unknown-linux-gnu]
+    runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+
+      - name: setup node
+        uses: actions/setup-node@v4
         with:
-          node-version: '20'
-      - name: Install dependencies
+          node-version: 20
+
+      - name: install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: install dependencies (ubuntu only)
+        if: matrix.platform == 'ubuntu-22.04'
+        env:
+          WEBKIT_DISABLE_DMABUF_RENDERER: '1'
         run: |
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev
-      - name: Install frontend dependencies
-        run: npm ci
-        working-directory: lexsort-personal-ai
-      - name: Build Tauri app
-        run: npm run tauri build -- --target ${{ matrix.target }}
-        working-directory: lexsort-personal-ai
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: linux-${{ matrix.target }}
-          path: |
-            lexsort-personal-ai/src-tauri/target/${{ matrix.target }}/release/bundle/appimage/*.AppImage
-            lexsort-personal-ai/src-tauri/target/${{ matrix.target }}/release/bundle/deb/*.deb
 
-  # macOS builds - FIXED to avoid queue delays
-  build-macos:
-    runs-on: macos-latest  # Changed from macos-13 to macos-latest
-    strategy:
-      matrix:
-        target: [aarch64-apple-darwin, x86_64-apple-darwin]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      - name: Install Rust target
+      - name: install Rust target (macOS cross-compile only)
+        if: matrix.target != ''
         run: rustup target add ${{ matrix.target }}
-      - name: Install frontend dependencies
+
+      - name: install frontend dependencies
         run: npm ci
         working-directory: lexsort-personal-ai
-      - name: Setup Apple signing
+
+      - name: Setup Apple signing (macOS only)
+        if: startsWith(matrix.platform, 'macos')
         env:
           APPLE_CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
           APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
@@ -85,48 +66,30 @@ jobs:
           security create-keychain -p temp build.keychain
           security default-keychain -s build.keychain
           security unlock-keychain -p temp build.keychain
-          
+
           # Import certificate
           echo "$APPLE_CERTIFICATE_BASE64" | base64 --decode > certificate.p12
           security import certificate.p12 -k build.keychain -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign -T /usr/bin/security
-          
+
           # Set keychain settings
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k temp build.keychain
           security set-keychain-settings -t 3600 -l build.keychain
-      - name: Build Tauri app
+
+      - name: build app
+        uses: tauri-apps/tauri-action@v0
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
-        run: npm run tauri build -- --target ${{ matrix.target }}
-        working-directory: lexsort-personal-ai
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_PRIVATE_KEY_PASSWORD }}
         with:
-          name: macos-${{ matrix.target }}
-          path: lexsort-personal-ai/src-tauri/target/${{ matrix.target }}/release/bundle/dmg/*.dmg
-
-  # Create GitHub Release
-  create-release:
-    needs: [build-windows, build-linux, build-macos]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-      - name: List artifacts
-        run: ls -R artifacts
-      - name: Create Release and Upload Assets
-        uses: softprops/action-gh-release@v1
-        with:
-          draft: false  # Immediate public access
-          generate_release_notes: true
-          files: |
-            artifacts/windows-x86_64-pc-windows-msvc/*.msi
-            artifacts/linux-x86_64-unknown-linux-gnu/appimage/*.AppImage
-            artifacts/linux-x86_64-unknown-linux-gnu/deb/*.deb
-            artifacts/macos-aarch64-apple-darwin/*.dmg
-            artifacts/macos-x86_64-apple-darwin/*.dmg
+          tagName: v__VERSION__
+          releaseName: 'LexSort VERA v__VERSION__ — Personal AI'
+          releaseBody: 'See changelog and release notes.'
+          releaseDraft: false
+          prerelease: false
+          args: ${{ matrix.args }}
+          projectPath: lexsort-personal-ai
