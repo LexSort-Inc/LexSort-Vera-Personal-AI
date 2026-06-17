@@ -6,7 +6,7 @@
  *   node scripts/sign-module.js <module-dir>
  *
  * Requirements:
- *   MODULE_SIGNING_PRIVATE_KEY env var — 96-char hex (same key as LICENSE_SIGNING_PRIVATE_KEY)
+ *   MODULE_SIGNING_PRIVATE_KEY env var — 128-char hex (32-byte private seed + 32-byte public key)
  *
  * What it does:
  *   1. Collects all files in <module-dir>/dist/ + manifest.json (sorted, deterministic)
@@ -26,16 +26,15 @@ if (!moduleDir) {
 }
 
 const privateKeyHex = process.env.MODULE_SIGNING_PRIVATE_KEY;
-if (!privateKeyHex || privateKeyHex.length !== 96) {
-  console.error('Error: MODULE_SIGNING_PRIVATE_KEY env var must be a 96-char hex string.');
-  console.error('Use: cd scripts && node generate-test-keys.js to generate a keypair.');
+if (!privateKeyHex || privateKeyHex.length !== 128) {
+  console.error('Error: MODULE_SIGNING_PRIVATE_KEY env var must be a 128-char hex string (32-byte seed + 32-byte public key).');
+  console.error('Generate one with: node -e "const c=require(crypto); const {privateKey,publicKey}=c.generateKeyPairSync(ed25519); const s=privateKey.export({type:pkcs8,format:der}).slice(-32); const p=publicKey.export({type:spki,format:der}).slice(-32); console.log(Buffer.concat([s,p]).toString(hex))"');
   process.exit(1);
 }
 
-// Convert 96-char hex to the 48-byte seed used by Ed25519
-// The first 32 bytes are the private key seed, last 32 are the public key
+// First 32 bytes are the private key seed, last 32 are the public key (64 bytes total = 128 hex chars)
 const keyBytes = Buffer.from(privateKeyHex, 'hex');
-const seed = keyBytes.slice(0, 32); // Ed25519 seed
+const seed = keyBytes.slice(0, 32); // Ed25519 seed (32 bytes)
 
 // Collect files to sign: dist/* + manifest.json
 const distDir = path.join(moduleDir, 'dist');
