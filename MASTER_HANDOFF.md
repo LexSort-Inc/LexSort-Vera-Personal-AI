@@ -18,7 +18,8 @@
 | [UPDATE_SYSTEM.md](docs/UPDATE_SYSTEM.md) | Custom update flow: discovery → download → install |
 | [AI_ENGINE.md](docs/AI_ENGINE.md) | Ollama onboarding, model selection, SHA hashes |
 | [MARKETING_AND_ROADMAP.md](docs/MARKETING_AND_ROADMAP.md) | Marketing tasks, module roadmap, community strategy |
-| [LAUNCH_RUNBOOK.md](LAUNCH_RUNBOOK.md) | Hour-by-hour launch day checklist |
+| [LAUNCH_DAY_CHECKLIST.md](LAUNCH_DAY_CHECKLIST.md) | Hour-by-hour launch day checklist (VERA Pro) |
+| [FREEWARE_PUBLIC_LAUNCH.md](FREEWARE_PUBLIC_LAUNCH.md) | Full public freeware launch plan — gated on Windows confirmed working |
 | [TESTER_SETUP.md](TESTER_SETUP.md) | Beta tester onboarding guide |
 | [CONTRACTS.md](CONTRACTS.md) | IPC contract definitions |
 | [KEY_MANIFEST.md](KEY_MANIFEST.md) | Cryptographic key reference |
@@ -232,6 +233,7 @@ Lexsort-Vera-Pro/                 # Pro repo (private)
 - **GitHub spending limit:** Set to $0 (default). Increase to ~$10 to unblock Windows CI.
 - **Website SEO (Jun 18):** `website/sitemap.xml` and `website/llms.txt` added. `index.html` has full meta tags: canonical, og:image, og:url, Twitter card, JSON-LD structured data (Organization + WebSite + 4× SoftwareApplication).
 - **Website security headers (Jun 18):** Headers intentionally relaxed for public marketing site. `X-Frame-Options: DENY` removed, `frame-ancestors 'none'` → `'self'`, `Cross-Origin-Resource-Policy` → `cross-origin`, `Access-Control-Allow-Origin: *` added. These were blocking ALL AI tools (Meta AI, ChatGPT, Perplexity, Claude) from reading the site. Do NOT restore the old strict headers on `website/*` — they belong on app endpoints only.
+- **Freeware public launch gate:** Full public launch (Reddit/HN/Product Hunt/social blast) is intentionally held until Windows version is 100% tested on a real device. See [FREEWARE_PUBLIC_LAUNCH.md](FREEWARE_PUBLIC_LAUNCH.md) for complete plan and social copy.
 
 ---
 
