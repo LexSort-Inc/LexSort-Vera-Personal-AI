@@ -4,6 +4,24 @@ on:
   push:
     tags:
       - 'v*'
+  # Manual trigger: lets you build one platform at a time to save CI minutes.
+  # Go to GitHub → Actions → "Build & Release VERA Freeware" → Run workflow
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: 'Which platform(s) to build'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - windows-only
+          - macos-only
+          - linux-only
+      tag_name:
+        description: 'Release tag to attach artifacts to (e.g. v1.1.7) — required for manual builds'
+        required: false
+        default: ''
 
 jobs:
   publish-tauri:
@@ -13,20 +31,34 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - platform: 'macos-latest' # M1/M2/M3 Apple Silicon
+          - platform: 'macos-latest'
             args: '--target aarch64-apple-darwin'
             target: 'aarch64-apple-darwin'
-          - platform: 'macos-latest' # Intel x86_64 Mac (cross-compiled on Apple Silicon)
+            label: 'macos'
+          - platform: 'macos-latest'
             args: '--target x86_64-apple-darwin'
             target: 'x86_64-apple-darwin'
-          - platform: 'ubuntu-22.04' # Linux AppImage + .deb
+            label: 'macos'
+          - platform: 'ubuntu-22.04'
             args: ''
             target: ''
-          - platform: 'windows-latest' # Windows MSI
+            label: 'linux'
+          - platform: 'windows-latest'
             args: ''
             target: ''
+            label: 'windows'
 
     runs-on: ${{ matrix.platform }}
+
+    # Skip jobs that don't match the selected platform on manual runs.
+    # Tag pushes always build everything (full release).
+    if: |
+      github.event_name == 'push' ||
+      inputs.platform == 'all' ||
+      (inputs.platform == 'windows-only' && matrix.label == 'windows') ||
+      (inputs.platform == 'macos-only'   && matrix.label == 'macos')   ||
+      (inputs.platform == 'linux-only'   && matrix.label == 'linux')
+
     steps:
       - uses: actions/checkout@v4
 
@@ -56,8 +88,6 @@ jobs:
         if: matrix.platform == 'windows-latest'
         shell: pwsh
         run: |
-          # Set MSVC 2022 as the target toolchain for node-gyp / better-sqlite3
-          # MUST run before 'npm ci' so env vars are active during native compilation
           echo "npm_config_msvs_version=2022" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           echo "GYP_MSVS_VERSION=2022" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
@@ -71,16 +101,11 @@ jobs:
           APPLE_CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
           APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
         run: |
-          # Create keychain
           security create-keychain -p temp build.keychain
           security default-keychain -s build.keychain
           security unlock-keychain -p temp build.keychain
-
-          # Import certificate
           echo "$APPLE_CERTIFICATE_BASE64" | base64 --decode > certificate.p12
           security import certificate.p12 -k build.keychain -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign -T /usr/bin/security
-
-          # Set keychain settings
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k temp build.keychain
           security set-keychain-settings -t 3600 -l build.keychain
 
@@ -95,7 +120,7 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_PRIVATE_KEY_PASSWORD }}
         with:
-          tagName: v__VERSION__
+          tagName: ${{ github.event_name == 'push' && 'v__VERSION__' || inputs.tag_name }}
           releaseName: 'LexSort VERA v__VERSION__ — Personal AI'
           releaseBody: 'See changelog and release notes.'
           releaseDraft: false
