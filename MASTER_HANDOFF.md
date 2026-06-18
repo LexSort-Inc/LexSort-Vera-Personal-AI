@@ -223,9 +223,11 @@ Lexsort-Vera-Pro/                 # Pro repo (private)
 - **App.tsx is clean:** Only imports QuickOrganizer + MobileBridgeModule + BusinessOrganizerModule. All Pro modules load from disk dynamically.
 - **Contract tests:** 7/7 passing on both repos. Pre-commit hook blocks regressions.
 - **Freeware:** v1.1.6 is stable and deployed. Do not touch until calendar import fix is verified.
-- **Quick Organizer (committed Jun 17):** Full calendar UX working — localStorage task backend,
-  UTC timezone fix, 7 AM–10 PM visible, click-any-day→Day view, Day view time slot click to add.
-  Commit: `1582459` on Lexsort-Vera-Pro main.
+- **Quick Organizer (committed Jun 17):** Full calendar UX working on BOTH Freeware and Pro:
+  localStorage task backend, UTC timezone fix, 7 AM–10 PM visible, click-any-day→Day view,
+  Day view time slot click to add.
+  - Pro commit: `1582459` on Lexsort-Vera-Pro main
+  - Freeware commit: `af4e3bf` on LexSort-Vera-Personal-AI main
 - **Windows-only CI:** `.github/workflows/build-windows-only.yml` — manual dispatch if only Windows fails.
 - **GitHub spending limit:** Set to $0 (default). Increase to ~$10 to unblock Windows CI.
 
@@ -235,11 +237,12 @@ Lexsort-Vera-Pro/                 # Pro repo (private)
 
 | Item | Status |
 |---|---|
-| Quick Organizer: Save button broken (no Tauri backend) | ✅ Fixed — localStorage |
-| Quick Organizer: 7 PM saves as 3 PM (UTC bug) | ✅ Fixed — local Date object |
-| Quick Organizer: Events not visible after 6 PM | ✅ Fixed — 7 AM–10 PM range |
-| Quick Organizer: Clicking day does nothing | ✅ Fixed — Day view navigation |
-| Quick Organizer: Day view add/edit flow | ✅ Built |
+| Quick Organizer: Save button broken (no Tauri backend) | ✅ Fixed — localStorage (both) |
+| Quick Organizer: 7 PM saves as 3 PM (UTC bug) | ✅ Fixed — local Date object (both) |
+| Quick Organizer: Events not visible after 6 PM | ✅ Fixed — 7 AM–10 PM range (both) |
+| Quick Organizer: Clicking day does nothing | ✅ Fixed — Day view navigation (both) |
+| Quick Organizer: Day view add/edit flow | ✅ Built (both Freeware + Pro) |
+| Freeware Quick Organizer parity | ✅ Done — af4e3bf |
 | Windows CI blocked | ⏳ Spending limit — increase in GitHub Settings |
 | Windows-only rebuild workflow | ✅ Added |
 | All changes committed and pushed | ✅ |
