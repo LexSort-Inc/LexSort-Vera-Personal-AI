@@ -2,6 +2,41 @@
 
 ---
 
+## ⚠️ CI Budget Rules — Read Before Pushing Tags
+
+GitHub Actions minutes are a limited resource. macOS runners cost **10× Linux**, Windows **2× Linux**.  
+**A full 4-platform publish = ~$1.60 in runner minutes.**
+
+### The 3 tiers — use the cheapest one that fits
+
+| Situation | What to do | Cost |
+|---|---|---|
+| Debugging a build error | **`workflow_dispatch`** → `test-build-windows` on `main` | ~$0.32 |
+| Only Windows failed, others passed | **"Re-run failed jobs"** in GitHub Actions UI | ~$0.32 |
+| Only Windows failed, need a re-release | **`workflow_dispatch`** → `build-windows-only` with the tag | ~$0.32 |
+| Code is confirmed working, official release | Push a `v*` tag — triggers full 4-platform publish | ~$1.60 |
+
+### ❌ Never do this
+- Push multiple `v*` tags to debug CI (we burned v1.0.7–v1.0.11 this way)
+- Push a version tag before verifying Rust compiles locally (`cargo check`)
+- Retry a failing publish without understanding why it failed first
+
+### ✅ Pre-tag checklist
+1. `cargo check` in `src-tauri/` — Rust must compile clean
+2. `npx tsc --noEmit` — TypeScript must compile clean  
+3. Contract tests pass: `cargo test` (pre-commit hook runs this automatically)
+4. Only then: `git tag vX.X.X && git push origin vX.X.X`
+
+### Workflows available
+| Workflow | Trigger | Purpose |
+|---|---|---|
+| `publish` | `v*` tag | Full 4-platform release |
+| `build-windows-only` | Manual dispatch | Re-build Windows for existing tag |
+| `test-build-windows` | Manual dispatch | Debug Windows build (no release created) |
+| `contracts` | Every push | Fast contract tests (2 min, cheap) |
+
+---
+
 ## Daily Dev Commands
 
 ```bash
