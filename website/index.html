@@ -4,11 +4,35 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>LexSort — Private Software, Local by Design</title>
-  <meta name="description" content="LexSort builds private, local-first software. LexSort Vera is our personal AI for the general public, LexSort Core is for founders, and LexSort Legal is an independent workstation for lawyers and law firms." />
-  <meta name="robots" content="index, follow" />
+  <meta name="description" content="LexSort builds private, local-first software. LexSort Vera is a free local AI assistant, LexSort Core is a financial &amp; tax workstation for founders, and LexSort Legal is an AI workstation for Canadian law firms." />
+  <meta name="keywords" content="local AI, private software, local-first, LexSort Vera, LexSort Legal, LexSort Core, Canadian legal software, personal AI assistant, no cloud AI, offline AI, open source AI, tax software Canada" />
+  <meta name="author" content="LexSort Inc." />
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+
+  <!-- Canonical -->
+  <link rel="canonical" href="https://lexsort.com/" />
+
+  <!-- Open Graph -->
   <meta property="og:title" content="LexSort — Private Software, Local by Design" />
-  <meta property="og:description" content="Enterprise-grade software that runs entirely on your hardware. No cloud. No sharing. No compromise." />
+  <meta property="og:description" content="Enterprise-grade software that runs entirely on your hardware. No cloud. No sharing. No compromise. Download LexSort Vera free — a 100% local AI assistant for macOS, Windows &amp; Linux." />
   <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://lexsort.com/" />
+  <meta property="og:image" content="https://lexsort.com/vera-logo-site.jpg" />
+  <meta property="og:image:alt" content="LexSort — Private Software, Local by Design" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:site_name" content="LexSort" />
+  <meta property="og:locale" content="en_CA" />
+
+  <!-- Twitter / X Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="LexSort — Private Software, Local by Design" />
+  <meta name="twitter:description" content="100% local AI &amp; private software. No cloud. No subscriptions. Download Vera free for macOS, Windows &amp; Linux." />
+  <meta name="twitter:image" content="https://lexsort.com/vera-logo-site.jpg" />
+
+  <!-- Geo / Business -->
+  <meta name="geo.region" content="CA-ON" />
+  <meta name="geo.placename" content="Minesing, Ontario, Canada" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
@@ -532,6 +556,88 @@
     <span class="footer-left">LexSort Inc. &nbsp;&middot;&nbsp; Minesing, Ontario &nbsp;&middot;&nbsp; © 2026</span>
     <span class="footer-right"><a href="mailto:william@lexsort.com">william@lexsort.com</a></span>
   </footer>
+
+  <!-- JSON-LD Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://lexsort.com/#organization",
+        "name": "LexSort Inc.",
+        "url": "https://lexsort.com",
+        "logo": "https://lexsort.com/vera-logo-site.jpg",
+        "email": "william@lexsort.com",
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": "Minesing",
+          "addressRegion": "ON",
+          "addressCountry": "CA"
+        },
+        "sameAs": []
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://lexsort.com/#website",
+        "url": "https://lexsort.com",
+        "name": "LexSort",
+        "description": "Private, local-first software for professionals and individuals. No cloud. No data sharing.",
+        "publisher": { "@id": "https://lexsort.com/#organization" },
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": {
+            "@type": "EntryPoint",
+            "urlTemplate": "https://lexsort.com/?s={search_term_string}"
+          },
+          "query-input": "required name=search_term_string"
+        }
+      },
+      {
+        "@type": "SoftwareApplication",
+        "name": "LexSort Vera",
+        "url": "https://lexsort.com/vera.html",
+        "downloadUrl": "https://lexsort.com/download.html",
+        "applicationCategory": "ProductivityApplication",
+        "operatingSystem": "macOS, Windows, Linux",
+        "description": "100% local personal AI assistant. No cloud, no account, no subscription. Free and open source under Apache 2.0.",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "CAD"
+        },
+        "publisher": { "@id": "https://lexsort.com/#organization" }
+      },
+      {
+        "@type": "SoftwareApplication",
+        "name": "LexSort Vera Pro",
+        "url": "https://lexsort.com/vera-pro.html",
+        "applicationCategory": "ProductivityApplication",
+        "operatingSystem": "macOS, Windows, Linux",
+        "description": "Premium local AI workstation with Finance, Calendar, Email, OCR and Guardian privacy modules. All processing on-device.",
+        "publisher": { "@id": "https://lexsort.com/#organization" }
+      },
+      {
+        "@type": "SoftwareApplication",
+        "name": "LexSort Core",
+        "url": "https://lexsort.com/core",
+        "applicationCategory": "FinanceApplication",
+        "operatingSystem": "macOS, Windows, Linux",
+        "description": "Private financial and tax workstation for Canadian founders and small business operators. Local OCR, CRA forms, and CCA calculations.",
+        "publisher": { "@id": "https://lexsort.com/#organization" }
+      },
+      {
+        "@type": "SoftwareApplication",
+        "name": "LexSort Legal",
+        "url": "https://lexsort.com/legal",
+        "applicationCategory": "LegalApplication",
+        "operatingSystem": "macOS, Windows, Linux",
+        "description": "AI-powered matter intelligence workstation for Canadian criminal defence lawyers and law firms. Crown disclosure, bail tracking, client matching.",
+        "publisher": { "@id": "https://lexsort.com/#organization" }
+      }
+    ]
+  }
+  </script>
 
 </body>
 </html>

@@ -1,0 +1,54 @@
+# LexSort — AI-Readable Summary
+# https://lexsort.com/llms.txt
+# Standard: https://llmstxt.org
+
+> LexSort Inc. builds private, local-first software for professionals and individuals. All software runs entirely on-device — no cloud, no data sharing, no subscriptions required. Founded and operated in Minesing, Ontario, Canada.
+
+## Products
+
+### LexSort Vera (Freeware / Open Source)
+- **URL**: https://lexsort.com/vera.html
+- **Download**: https://lexsort.com/download.html
+- **Status**: Publicly available — free forever
+- **License**: Apache 2.0 open source
+- LexSort Vera is a 100% local personal AI assistant for macOS, Windows, and Linux. It runs AI models entirely on your machine — no internet connection required, no account, no subscription, no data leaving your device.
+- Features: Auto hardware detection and model selection, unlimited use, cross-platform (macOS, Windows, Linux), fully open source.
+
+### LexSort Vera Pro (Paid)
+- **URL**: https://lexsort.com/vera-pro.html
+- **Status**: Available for purchase
+- LexSort Vera Pro is the premium version of Vera with advanced modules including Finance, Calendar, Email, OCR, and Guardian (privacy protection).
+- Extends the open-source Vera with professional-grade productivity modules. All processing remains 100% local.
+
+### LexSort Core (Pre-Launch / Open Access)
+- **URL**: https://lexsort.com/core
+- **Status**: Pre-launch, open access available
+- LexSort Core is a Financial & Tax Workstation for founders and small business operators in Canada.
+- Features: Personal and business financial organizer, local OCR receipt ingestion, Canadian tax prep and credit discovery, CRA forms and CCA calculations, free lifetime partner offer available.
+
+### LexSort Legal (Private Pilot)
+- **URL**: https://lexsort.com/legal
+- **Status**: Invitation-only private pilot
+- LexSort Legal is an independent AI workstation for lawyers and law firms, built for Canadian criminal defence practice.
+- Features: Criminal defence workflow management, Crown disclosure organization, client communication matching, bail hearing tracking.
+
+## Company
+
+- **Name**: LexSort Inc.
+- **Location**: Minesing, Ontario, Canada
+- **Contact**: william@lexsort.com
+- **Founded**: 2026
+- **Philosophy**: All LexSort products are designed with privacy as a first principle. No telemetry. No analytics. No cloud dependency.
+
+## Key Pages
+
+- Homepage: https://lexsort.com/
+- Vera AI: https://lexsort.com/vera.html
+- Vera Pro: https://lexsort.com/vera-pro.html
+- Download Vera (free): https://lexsort.com/download.html
+- Freeware info: https://lexsort.com/freeware.html
+- Partner Program: https://lexsort.com/partner.html
+- FAQ: https://lexsort.com/faq.html
+- Privacy Policy: https://lexsort.com/privacy.html
+- Terms of Service: https://lexsort.com/tos.html
+- Contact: mailto:william@lexsort.com
