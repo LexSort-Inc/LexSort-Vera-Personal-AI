@@ -2,7 +2,7 @@
 
 **Project:** LexSort VERA — Local-First Private AI Desktop App  
 **Parent Brand:** LexSort Inc.  
-**Current Versions:** VERA Freeware v1.1.6 ✅ · VERA Pro v1.0.5 (module architecture complete)  
+**Current Versions:** VERA Freeware v1.1.6 ✅ · VERA Pro v1.0.5 (Quick Organizer overhauled, Windows CI pending)  
 **Stack:** React 19 (TypeScript) + Rust (Tauri v2) + Ollama  
 **Launch Date:** July 1, 2026  
 
@@ -151,7 +151,16 @@ Fix was committed to Freeware repo but never confirmed on device. Symptom: impor
 
 ### 4. Windows CI — verify when GitHub Actions limits reset
 
-All fixes committed. v1.0.11 tag couldn't run due to Actions minute exhaustion.
+All fixes committed. v1.0.11 tag couldn't run due to GitHub Actions **spending limit ($0 cap)**,
+not minute exhaustion. All 4 platform jobs were blocked before starting.
+
+**New workflow added:** `.github/workflows/build-windows-only.yml` — manual dispatch to rebuild
+only Windows for any given tag (use when only Windows fails, saves ~45 min of runner time).
+
+**To unblock:** GitHub Settings → Billing & Plans → Spending Limits → set above $0 (each
+release costs ~$0.30 in Windows runner minutes).
+
+Then re-run: `git push origin v1.0.11` (already tagged, just needs runners unblocked).
 
 **What was fixed:**
 - Per-platform Node version: macOS/Linux = Node 20, Windows = Node 24
@@ -214,6 +223,26 @@ Lexsort-Vera-Pro/                 # Pro repo (private)
 - **App.tsx is clean:** Only imports QuickOrganizer + MobileBridgeModule + BusinessOrganizerModule. All Pro modules load from disk dynamically.
 - **Contract tests:** 7/7 passing on both repos. Pre-commit hook blocks regressions.
 - **Freeware:** v1.1.6 is stable and deployed. Do not touch until calendar import fix is verified.
+- **Quick Organizer (committed Jun 17):** Full calendar UX working — localStorage task backend,
+  UTC timezone fix, 7 AM–10 PM visible, click-any-day→Day view, Day view time slot click to add.
+  Commit: `1582459` on Lexsort-Vera-Pro main.
+- **Windows-only CI:** `.github/workflows/build-windows-only.yml` — manual dispatch if only Windows fails.
+- **GitHub spending limit:** Set to $0 (default). Increase to ~$10 to unblock Windows CI.
+
+---
+
+## 📋 Session Log — June 17, 2026
+
+| Item | Status |
+|---|---|
+| Quick Organizer: Save button broken (no Tauri backend) | ✅ Fixed — localStorage |
+| Quick Organizer: 7 PM saves as 3 PM (UTC bug) | ✅ Fixed — local Date object |
+| Quick Organizer: Events not visible after 6 PM | ✅ Fixed — 7 AM–10 PM range |
+| Quick Organizer: Clicking day does nothing | ✅ Fixed — Day view navigation |
+| Quick Organizer: Day view add/edit flow | ✅ Built |
+| Windows CI blocked | ⏳ Spending limit — increase in GitHub Settings |
+| Windows-only rebuild workflow | ✅ Added |
+| All changes committed and pushed | ✅ |
 
 ---
 
