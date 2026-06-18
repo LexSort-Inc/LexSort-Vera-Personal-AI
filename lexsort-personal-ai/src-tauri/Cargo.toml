@@ -1,6 +1,6 @@
 [package]
 name = "VERA"
-version = "1.1.6"
+version = "1.1.7"
 description = "LexSort Personal AI — Private Local Chat"
 authors = ["William Commu / Just Me Media"]
 edition = "2021"

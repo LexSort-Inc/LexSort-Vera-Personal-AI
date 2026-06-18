@@ -8,6 +8,50 @@ pub mod quick_organizer;
 pub mod calendar_bridge;
 pub mod conversations;
 
+/// Run a command with a wall-clock timeout using Tokio.
+/// Returns `Some(output)` if it finished in time and succeeded, else `None`.
+async fn run_command_with_timeout(
+    mut cmd: tokio::process::Command,
+    timeout_secs: u64,
+) -> Option<std::process::Output> {
+    match tokio::time::timeout(
+        std::time::Duration::from_secs(timeout_secs),
+        cmd.output(),
+    )
+    .await
+    {
+        Ok(Ok(out)) if out.status.success() => Some(out),
+        _ => None,
+    }
+}
+
+/// Build a tokio::process::Command that hides the console window on Windows.
+fn silent_cmd(program: impl AsRef<std::ffi::OsStr>) -> tokio::process::Command {
+    #[allow(unused_mut)]
+    let mut cmd = tokio::process::Command::new(program);
+    #[cfg(target_os = "windows")]
+    {
+        // tokio::process::Command uses its own CommandExt trait on Windows.
+        use tokio::process::windows::CommandExt;
+        const CREATE_NO_WINDOW: u32 = 0x08000000;
+        cmd.creation_flags(CREATE_NO_WINDOW);
+    }
+    cmd
+}
+
+/// Synchronous variant used where async context is not available.
+fn silent_cmd_sync(program: impl AsRef<std::ffi::OsStr>) -> Command {
+    #[allow(unused_mut)]
+    let mut cmd = Command::new(program);
+    #[cfg(target_os = "windows")]
+    {
+        use std::os::windows::process::CommandExt;
+        const CREATE_NO_WINDOW: u32 = 0x08000000;
+        cmd.creation_flags(CREATE_NO_WINDOW);
+    }
+    cmd
+}
+
 pub struct ServerProcess(pub Mutex<Option<Child>>);
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -240,17 +284,32 @@ fn get_free_storage_gb() -> u64 {
 }
 
 fn detect_nvidia_gpu() -> bool {
+    // Use a short blocking check with CREATE_NO_WINDOW to avoid freezing the UI.
+    // On Windows, cmd.exe can be slow; we accept the risk of false-negative here
+    // because the model-selection logic degrades gracefully without GPU info.
     #[cfg(target_os = "windows")]
     {
-        Command::new("cmd")
-            .args(["/C", "where nvidia-smi"])
+        // Check for nvidia-smi directly — avoids spawning cmd.exe which can hang.
+        let smi_paths = [
+            std::path::Path::new(r"C:\Windows\System32\nvidia-smi.exe"),
+            std::path::Path::new(r"C:\Program Files\NVIDIA Corporation\NVSMI\nvidia-smi.exe"),
+        ];
+        for p in &smi_paths {
+            if p.exists() {
+                return true;
+            }
+        }
+        // Fallback: try running it with CREATE_NO_WINDOW and a strict timeout.
+        silent_cmd_sync("nvidia-smi")
+            .arg("--query-gpu=name")
+            .arg("--format=csv,noheader")
             .output()
             .map(|out| out.status.success())
             .unwrap_or(false)
     }
     #[cfg(not(target_os = "windows"))]
     {
-        Command::new("which")
+        silent_cmd_sync("which")
             .arg("nvidia-smi")
             .output()
             .map(|out| out.status.success())
@@ -455,60 +514,62 @@ pub mod commands {
     use super::*;
 
     #[tauri::command]
-    pub fn detect_hardware(_app: AppHandle) -> Result<HardwareInfo, String> {
-        let platform = std::env::consts::OS.to_string();
+    pub async fn detect_hardware(_app: AppHandle) -> Result<HardwareInfo, String> {
+        // Run in a blocking thread so the async runtime is never starved.
+        tokio::task::spawn_blocking(|| {
+            let platform = std::env::consts::OS.to_string();
 
-        let mut sys = System::new_all();
-        sys.refresh_all();
+            let mut sys = System::new_all();
+            sys.refresh_all();
 
-        let total = sys.total_memory();
-        let cores = sys.cpus().len() as u32;
+            let total = sys.total_memory();
+            let cores = sys.cpus().len() as u32;
 
-        let cpu_brand = if !sys.cpus().is_empty() {
-            sys.cpus()[0].brand().trim().to_string()
-        } else {
-            "".to_string()
-        };
+            let cpu_brand = if !sys.cpus().is_empty() {
+                sys.cpus()[0].brand().trim().to_string()
+            } else {
+                "".to_string()
+            };
 
-        let apple_chip = if platform == "macos" && cpu_brand.contains("Apple") {
-            Some(cpu_brand.clone())
-        } else {
-            None
-        };
+            let apple_chip = if platform == "macos" && cpu_brand.contains("Apple") {
+                Some(cpu_brand.clone())
+            } else {
+                None
+            };
 
-        let unified = apple_chip.is_some();
-        let available = (total as f64 * 0.6) as u64;
-        let ceiling = (available as f64 * 0.70) as u64;
-        let ram_gb = (total as f64 / (1024.0 * 1024.0 * 1024.0) * 10.0).round() / 10.0;
+            let unified = apple_chip.is_some();
+            let available = (total as f64 * 0.6) as u64;
+            let ceiling = (available as f64 * 0.70) as u64;
+            let ram_gb = (total as f64 / (1024.0 * 1024.0 * 1024.0) * 10.0).round() / 10.0;
 
-        let free_storage_gb = get_free_storage_gb();
-        let has_nvidia_gpu = detect_nvidia_gpu();
-        let model = select_model(ram_gb, free_storage_gb, has_nvidia_gpu, unified);
+            let free_storage_gb = get_free_storage_gb();
+            let has_nvidia_gpu = detect_nvidia_gpu();
+            let model = select_model(ram_gb, free_storage_gb, has_nvidia_gpu, unified);
 
-        let model_exists = if model.id.is_empty() {
-            false
-        } else {
-            Command::new(ollama_path())
-                .args(["show", &model.id])
-                .output()
-                .map(|out| out.status.success())
-                .unwrap_or(false)
-        };
+            // NOTE: We intentionally skip the "ollama show" model-exists check here.
+            // That check can take 10-30 s on Windows when Ollama hasn't started yet and
+            // causes the "(Not Responding)" loading hang. The frontend boot sequence
+            // checks model existence separately via list_installed_models() after
+            // the engine is confirmed running.
+            let model_exists = false;
 
-        Ok(HardwareInfo {
-            platform,
-            ram_gb,
-            total_memory_bytes: total,
-            available_memory_bytes: available,
-            allocation_ceiling_bytes: ceiling,
-            cpu_cores: cores,
-            apple_chip,
-            unified_memory: unified,
-            free_storage_gb,
-            has_nvidia_gpu,
-            model,
-            model_exists,
+            Ok(HardwareInfo {
+                platform,
+                ram_gb,
+                total_memory_bytes: total,
+                available_memory_bytes: available,
+                allocation_ceiling_bytes: ceiling,
+                cpu_cores: cores,
+                apple_chip,
+                unified_memory: unified,
+                free_storage_gb,
+                has_nvidia_gpu,
+                model,
+                model_exists,
+            })
         })
+        .await
+        .map_err(|e| format!("Hardware detection task panicked: {}", e))?
     }
 
     #[tauri::command]
@@ -600,14 +661,14 @@ pub mod commands {
             return Ok("Server already running".to_string());
         }
         // Check if ollama is already running on port 11434
-        let check = Command::new(ollama_path())
+        let check = silent_cmd_sync(ollama_path())
             .args(["list"])
             .output();
         if check.is_ok() {
             *guard = None; // ollama already running externally, don't manage it
             return Ok(format!("Ollama already running, using model {}", model_id));
         }
-        let child = Command::new(ollama_path())
+        let child = silent_cmd_sync(ollama_path())
             .args(["serve"])
             .env("OLLAMA_HOST", format!("127.0.0.1:{}", port))
             .env("OLLAMA_ORIGINS", format!("http://127.0.0.1:{}", port))
@@ -827,12 +888,13 @@ pub mod commands {
     }
 
     #[tauri::command]
-    pub fn check_model_exists(model_id: String) -> bool {
-        std::process::Command::new(ollama_path())
-            .args(["show", &model_id])
-            .output()
-            .map(|out| out.status.success())
-            .unwrap_or(false)
+    pub async fn check_model_exists(model_id: String) -> bool {
+        let path = super::ollama_path();
+        let mut cmd = super::silent_cmd(&path);
+        cmd.args(["show", &model_id]);
+        super::run_command_with_timeout(cmd, 10)
+            .await
+            .is_some()
     }
 
     #[tauri::command]
@@ -1012,16 +1074,17 @@ pub mod commands {
     }
 
     #[tauri::command]
-    pub fn check_engine_installed() -> bool {
+    pub async fn check_engine_installed() -> bool {
         let path = super::ollama_path();
         if !path.exists() {
             return false;
         }
-        std::process::Command::new(path)
-            .arg("--version")
-            .output()
-            .map(|out| out.status.success())
-            .unwrap_or(false)
+        // Use a timeout to avoid hanging on Windows when Defender/UAC inspects the binary.
+        let mut cmd = super::silent_cmd(&path);
+        cmd.arg("--version");
+        super::run_command_with_timeout(cmd, 8)
+            .await
+            .is_some()
     }
 
     #[tauri::command]
@@ -1553,32 +1616,36 @@ pub mod commands {
     }
 
     #[tauri::command]
-    pub fn list_installed_models() -> Result<Vec<String>, String> {
+    pub async fn list_installed_models() -> Result<Vec<String>, String> {
         let path = super::ollama_path();
         if !path.exists() {
             return Ok(Vec::new());
         }
 
-        let mut output = std::process::Command::new(&path)
-            .arg("list")
-            .output();
+        // First attempt: ask ollama to list models.
+        let mut cmd = super::silent_cmd(&path);
+        cmd.arg("list");
+        let first_try = super::run_command_with_timeout(cmd, 6).await;
 
-        if output.is_err() || !output.as_ref().unwrap().status.success() {
-            let _serve = std::process::Command::new(&path)
-                .arg("serve")
+        let raw_output = if let Some(out) = first_try {
+            out.stdout
+        } else {
+            // Ollama isn't running yet — spawn it quietly and retry once.
+            let mut serve_cmd = super::silent_cmd_sync(&path);
+            let _serve = serve_cmd
+                .args(["serve"])
                 .spawn();
-            std::thread::sleep(std::time::Duration::from_millis(1500));
-            output = std::process::Command::new(&path)
-                .arg("list")
-                .output();
-        }
-
-        let out = match output {
-            Ok(o) if o.status.success() => o,
-            _ => return Ok(Vec::new()),
+            // Wait for the server to bind (non-blocking sleep on the async runtime).
+            tokio::time::sleep(std::time::Duration::from_millis(1800)).await;
+            let mut retry_cmd = super::silent_cmd(&path);
+            retry_cmd.arg("list");
+            match super::run_command_with_timeout(retry_cmd, 6).await {
+                Some(out) => out.stdout,
+                None => return Ok(Vec::new()),
+            }
         };
 
-        let stdout_str = String::from_utf8_lossy(&out.stdout);
+        let stdout_str = String::from_utf8_lossy(&raw_output);
         let mut models = Vec::new();
 
         let mut lines = stdout_str.lines();

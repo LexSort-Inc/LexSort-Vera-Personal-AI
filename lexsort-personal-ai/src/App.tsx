@@ -889,6 +889,8 @@ export default function App() {
       }
 
       // 1. Detect hardware → select model
+      // NOTE: detect_hardware no longer checks model existence (was causing Windows hang).
+      // model_exists is always false here; it is resolved after the engine starts below.
       setPhase(PHASE.DETECTING);
       const hw = await invoke("detect_hardware") as HardwareInfo;
 
@@ -904,33 +906,15 @@ export default function App() {
         };
         hw.model.id = overrideModelId;
         hw.model.name = names[overrideModelId] || overrideModelId;
-        
-        // Check if the overridden model actually exists cached in Ollama
-        let isLocal = false;
-        try {
-          const installed = await invoke<string[]>("list_installed_models") as string[];
-          isLocal = installed.includes(overrideModelId) || installed.some(m => m.startsWith(overrideModelId + ":") || overrideModelId.startsWith(m + ":"));
-        } catch (e) {
-          console.error("Error checking installed models:", e);
-        }
-
-        if (isLocal) {
-          hw.model_exists = true;
-        } else {
-          hw.model_exists = false;
-        }
+        // model_exists will be resolved after engine starts — do NOT call list_installed_models
+        // here because Ollama may not be running yet, which could cause a 6-8 s delay.
+        hw.model_exists = false;
       } else {
-        // First launch onboarding: get local models
-        let installed: string[] = [];
-        try {
-          installed = await invoke<string[]>("list_installed_models") as string[];
-          setLocalModels(installed);
-        } catch (err) {
-          console.error("Failed to query installed models:", err);
-        }
-
+        // First launch onboarding — go straight to model selection.
+        // list_installed_models is intentionally skipped here so we don't block on Ollama.
+        // The onboarding screen shows an empty local-models list on first run, which is correct.
         setHardware(hw);
-        setSelectedOnboardingModelId(hw.model.id); // Default to suggested model
+        setSelectedOnboardingModelId(hw.model.id);
         setPhase(PHASE.MODEL_SELECTION);
         return;
       }
@@ -938,7 +922,6 @@ export default function App() {
       setHardware(hw);
 
       const port = await invoke("get_server_port") as number;
-
       setServerPort(port);
 
       // 2. Start inference server (ensures Ollama is active on the local port)
@@ -948,7 +931,22 @@ export default function App() {
       // Give the server a moment to bind before the UI hits it
       await delay(1000);
 
-      // 3. Download model if needed
+      // 3. Now that the engine is running, check whether the model is already cached.
+      //    We deferred this from detect_hardware to avoid a Windows hang.
+      try {
+        const installed = await invoke<string[]>("list_installed_models") as string[];
+        const isLocal = installed.includes(overrideModelId) ||
+          installed.some(m => m.startsWith(overrideModelId + ":") || overrideModelId.startsWith(m + ":"));
+        hw.model_exists = isLocal;
+        // Push the update so the rest of the boot sequence uses the real value.
+        setHardware({ ...hw });
+      } catch (e) {
+        console.error("Error checking installed models post-engine-start:", e);
+        // Assume not cached → will trigger download below (safe default).
+        hw.model_exists = false;
+      }
+
+      // 4. Download model if needed
       let isFirstLaunch = !hw.model_exists;
       if (!hw.model_exists) {
         setPhase(PHASE.DOWNLOADING);
