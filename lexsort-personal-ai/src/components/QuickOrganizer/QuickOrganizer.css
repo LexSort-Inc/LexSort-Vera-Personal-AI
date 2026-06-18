@@ -1,0 +1,1225 @@
+/* ── Quick Organizer — Premium Dark Calendar UI ─────────────────────────
+   Tokens from VERA Pro design system:
+   --bg: #0d0d0f  | --bg-surface: #16161a | --bg-hover: #1e1e24
+   --border: #2a2a35 | --accent: #5b6af5  | --text: #e8e8f0
+   --text-muted: #6b6b80 | --green: #3ecf6a | --red: #f05252
+───────────────────────────────────────────────────────────────────────── */
+
+/* ── Shell ─────────────────────────────────────────────────────────────── */
+
+.qo-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif);
+  overflow: hidden;
+  font-size: 13px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Header ────────────────────────────────────────────────────────────── */
+
+.qo-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  height: 52px;
+  min-height: 52px;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.qo-header__title-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.qo-header__title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.3px;
+  margin: 0;
+}
+
+.qo-header__badge {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--green);
+  background: rgba(62, 207, 106, 0.12);
+  border: 1px solid rgba(62, 207, 106, 0.25);
+  padding: 2px 7px;
+  border-radius: 10px;
+  text-transform: uppercase;
+}
+
+/* ── View Toggle ──────────────────────────────────────────────────────── */
+
+.qo-view-buttons {
+  display: flex;
+  background: var(--bg-hover);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 3px;
+  gap: 2px;
+}
+
+.qo-view-btn {
+  padding: 4px 12px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 500;
+  font-family: var(--font);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.qo-view-btn:hover {
+  color: var(--text);
+  background: rgba(255,255,255,0.04);
+}
+
+.qo-view-btn.active {
+  background: var(--bg-surface);
+  color: var(--text);
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+.qo-btn-icon {
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 14px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+
+.qo-btn-icon:hover,
+.qo-btn-icon.active {
+  background: var(--bg-hover);
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+/* ── Sub-header Navigation ─────────────────────────────────────────────── */
+
+.qo-subheader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 20px;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.qo-nav-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.qo-nav-btn {
+  padding: 5px 10px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 500;
+  font-family: var(--font);
+  cursor: pointer;
+  transition: all 0.15s;
+  line-height: 1;
+}
+
+.qo-nav-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+.qo-current-date-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  margin-left: 10px;
+  letter-spacing: -0.2px;
+}
+
+.qo-add-btn {
+  padding: 6px 14px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: var(--font);
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+  letter-spacing: 0.01em;
+}
+
+.qo-add-btn:hover:not(:disabled) {
+  background: var(--accent-hover, #6f7ef7);
+  transform: translateY(-1px);
+}
+
+.qo-add-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+  transform: none;
+}
+
+/* ── Body — Calendar + Sidebar ────────────────────────────────────────── */
+
+.qo-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  overflow: hidden;
+}
+
+/* ── Calendar Pane (left) ─────────────────────────────────────────────── */
+
+.qo-calendar-pane {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-right: 1px solid var(--border);
+  background: var(--bg);
+}
+
+/* ── Onboarding Banner ────────────────────────────────────────────────── */
+
+.qo-onboarding-banner {
+  background: linear-gradient(135deg, rgba(91,106,245,0.12), rgba(91,106,245,0.06));
+  border-bottom: 1px solid rgba(91,106,245,0.2);
+  padding: 12px 20px;
+  flex-shrink: 0;
+}
+
+.qo-onboarding-banner__content {
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.5;
+  margin-bottom: 10px;
+}
+
+.qo-onboarding-banner__actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* ── Week View ─────────────────────────────────────────────────────────── */
+
+.qo-calendar-week-view,
+.qo-calendar-day-view {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Day columns header row */
+.qo-calendar-header-row {
+  display: grid;
+  grid-template-columns: 52px repeat(7, 1fr);
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-surface);
+  flex-shrink: 0;
+}
+
+.qo-calendar-day-view .qo-calendar-header-row {
+  grid-template-columns: 52px 1fr;
+}
+
+.qo-calendar-time-col-spacer {
+  border-right: 1px solid var(--border);
+  padding: 8px 6px;
+  font-size: 10px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  text-align: right;
+  letter-spacing: 0.03em;
+}
+
+.qo-calendar-header-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 4px;
+  gap: 4px;
+  border-right: 1px solid var(--border);
+}
+
+.qo-calendar-header-day-name {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.qo-calendar-header-day-num {
+  font-size: 20px;
+  font-weight: 300;
+  color: var(--text-muted);
+  line-height: 1;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background 0.15s;
+}
+
+.qo-calendar-header-day-num--today {
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+
+/* All day row */
+.qo-calendar-allday-row {
+  display: grid;
+  grid-template-columns: 52px repeat(7, 1fr);
+  border-bottom: 1px solid var(--border);
+  min-height: 28px;
+  flex-shrink: 0;
+  background: var(--bg-surface);
+}
+
+.qo-calendar-allday-cell {
+  border-right: 1px solid var(--border);
+  padding: 3px 4px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+}
+
+/* ── Grid Body (scrollable) ───────────────────────────────────────────── */
+
+.qo-calendar-grid-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  position: relative;
+  background: var(--bg);
+}
+
+.qo-calendar-grid-body::-webkit-scrollbar { width: 5px; }
+.qo-calendar-grid-body::-webkit-scrollbar-track { background: transparent; }
+.qo-calendar-grid-body::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+.qo-calendar-time-column {
+  width: 52px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--border);
+  background: var(--bg-surface);
+  position: sticky;
+  left: 0;
+  z-index: 1;
+}
+
+.qo-calendar-hour-label {
+  height: 56px;
+  min-height: 56px;
+  padding: 0 8px 0 4px;
+  font-size: 10px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding-top: 2px;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  letter-spacing: 0.02em;
+}
+
+.qo-calendar-grid-columns {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.qo-calendar-day-view .qo-calendar-grid-columns {
+  grid-template-columns: 1fr;
+}
+
+.qo-calendar-grid-col {
+  border-right: 1px solid rgba(255,255,255,0.06);
+  position: relative;
+  min-height: calc(56px * 10); /* 10 hours */
+}
+
+.qo-calendar-grid-col:last-child {
+  border-right: none;
+}
+
+.qo-calendar-grid-line {
+  height: 56px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+/* ── Calendar Events ──────────────────────────────────────────────────── */
+
+.qo-calendar-event {
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  min-height: 20px;
+  border-radius: 5px;
+  padding: 3px 6px;
+  cursor: pointer;
+  overflow: hidden;
+  transition: filter 0.15s, transform 0.1s;
+  z-index: 1;
+}
+
+.qo-calendar-event:hover {
+  filter: brightness(1.15);
+  transform: scaleX(1.01);
+  z-index: 2;
+}
+
+.qo-calendar-event--task {
+  background: rgba(91, 106, 245, 0.25);
+  border-left: 3px solid var(--accent);
+}
+
+.qo-calendar-event--urgent {
+  background: rgba(240, 82, 82, 0.22);
+  border-left: 3px solid var(--red);
+}
+
+.qo-calendar-event--personal {
+  background: rgba(168, 85, 247, 0.22);
+  border-left: 3px solid #a855f7;
+}
+
+.qo-calendar-event--system {
+  background: rgba(107, 107, 128, 0.18);
+  border-left: 3px solid var(--text-muted);
+  cursor: default;
+}
+
+.qo-calendar-event.completed {
+  opacity: 0.45;
+}
+
+.qo-calendar-event-inner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.qo-calendar-event-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.qo-calendar-event-time {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+
+/* Event pills for all-day / month rows */
+.qo-calendar-event-pill,
+.qo-month-event-pill {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 7px;
+  border-radius: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  transition: filter 0.15s;
+}
+
+.qo-calendar-event-pill:hover,
+.qo-month-event-pill:hover {
+  filter: brightness(1.2);
+}
+
+.qo-calendar-event-pill--task,
+.qo-month-event-pill.qo-calendar-event-pill--task {
+  background: rgba(91,106,245,0.25);
+  color: #9aa5f8;
+}
+
+.qo-calendar-event-pill--urgent,
+.qo-month-event-pill.qo-calendar-event-pill--urgent {
+  background: rgba(240,82,82,0.22);
+  color: #f87171;
+}
+
+.qo-calendar-event-pill--personal,
+.qo-month-event-pill.qo-calendar-event-pill--personal {
+  background: rgba(168,85,247,0.22);
+  color: #c084fc;
+}
+
+.qo-calendar-event-pill--system,
+.qo-month-event-pill.qo-calendar-event-pill--system {
+  background: rgba(107,107,128,0.18);
+  color: var(--text-muted);
+  cursor: default;
+}
+
+.qo-calendar-event-pill.completed,
+.qo-month-event-pill.completed {
+  opacity: 0.4;
+  text-decoration: line-through;
+}
+
+/* ── Month View ───────────────────────────────────────────────────────── */
+
+.qo-calendar-month-view {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px;
+  background: var(--bg);
+}
+
+.qo-calendar-month-view::-webkit-scrollbar { width: 5px; }
+.qo-calendar-month-view::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+.qo-month-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.qo-month-day-row {
+  display: grid;
+  grid-template-columns: 52px 1fr;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.qo-month-day-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding-top: 2px;
+}
+
+.qo-month-day-label strong {
+  font-size: 20px;
+  font-weight: 300;
+  color: var(--text);
+  line-height: 1;
+}
+
+.qo-month-day-label span {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.qo-month-day-events {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding-top: 2px;
+}
+
+/* ── Sidebar Pane (right) ─────────────────────────────────────────────── */
+
+.qo-sidebar-pane {
+  width: 280px;
+  min-width: 260px;
+  flex-shrink: 0;
+  background: var(--bg-surface);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── Quick Add ──────────────────────────────────────────────────────────── */
+
+.qo-sidebar-quickadd {
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.qo-add-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.qo-add-input {
+  flex: 1;
+  background: var(--bg-hover);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 13px;
+  padding: 8px 12px;
+  outline: none;
+  transition: border-color 0.15s;
+  min-width: 0;
+}
+
+.qo-add-input:focus {
+  border-color: var(--accent);
+  background: var(--bg-hover);
+}
+
+.qo-add-input::placeholder {
+  color: var(--text-muted);
+}
+
+.qo-add-mic-btn {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+
+.qo-add-mic-btn:hover,
+.qo-add-mic-btn.active {
+  background: rgba(240,82,82,0.15);
+  border-color: var(--red);
+}
+
+.qo-quickadd-hint {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 6px;
+  letter-spacing: 0.01em;
+}
+
+/* ── Sidebar Sections ─────────────────────────────────────────────────── */
+
+.qo-sidebar-section {
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.qo-sidebar-section-title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin: 0 0 10px;
+}
+
+.qo-sidebar-badge {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-muted);
+  background: var(--bg-hover);
+  border: 1px solid var(--border);
+  padding: 2px 7px;
+  border-radius: 8px;
+  letter-spacing: 0.05em;
+}
+
+.qo-sidebar-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.qo-sidebar-empty {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-style: italic;
+  padding: 4px 0;
+}
+
+/* ── Task Items ───────────────────────────────────────────────────────── */
+
+.qo-sidebar-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: background 0.12s;
+  border: 1px solid transparent;
+}
+
+.qo-sidebar-item:hover {
+  background: var(--bg-hover);
+  border-color: var(--border);
+}
+
+.qo-sidebar-item.completed {
+  opacity: 0.5;
+}
+
+.qo-sidebar-item-check {
+  width: 16px;
+  height: 16px;
+  border: 1.5px solid var(--border);
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 1px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  cursor: pointer;
+  transition: all 0.15s;
+  color: transparent;
+}
+
+.qo-sidebar-item-check:hover {
+  border-color: var(--accent);
+  background: rgba(91,106,245,0.1);
+}
+
+.qo-sidebar-item-check.done {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  font-size: 10px;
+}
+
+.qo-sidebar-item-content {
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.qo-sidebar-item-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.qo-sidebar-item.completed .qo-sidebar-item-title {
+  text-decoration: line-through;
+}
+
+.qo-sidebar-item-time {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ── Category Dots ────────────────────────────────────────────────────── */
+
+.qo-category-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.qo-category-dot--task    { background: var(--accent); }
+.qo-category-dot--urgent  { background: var(--red); }
+.qo-category-dot--personal { background: #a855f7; }
+.qo-category-dot--system  { background: var(--text-muted); }
+
+/* ── Ask VERA Section ─────────────────────────────────────────────────── */
+
+.qo-sidebar-ask-section {
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-bottom: 1px solid var(--border);
+  margin-top: auto;
+}
+
+.qo-sidebar-ask-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+}
+
+.qo-ask-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.qo-ask-chip {
+  padding: 5px 10px;
+  background: var(--bg-hover);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  color: var(--text);
+  font-size: 11px;
+  font-family: var(--font);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.qo-ask-chip:hover {
+  border-color: var(--accent);
+  background: rgba(91,106,245,0.1);
+  color: var(--accent);
+  transform: translateY(-1px);
+}
+
+/* ── Chat Input ───────────────────────────────────────────────────────── */
+
+.qo-chat-input-wrapper {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.qo-chat-input {
+  flex: 1;
+  background: var(--bg-hover);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 13px;
+  padding: 8px 12px;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.qo-chat-input:hover,
+.qo-chat-input:focus {
+  border-color: var(--accent);
+}
+
+.qo-chat-input::placeholder {
+  color: var(--text-muted);
+}
+
+.qo-chat-send-btn {
+  padding: 8px 14px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: var(--font);
+  cursor: pointer;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+
+.qo-chat-send-btn:hover {
+  background: var(--accent-hover, #6f7ef7);
+}
+
+/* ── Chat Overlay ─────────────────────────────────────────────────────── */
+
+.qo-chat-overlay-container {
+  position: absolute;
+  inset: 0;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  z-index: 10;
+  border-radius: 0;
+  border-left: 1px solid var(--border);
+  animation: qo-slide-in 0.18s ease;
+}
+
+@keyframes qo-slide-in {
+  from { opacity: 0; transform: translateX(16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.qo-chat-overlay-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-surface);
+  flex-shrink: 0;
+}
+
+.qo-chat-overlay-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.qo-chat-overlay-close {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+
+.qo-chat-overlay-close:hover {
+  background: var(--bg-hover);
+  color: var(--text);
+  border-color: var(--red);
+  color: var(--red);
+}
+
+/* ── Scrollable sidebar task lists ───────────────────────────────────── */
+
+/* Wrap the two task sections in a scrollable area */
+.qo-sidebar-pane > .qo-sidebar-section {
+  overflow-y: auto;
+  max-height: 180px;
+}
+
+.qo-sidebar-pane > .qo-sidebar-section::-webkit-scrollbar { width: 4px; }
+.qo-sidebar-pane > .qo-sidebar-section::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 2px;
+}
+
+/* ── Responsive: narrow sidebar squish ───────────────────────────────── */
+
+@media (max-width: 860px) {
+  .qo-sidebar-pane {
+    width: 220px;
+    min-width: 200px;
+  }
+}
+
+/* ── Month Grid Calendar ──────────────────────────────────────────────── */
+
+.qo-month-grid-header {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border);
+  border-radius: 6px 6px 0 0;
+  margin-bottom: 0;
+  flex-shrink: 0;
+}
+
+.qo-month-grid-header-cell {
+  padding: 8px 4px;
+  text-align: center;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  border-right: 1px solid var(--border);
+}
+
+.qo-month-grid-header-cell:last-child {
+  border-right: none;
+}
+
+.qo-month-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  flex: 1;
+  border-left: 1px solid var(--border);
+  border-top: 1px solid var(--border);
+}
+
+.qo-month-grid-cell {
+  min-height: 80px;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 6px 4px 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: var(--bg);
+  transition: background 0.1s;
+  cursor: default;
+}
+
+.qo-month-grid-cell:hover {
+  background: var(--bg-hover);
+}
+
+.qo-month-grid-cell--empty {
+  background: rgba(255,255,255,0.01);
+  cursor: default;
+}
+
+.qo-month-grid-cell--empty:hover {
+  background: rgba(255,255,255,0.01);
+}
+
+.qo-month-grid-cell--today {
+  background: rgba(91, 106, 245, 0.06);
+}
+
+.qo-month-grid-cell--today:hover {
+  background: rgba(91, 106, 245, 0.1);
+}
+
+.qo-month-grid-cell-num {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-muted);
+  line-height: 1;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.qo-month-grid-cell--today .qo-month-grid-cell-num {
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+
+.qo-month-grid-cell-events {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  overflow: hidden;
+}
+
+.qo-month-grid-event {
+  font-size: 10px;
+  font-weight: 500;
+  padding: 2px 5px;
+  border-radius: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  line-height: 1.4;
+}
+
+.qo-month-grid-overflow {
+  font-size: 10px;
+  color: var(--text-muted);
+  padding: 1px 4px;
+  font-weight: 500;
+}
+
+/* ── Inline Cell Editing ──────────────────────────────────────────────── */
+
+.qo-month-grid-cell-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2px;
+}
+
+/* "+" add hint — hidden by default, shown on hover */
+.qo-month-grid-cell-plus {
+  font-size: 14px;
+  font-weight: 300;
+  color: var(--text-muted);
+  opacity: 0;
+  transition: opacity 0.15s;
+  line-height: 1;
+  padding: 0 2px;
+  cursor: pointer;
+}
+
+.qo-month-grid-cell:hover .qo-month-grid-cell-plus,
+.qo-month-grid-cell--editing .qo-month-grid-cell-plus {
+  opacity: 1;
+}
+
+/* Active editing cell */
+.qo-month-grid-cell--editing {
+  background: rgba(91, 106, 245, 0.08) !important;
+  outline: 1.5px solid var(--accent);
+  outline-offset: -1.5px;
+  z-index: 2;
+  position: relative;
+}
+
+/* The inline text input inside the cell */
+.qo-month-cell-input {
+  display: block;
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-top: 1px solid rgba(91,106,245,0.3);
+  color: var(--text);
+  font-family: var(--font, sans-serif);
+  font-size: 11px;
+  padding: 4px 4px 2px;
+  outline: none;
+  margin-top: 4px;
+  caret-color: var(--accent);
+  /* Autofocus animation */
+  animation: qo-cell-input-appear 0.12s ease;
+}
+
+@keyframes qo-cell-input-appear {
+  from { opacity: 0; transform: translateY(-2px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.qo-month-cell-input::placeholder {
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: 10px;
+}
+
+/* ── Week View Click-to-Add ───────────────────────────────────────────── */
+.qo-calendar-grid-col {
+  cursor: crosshair;
+}
+
+.qo-calendar-allday-cell {
+  cursor: pointer;
+  min-height: 28px;
+}
+
+.qo-calendar-allday-cell:hover {
+  background: rgba(91, 106, 245, 0.05);
+}
+
+.qo-calendar-grid-col:hover > .qo-calendar-grid-line:first-child {
+  /* highlight hint column on hover */
+  background: rgba(91, 106, 245, 0.02);
+}
+
+.qo-calendar-header-day-num {
+  cursor: pointer;
+}
+
+.qo-calendar-header-day-num:hover:not(.qo-calendar-header-day-num--today) {
+  background: rgba(91, 106, 245, 0.15);
+  border-radius: 50%;
+}
+
+/* ── Day View Header ──────────────────────────────────────────────────── */
+.qo-day-view-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px 10px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-surface);
+  flex-shrink: 0;
+}
+
+.qo-day-view-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.qo-day-back-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: var(--font, sans-serif);
+}
+
+.qo-day-back-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+.qo-day-view-date {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.qo-day-view-weekday {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.qo-day-view-full-date {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}

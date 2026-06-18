@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { invoke } from '@tauri-apps/api/core';
+import { getTasks, createTask as createTaskLocal, updateTask as updateTaskLocal, deleteTask as deleteTaskLocal } from './taskStorage';
 import { Task, TaskList, TaskCategory } from './types';
 import { parseNaturalLanguageTask } from './nlpParser';
 import { VeraCopilot } from './VeraCopilot';
@@ -96,7 +97,7 @@ export function QuickOrganizer({ activeModel = "llama3.2:3b", serverPort = 11434
 
     async function loadTasks() {
         try {
-            const fetched = await invoke<Task[]>('get_tasks');
+            const fetched = await getTasks();
             setTasks(fetched);
         } catch (e) {
             console.error('Failed to load tasks:', e);
@@ -152,7 +153,7 @@ export function QuickOrganizer({ activeModel = "llama3.2:3b", serverPort = 11434
         const parsed = parseNaturalLanguageTask(title);
         
         try {
-            const task = await invoke<Task>('create_task', {
+            const task = await createTaskLocal( {
                 title: parsed.title,
                 list: 'today' as TaskList,
                 startTime: parsed.start_time,
@@ -175,11 +176,11 @@ export function QuickOrganizer({ activeModel = "llama3.2:3b", serverPort = 11434
                 const task = tasks.find(t => t.id === taskId);
                 if (task) {
                     const updated = { ...task, completed: false, completed_at: null };
-                    await invoke('update_task', { task: updated });
+                    await updateTaskLocal(updated);
                     setTasks(prev => prev.map(t => t.id === taskId ? updated : t));
                 }
             } else {
-                await invoke('complete_task', { taskId });
+                await updateTaskLocal({ ...tasks.find(t => t.id === taskId)!, completed: true, completed_at: new Date().toISOString() });
                 setTasks(prev => prev.map(t =>
                     t.id === taskId
                         ? { ...t, completed: true, completed_at: new Date().toISOString() }
@@ -194,7 +195,7 @@ export function QuickOrganizer({ activeModel = "llama3.2:3b", serverPort = 11434
     // Task Deletion
     async function handleDelete(taskId: string) {
         try {
-            await invoke('delete_task', { taskId });
+            await deleteTaskLocal(taskId);
             setTasks(prev => prev.filter(t => t.id !== taskId));
             setShowEditModal(false);
         } catch (e) {
@@ -205,7 +206,7 @@ export function QuickOrganizer({ activeModel = "llama3.2:3b", serverPort = 11434
     // Edit Task Save
     async function handleSaveEditedTask(updated: Task) {
         try {
-            await invoke('update_task', { task: updated });
+            await updateTaskLocal(updated);
             setTasks(prev => prev.map(t => t.id === updated.id ? updated : t));
             setShowEditModal(false);
             setEditingTask(null);
@@ -271,7 +272,7 @@ export function QuickOrganizer({ activeModel = "llama3.2:3b", serverPort = 11434
 
     const getHoursArray = () => {
         const hours = [];
-        for (let i = 9; i <= 18; i++) {
+        for (let i = 7; i <= 22; i++) {  // 7 AM to 10 PM
             hours.push(i);
         }
         return hours;
@@ -283,7 +284,8 @@ export function QuickOrganizer({ activeModel = "llama3.2:3b", serverPort = 11434
     const todayKey = formatDateKey(new Date());
     const todayTasks = tasks.filter(t => {
         if (!t.start_time) return false;
-        return t.start_time.split('T')[0] === todayKey;
+        const d = new Date(t.start_time);
+        return formatDateKey(d) === todayKey;
     });
 
     const thisWeekTasks = tasks.filter(t => {
@@ -440,7 +442,15 @@ export function QuickOrganizer({ activeModel = "llama3.2:3b", serverPort = 11434
                                             <span className="qo-calendar-header-day-name">
                                                 {date.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase()}
                                             </span>
-                                            <span className={`qo-calendar-header-day-num ${isToday ? 'qo-calendar-header-day-num--today' : ''}`}>
+                                            <span
+                                                className={`qo-calendar-header-day-num ${isToday ? 'qo-calendar-header-day-num--today' : ''}`}
+                                                title="Click to view this day"
+                                                onClick={e => {
+                                                    e.stopPropagation();
+                                                    setCurrentDate(new Date(date));
+                                                    setView('day');
+                                                }}
+                                            >
                                                 {date.getDate()}
                                             </span>
                                         </div>
@@ -483,7 +493,17 @@ export function QuickOrganizer({ activeModel = "llama3.2:3b", serverPort = 11434
                                     {weekDates.map(date => {
                                         const dayEvents = getEventsForDate(date).filter(e => !e.all_day);
                                         return (
-                                            <div key={`col-${date.toString()}`} className="qo-calendar-grid-col">
+                                            <div
+                                                key={`col-${date.toString()}`}
+                                                className="qo-calendar-grid-col"
+                                                style={{ cursor: 'pointer' }}
+                                                title="Click to view this day"
+                                                onClick={e => {
+                                                    if ((e.target as HTMLElement).closest('.qo-calendar-event')) return;
+                                                    setCurrentDate(new Date(date));
+                                                    setView('day');
+                                                }}
+                                            >
                                                 {/* Hour grid lines */}
                                                 {hours.map(h => (
                                                     <div key={`line-${h}`} className="qo-calendar-grid-line" />
@@ -497,9 +517,10 @@ export function QuickOrganizer({ activeModel = "llama3.2:3b", serverPort = 11434
                                                     const startHour = sTime.getHours() + sTime.getMinutes() / 60;
                                                     const duration = (eTime.getTime() - sTime.getTime()) / 3600000;
                                                     
-                                                    // Calculate percentages based on 9 AM - 7 PM (10 hours total range)
-                                                    const top = Math.max(0, Math.min(100, ((startHour - 9) / 10) * 100));
-                                                    const height = Math.min(100 - top, (duration / 10) * 100);
+                                                    const HOUR_START = hours[0];
+                                                    const HOUR_SPAN = hours.length;
+                                                    const top = Math.max(0, Math.min(100, ((startHour - HOUR_START) / HOUR_SPAN) * 100));
+                                                    const height = Math.min(100 - top, (duration / HOUR_SPAN) * 100);
 
                                                     return (
                                                         <div
@@ -533,13 +554,31 @@ export function QuickOrganizer({ activeModel = "llama3.2:3b", serverPort = 11434
                         </div>
                     ) : view === 'day' ? (
                         <div className="qo-calendar-day-view">
-                            <div className="qo-calendar-header-row">
-                                <div className="qo-calendar-time-col-spacer" />
-                                <div className="qo-calendar-header-day active">
-                                    <span className="qo-calendar-header-day-name">
-                                        {currentDate.toLocaleDateString('en-US', { weekday: 'long' }).toUpperCase()}
-                                    </span>
+                            {/* Day View Header */}
+                            <div className="qo-day-view-header">
+                                <div className="qo-day-view-header-left">
+                                    <button className="qo-day-back-btn" onClick={() => setView('week')} title="Back to week">‹ Week</button>
+                                    <div className="qo-day-view-date">
+                                        <span className="qo-day-view-weekday">{currentDate.toLocaleDateString('en-US', { weekday: 'long' })}</span>
+                                        <span className="qo-day-view-full-date">{currentDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+                                    </div>
                                 </div>
+                                <button
+                                    className="qo-add-btn"
+                                    onClick={() => {
+                                        const d = new Date(currentDate);
+                                        d.setHours(9, 0, 0, 0);
+                                        setEditingTask({
+                                            id: '', title: '', notes: null, list: 'today',
+                                            completed: false, created_at: new Date().toISOString(),
+                                            completed_at: null, ai_breakdown: null,
+                                            start_time: d.toISOString(),
+                                            end_time: new Date(d.getTime() + 3600000).toISOString(),
+                                            category: 'task', all_day: false
+                                        });
+                                        setShowEditModal(true);
+                                    }}
+                                >+ Add</button>
                             </div>
 
                             <div className="qo-calendar-grid-body">
@@ -552,7 +591,28 @@ export function QuickOrganizer({ activeModel = "llama3.2:3b", serverPort = 11434
                                 </div>
 
                                 <div className="qo-calendar-grid-columns" style={{ gridTemplateColumns: '1fr' }}>
-                                    <div className="qo-calendar-grid-col">
+                                    <div
+                                        className="qo-calendar-grid-col"
+                                        style={{ cursor: 'crosshair' }}
+                                        onClick={e => {
+                                            if ((e.target as HTMLElement).closest('.qo-calendar-event')) return;
+                                            const rect = e.currentTarget.getBoundingClientRect();
+                                            const y = e.clientY - rect.top;
+                                            const hourFrac = (y / rect.height) * hours.length;
+                                            const clickedHour = hours[Math.min(Math.max(0, Math.floor(hourFrac)), hours.length - 1)];
+                                            const d = new Date(currentDate);
+                                            d.setHours(clickedHour, 0, 0, 0);
+                                            setEditingTask({
+                                                id: '', title: '', notes: null, list: 'today',
+                                                completed: false, created_at: new Date().toISOString(),
+                                                completed_at: null, ai_breakdown: null,
+                                                start_time: d.toISOString(),
+                                                end_time: new Date(d.getTime() + 3600000).toISOString(),
+                                                category: 'task', all_day: false
+                                            });
+                                            setShowEditModal(true);
+                                        }}
+                                    >
                                         {hours.map(h => (
                                             <div key={`line-${h}`} className="qo-calendar-grid-line" />
                                         ))}
@@ -564,8 +624,10 @@ export function QuickOrganizer({ activeModel = "llama3.2:3b", serverPort = 11434
                                             const startHour = sTime.getHours() + sTime.getMinutes() / 60;
                                             const duration = (eTime.getTime() - sTime.getTime()) / 3600000;
                                             
-                                            const top = Math.max(0, Math.min(100, ((startHour - 9) / 10) * 100));
-                                            const height = Math.min(100 - top, (duration / 10) * 100);
+                                            const HOUR_START = hours[0];
+                                                    const HOUR_SPAN = hours.length;
+                                                    const top = Math.max(0, Math.min(100, ((startHour - HOUR_START) / HOUR_SPAN) * 100));
+                                                    const height = Math.min(100 - top, (duration / HOUR_SPAN) * 100);
 
                                             return (
                                                 <div
@@ -838,11 +900,15 @@ export function QuickOrganizer({ activeModel = "llama3.2:3b", serverPort = 11434
                                         type="date"
                                         className="qo-add-input"
                                         style={{ width: '100%' }}
-                                        value={editingTask.start_time ? editingTask.start_time.split('T')[0] : ''}
+                                        value={editingTask.start_time ? (() => {
+                                            const d = new Date(editingTask.start_time);
+                                            return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+                                        })() : ''}
                                         onChange={e => {
-                                            const datePart = e.target.value;
-                                            const timePart = editingTask.start_time ? editingTask.start_time.split('T')[1] || '09:00:00.000Z' : '09:00:00.000Z';
-                                            setEditingTask({ ...editingTask, start_time: `${datePart}T${timePart}` });
+                                            const [yr, mo, dy] = e.target.value.split('-').map(Number);
+                                            const existing = editingTask.start_time ? new Date(editingTask.start_time) : new Date();
+                                            const newDate = new Date(yr, mo - 1, dy, existing.getHours(), existing.getMinutes(), 0, 0);
+                                            setEditingTask({ ...editingTask, start_time: newDate.toISOString() });
                                         }}
                                     />
                                 </div>
@@ -852,11 +918,15 @@ export function QuickOrganizer({ activeModel = "llama3.2:3b", serverPort = 11434
                                         type="time"
                                         className="qo-add-input"
                                         style={{ width: '100%' }}
-                                        value={editingTask.start_time ? (editingTask.start_time.split('T')[1] || '').substring(0, 5) : '09:00'}
+                                        value={editingTask.start_time ? (() => {
+                                            const d = new Date(editingTask.start_time);
+                                            return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+                                        })() : '09:00'}
                                         onChange={e => {
-                                            const timePart = e.target.value;
-                                            const datePart = editingTask.start_time ? editingTask.start_time.split('T')[0] : formatDateKey(new Date());
-                                            setEditingTask({ ...editingTask, start_time: `${datePart}T${timePart}:00.000Z` });
+                                            const [hr, mn] = e.target.value.split(':').map(Number);
+                                            const existing = editingTask.start_time ? new Date(editingTask.start_time) : new Date();
+                                            const newDate = new Date(existing.getFullYear(), existing.getMonth(), existing.getDate(), hr, mn, 0, 0);
+                                            setEditingTask({ ...editingTask, start_time: newDate.toISOString() });
                                         }}
                                     />
                                 </div>
@@ -913,7 +983,7 @@ export function QuickOrganizer({ activeModel = "llama3.2:3b", serverPort = 11434
                                             handleSaveEditedTask(editingTask);
                                         } else {
                                             // Creating new task
-                                            invoke<Task>('create_task', {
+                                            createTaskLocal( {
                                                 title: editingTask.title,
                                                 list: 'today' as TaskList,
                                                 startTime: editingTask.start_time,
