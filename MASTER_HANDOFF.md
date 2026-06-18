@@ -230,6 +230,23 @@ Lexsort-Vera-Pro/                 # Pro repo (private)
   - Freeware commit: `af4e3bf` on LexSort-Vera-Personal-AI main
 - **Windows-only CI:** `.github/workflows/build-windows-only.yml` — manual dispatch if only Windows fails.
 - **GitHub spending limit:** Set to $0 (default). Increase to ~$10 to unblock Windows CI.
+- **Website SEO (Jun 18):** `website/sitemap.xml` and `website/llms.txt` added. `index.html` has full meta tags: canonical, og:image, og:url, Twitter card, JSON-LD structured data (Organization + WebSite + 4× SoftwareApplication).
+- **Website security headers (Jun 18):** Headers intentionally relaxed for public marketing site. `X-Frame-Options: DENY` removed, `frame-ancestors 'none'` → `'self'`, `Cross-Origin-Resource-Policy` → `cross-origin`, `Access-Control-Allow-Origin: *` added. These were blocking ALL AI tools (Meta AI, ChatGPT, Perplexity, Claude) from reading the site. Do NOT restore the old strict headers on `website/*` — they belong on app endpoints only.
+
+---
+
+## 📋 Session Log — June 18, 2026
+
+| Item | Status |
+|---|---|
+| Website `sitemap.xml` | ✅ Created — all 9 public pages indexed |
+| Website `llms.txt` | ✅ Created — AI-readable product summary (llmstxt.org standard) |
+| `robots.txt` | ✅ Updated — explicit allow for GPTBot, ClaudeBot, PerplexityBot, OAI-SearchBot, etc. + sitemap ref |
+| `index.html` SEO | ✅ Full meta: canonical, og:image, og:url, Twitter card, keywords, geo, JSON-LD |
+| `netlify.toml` headers | ✅ Fixed — CORP cross-origin, CORS \*, removed X-Frame-Options DENY, frame-ancestors 'self' |
+| AI tools blocked (Meta AI, ChatGPT, etc.) | ✅ Fixed — root cause was CORP same-origin + X-Frame-Options DENY + frame-ancestors 'none' |
+| GitHub→Netlify webhook NOT connected | ✅ Confirmed intentional — CLI deploy is the only correct method |
+| Deployed to production | ✅ `netlify deploy --prod --dir=website` |
 
 ---
 
