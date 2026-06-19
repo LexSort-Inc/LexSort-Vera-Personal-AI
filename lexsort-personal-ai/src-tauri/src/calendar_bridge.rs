@@ -5,11 +5,25 @@ pub fn request_permission() -> Result<bool, String> {
     #[cfg(target_os = "macos")]
     {
         // On macOS, executing a simple osascript to read calendar triggers the system permission dialog.
-        // We will run a quick check script.
+        // We will run a JXA script that explicitly requests access if status is NotDetermined (0)
+        // using NSRunLoop to synchronously block until the user responds.
         let script = r#"
-            var app = Application('Calendar');
-            app.calendars().length;
-            true;
+            ObjC.import('EventKit');
+            ObjC.import('Foundation');
+            var store = $.EKEventStore.alloc.init;
+            var status = $.EKEventStore.authorizationStatusForEntityType(0);
+            if (Number(status) === 0) {
+                var done = false;
+                store.requestAccessToEntityTypeCompletion(0, function(granted, error) {
+                    done = true;
+                });
+                var limitDate = $.NSDate.dateWithTimeIntervalSinceNow(60);
+                while (!done && limitDate.timeIntervalSinceNow > 0) {
+                    $.NSRunLoop.currentRunLoop.runUntilDate($.NSDate.dateWithTimeIntervalSinceNow(0.1));
+                }
+                status = $.EKEventStore.authorizationStatusForEntityType(0);
+            }
+            Number(status) === 3;
         "#;
         
         let output = Command::new("osascript")
@@ -21,8 +35,12 @@ pub fn request_permission() -> Result<bool, String> {
             
         match output {
             Ok(out) => {
-                let success = out.status.success();
-                Ok(success)
+                if !out.status.success() {
+                    let err = String::from_utf8_lossy(&out.stderr);
+                    return Err(format!("osascript failed: {}", err));
+                }
+                let stdout = String::from_utf8_lossy(&out.stdout).trim().to_string();
+                Ok(stdout == "true")
             }
             Err(e) => Err(format!("Failed to execute permission request: {}", e))
         }
@@ -44,121 +62,51 @@ pub fn get_calendar_events(days_ahead: u32) -> Result<Vec<Task>, String> {
     #[cfg(target_os = "macos")]
     {
         let script = format!(r#"
-on toISODate(theDate)
-    set y to year of theDate as string
-    set m to (month of theDate as integer) as string
-    if length of m is 1 then set m to "0" & m
-    set d to day of theDate as string
-    if length of d is 1 then set d to "0" & d
-    set h to hours of theDate as string
-    if length of h is 1 then set h to "0" & h
-    set min to minutes of theDate as string
-    if length of min is 1 then set min to "0" & min
-    set s to seconds of theDate as string
-    if length of s is 1 then set s to "0" & s
-    return y & "-" & m & "-" & d & "T" & h & ":" & min & ":" & s
-end toISODate
+ObjC.import('EventKit');
+var store = $.EKEventStore.alloc.init;
+var status = $.EKEventStore.authorizationStatusForEntityType(0);
+if (Number(status) !== 3) {{
+    throw new Error("Calendar access not authorized");
+}}
+var cals = store.calendarsForEntityType(0);
+var filteredCals = $.NSMutableArray.alloc.init;
+for (var i = 0; i < cals.count; i++) {{
+    var cal = cals.objectAtIndex(i);
+    var name = ObjC.unwrap(cal.title).toLowerCase();
+    if (name.indexOf('birthday') === -1 && name.indexOf('holiday') === -1 && name.indexOf('siri') === -1 && name.indexOf('reminder') === -1) {{
+        filteredCals.addObject(cal);
+    }}
+}}
+var start = $.NSDate.dateWithTimeIntervalSinceNow(-{} * 24 * 3600);
+var end = $.NSDate.dateWithTimeIntervalSinceNow({} * 24 * 3600);
+var pred = store.predicateForEventsWithStartDateEndDateCalendars(start, end, filteredCals);
+var events = store.eventsMatchingPredicate(pred);
 
-on lowercase(str)
-    set theComparison to "abcdefghijklmnopqrstuvwxyz"
-    set theSource to "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    set theResult to ""
-    repeat with i from 1 to count of str
-        set char to character i of str
-        set pos to offset of char in theSource
-        if pos is not 0 then
-            set theResult to theResult & character pos of theComparison
-        else
-            set theResult to theResult & char
-        end if
-    end repeat
-    return theResult
-end lowercase
+var formatter = $.NSDateFormatter.alloc.init;
+formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss";
 
-on replaceText(findStr, replaceStr, textStr)
-    set oldDelims to AppleScript's text item delimiters
-    set AppleScript's text item delimiters to findStr
-    set theItems to text items of textStr
-    set AppleScript's text item delimiters to replaceStr
-    set theResult to theItems as string
-    set AppleScript's text item delimiters to oldDelims
-    return theResult
-end replaceText
-
-on getEvents(daysAhead)
-    tell application "Calendar"
-        set now to (current date)
-        set hours of now to 0
-        set minutes of now to 0
-        set seconds of now to 0
-        
-        set endLimit to now + (daysAhead * 24 * 60 * 60)
-        set jsonParts to {{}}
-        
-        -- Get names of all writable calendars to avoid slow references
-        set writableCalNames to name of every calendar whose writable is true
-        
-        repeat with calNameRef in writableCalNames
-            set calName to calNameRef as string
-            set calNameLower to my lowercase(calName)
-            
-            if (calNameLower does not contain "birthday") and (calNameLower does not contain "holiday") and (calNameLower does not contain "siri") and (calNameLower does not contain "reminder") then
-                try
-                    with timeout of 3 seconds
-                        -- Fetch calendar by name directly
-                        set theCalendar to calendar calName
-                        set calendarEvents to (every event of theCalendar whose (start date is greater than or equal to now) and (start date is less than or equal to endLimit))
-                        
-                        repeat with theEvent in calendarEvents
-                            try
-                                set eventTitle to summary of theEvent
-                                set cleanTitle to my replaceText("\"", "\\\"", eventTitle)
-                                set cleanTitle to my replaceText(linefeed, " ", cleanTitle)
-                                set cleanTitle to my replaceText(return, " ", cleanTitle)
-                                
-                                set eventStart to my toISODate(start date of theEvent)
-                                set eventEnd to my toISODate(end date of theEvent)
-                                set eventAllDay to allday event of theEvent
-                                
-                                if eventAllDay is true then
-                                    set eventAllDayStr to "true"
-                                else
-                                    set eventAllDayStr to "false"
-                                end if
-                                
-                                set eventDesc to description of theEvent
-                                if eventDesc is missing value then
-                                    set eventDescStr to "null"
-                                else
-                                    set cleanDesc to my replaceText("\"", "\\\"", eventDesc)
-                                    set cleanDesc to my replaceText(linefeed, "\\n", cleanDesc)
-                                    set cleanDesc to my replaceText(return, "\\r", cleanDesc)
-                                    set eventDescStr to "\"" & cleanDesc & "\""
-                                end if
-                                
-                                set end of jsonParts to "{{\"title\":\"" & cleanTitle & "\",\"start_time\":\"" & eventStart & "\",\"end_time\":\"" & eventEnd & "\",\"all_day\":" & eventAllDayStr & ",\"notes\":" & eventDescStr & "}}"
-                            end try
-                        end repeat
-                    end timeout
-                on error err
-                    log "Skipped calendar " & calName & " due to timeout or error: " & err
-                end try
-            end if
-        end repeat
-        
-        -- Combine into a JSON array
-        set oldDelims to AppleScript's text item delimiters
-        set AppleScript's text item delimiters to ","
-        set jsonList to jsonParts as string
-        set AppleScript's text item delimiters to oldDelims
-        return "[" & jsonList & "]"
-    end tell
-end getEvents
-
-return getEvents({})
-"#, days_ahead);
+var res = [];
+for (var i = 0; i < events.count; i++) {{
+    var ev = events.objectAtIndex(i);
+    var title = ObjC.unwrap(ev.title) || '';
+    var notes = ObjC.unwrap(ev.notes) || null;
+    var allDay = ObjC.unwrap(ev.isAllDay) ? true : false;
+    var startTime = ObjC.unwrap(formatter.stringFromDate(ev.startDate));
+    var endTime = ev.endDate ? ObjC.unwrap(formatter.stringFromDate(ev.endDate)) : null;
+    res.push({{
+        title: title,
+        notes: notes,
+        start_time: startTime,
+        end_time: endTime,
+        all_day: allDay
+    }});
+}}
+JSON.stringify(res);
+"#, days_ahead, days_ahead);
         
         let output = Command::new("osascript")
+            .arg("-l")
+            .arg("JavaScript")
             .arg("-e")
             .arg(&script)
             .output();
@@ -217,11 +165,12 @@ return getEvents({})
                 $events = $calendar.Items
                 $events.Sort('[Start]')
                 $now = [DateTime]::Now
+                $start = $now.AddDays(-{})
                 $end = $now.AddDays({})
                 
                 $result = @()
                 foreach ($event in $events) {{
-                    if ($event.Start -ge $now -and $event.Start -le $end) {{
+                    if ($event.Start -ge $start -and $event.Start -le $end) {{
                         $result += [PSCustomObject]@{{
                             title = $event.Subject
                             notes = $event.Body
@@ -235,7 +184,7 @@ return getEvents({})
             }} catch {{
                 Write-Output "[]"
             }}
-        "#, days_ahead);
+        "#, days_ahead, days_ahead);
         
         let output = Command::new("powershell")
             .arg("-NoProfile")
@@ -301,7 +250,36 @@ pub fn import_calendar_events(days_ahead: u32) -> Result<Vec<Task>, String> {
     get_calendar_events(days_ahead)
 }
 
+
+
 #[tauri::command]
 pub fn refresh_calendar_events() -> Result<Vec<Task>, String> {
     get_calendar_events(30)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_request_permission_fn() {
+        let res = request_permission();
+        assert!(res.is_ok());
+        let allowed = res.unwrap();
+        println!("request_permission returned: {}", allowed);
+    }
+
+    #[test]
+    fn test_get_calendar_events() {
+        let events = get_calendar_events(30);
+        assert!(events.is_ok());
+        let list = events.unwrap();
+        println!("Fetched {} events from calendar", list.len());
+        for ev in &list {
+            println!("Event: {} (Start: {:?}, All Day: {:?})", ev.title, ev.start_time, ev.all_day);
+        }
+        let test_occurrences: Vec<&Task> = list.iter().filter(|t| t.title == "VERA Recurrence Test Event").collect();
+        println!("Found {} occurrences of VERA Recurrence Test Event", test_occurrences.len());
+        assert!(test_occurrences.len() > 0);
+    }
 }
