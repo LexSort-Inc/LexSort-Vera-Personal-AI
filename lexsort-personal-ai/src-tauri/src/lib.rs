@@ -262,34 +262,69 @@ fn ensure_lexsort_dirs(edition: &str) -> Result<(), String> {
 }
 
 fn get_free_storage_gb() -> u64 {
-    let disks = Disks::new_with_refreshed_list();
-    let mut largest_disk_avail: u64 = 0;
-    let mut max_total_space: u64 = 0;
-    
-    for disk in &disks {
-        if !disk.is_removable() {
-            let total = disk.total_space();
-            if total > max_total_space {
-                max_total_space = total;
-                largest_disk_avail = disk.available_space();
-            }
+    #[cfg(target_os = "windows")]
+    {
+        use std::os::windows::ffi::OsStrExt;
+        let path = lexsort_dir();
+        let mut path_w: Vec<u16> = path.as_os_str().encode_wide().collect();
+        path_w.push(0); // null terminator
+
+        let mut free_bytes: u64 = 0;
+        let mut total_bytes: u64 = 0;
+        let mut total_free_bytes: u64 = 0;
+
+        extern "system" {
+            fn GetDiskFreeSpaceExW(
+                lpDirectoryName: *const u16,
+                lpFreeBytesAvailableToCaller: *mut u64,
+                lpTotalNumberOfBytes: *mut u64,
+                lpTotalNumberOfFreeBytes: *mut u64,
+            ) -> i32;
+        }
+
+        let res = unsafe {
+            GetDiskFreeSpaceExW(
+                path_w.as_ptr(),
+                &mut free_bytes,
+                &mut total_bytes,
+                &mut total_free_bytes,
+            )
+        };
+
+        if res != 0 {
+            free_bytes / (1024 * 1024 * 1024)
+        } else {
+            50 // fallback safe default
         }
     }
     
-    if max_total_space == 0 {
-        50
-    } else {
-        largest_disk_avail / (1024 * 1024 * 1024)
+    #[cfg(not(target_os = "windows"))]
+    {
+        let disks = Disks::new_with_refreshed_list();
+        let mut largest_disk_avail: u64 = 0;
+        let mut max_total_space: u64 = 0;
+        
+        for disk in &disks {
+            if !disk.is_removable() {
+                let total = disk.total_space();
+                if total > max_total_space {
+                    max_total_space = total;
+                    largest_disk_avail = disk.available_space();
+                }
+            }
+        }
+        
+        if max_total_space == 0 {
+            50
+        } else {
+            largest_disk_avail / (1024 * 1024 * 1024)
+        }
     }
 }
 
-fn detect_nvidia_gpu() -> bool {
-    // Use a short blocking check with CREATE_NO_WINDOW to avoid freezing the UI.
-    // On Windows, cmd.exe can be slow; we accept the risk of false-negative here
-    // because the model-selection logic degrades gracefully without GPU info.
+async fn detect_nvidia_gpu_async() -> bool {
     #[cfg(target_os = "windows")]
     {
-        // Check for nvidia-smi directly — avoids spawning cmd.exe which can hang.
         let smi_paths = [
             std::path::Path::new(r"C:\Windows\System32\nvidia-smi.exe"),
             std::path::Path::new(r"C:\Program Files\NVIDIA Corporation\NVSMI\nvidia-smi.exe"),
@@ -299,21 +334,25 @@ fn detect_nvidia_gpu() -> bool {
                 return true;
             }
         }
-        // Fallback: try running it with CREATE_NO_WINDOW and a strict timeout.
-        silent_cmd_sync("nvidia-smi")
-            .arg("--query-gpu=name")
-            .arg("--format=csv,noheader")
-            .output()
-            .map(|out| out.status.success())
-            .unwrap_or(false)
+        
+        let mut cmd = silent_cmd("nvidia-smi");
+        cmd.args(["--query-gpu=name", "--format=csv,noheader"]);
+        
+        match tokio::time::timeout(std::time::Duration::from_secs(2), cmd.output()).await {
+            Ok(Ok(out)) => out.status.success(),
+            _ => false,
+        }
     }
+
     #[cfg(not(target_os = "windows"))]
     {
-        silent_cmd_sync("which")
-            .arg("nvidia-smi")
-            .output()
-            .map(|out| out.status.success())
-            .unwrap_or(false)
+        let mut cmd = silent_cmd("which");
+        cmd.arg("nvidia-smi");
+        
+        match tokio::time::timeout(std::time::Duration::from_secs(2), cmd.output()).await {
+            Ok(Ok(out)) => out.status.success(),
+            _ => false,
+        }
     }
 }
 
@@ -515,8 +554,10 @@ pub mod commands {
 
     #[tauri::command]
     pub async fn detect_hardware(_app: AppHandle) -> Result<HardwareInfo, String> {
+        let has_nvidia_gpu = detect_nvidia_gpu_async().await;
+
         // Run in a blocking thread so the async runtime is never starved.
-        tokio::task::spawn_blocking(|| {
+        tokio::task::spawn_blocking(move || {
             let platform = std::env::consts::OS.to_string();
 
             let mut sys = System::new_all();
@@ -543,7 +584,6 @@ pub mod commands {
             let ram_gb = (total as f64 / (1024.0 * 1024.0 * 1024.0) * 10.0).round() / 10.0;
 
             let free_storage_gb = get_free_storage_gb();
-            let has_nvidia_gpu = detect_nvidia_gpu();
             let model = select_model(ram_gb, free_storage_gb, has_nvidia_gpu, unified);
 
             // NOTE: We intentionally skip the "ollama show" model-exists check here.
