@@ -69,39 +69,47 @@ if (Number(status) !== 3) {{
     throw new Error("Calendar access not authorized");
 }}
 var cals = store.calendarsForEntityType(0);
-var filteredCals = $.NSMutableArray.alloc.init;
-for (var i = 0; i < cals.count; i++) {{
-    var cal = cals.objectAtIndex(i);
-    var name = ObjC.unwrap(cal.title).toLowerCase();
-    if (name.indexOf('birthday') === -1 && name.indexOf('holiday') === -1 && name.indexOf('siri') === -1 && name.indexOf('reminder') === -1) {{
-        filteredCals.addObject(cal);
+if (!cals || cals.count === 0) {{
+    JSON.stringify([]);
+}} else {{
+    var filteredCals = $.NSMutableArray.alloc.init;
+    for (var i = 0; i < cals.count; i++) {{
+        var cal = cals.objectAtIndex(i);
+        var name = ObjC.unwrap(cal.title).toLowerCase();
+        if (name.indexOf('birthday') === -1 && name.indexOf('holiday') === -1 && name.indexOf('siri') === -1 && name.indexOf('reminder') === -1) {{
+            filteredCals.addObject(cal);
+        }}
+    }}
+    if (filteredCals.count === 0) {{
+        JSON.stringify([]);
+    }} else {{
+        var start = $.NSDate.dateWithTimeIntervalSinceNow(-{} * 24 * 3600);
+        var end = $.NSDate.dateWithTimeIntervalSinceNow({} * 24 * 3600);
+        var pred = store.predicateForEventsWithStartDateEndDateCalendars(start, end, filteredCals);
+        var events = store.eventsMatchingPredicate(pred);
+        
+        var formatter = $.NSDateFormatter.alloc.init;
+        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss";
+        
+        var res = [];
+        for (var i = 0; i < events.count; i++) {{
+            var ev = events.objectAtIndex(i);
+            var title = ObjC.unwrap(ev.title) || '';
+            var notes = ObjC.unwrap(ev.notes) || null;
+            var allDay = ObjC.unwrap(ev.isAllDay) ? true : false;
+            var startTime = ObjC.unwrap(formatter.stringFromDate(ev.startDate));
+            var endTime = ev.endDate ? ObjC.unwrap(formatter.stringFromDate(ev.endDate)) : null;
+            res.push({{
+                title: title,
+                notes: notes,
+                start_time: startTime,
+                end_time: endTime,
+                all_day: allDay
+            }});
+        }}
+        JSON.stringify(res);
     }}
 }}
-var start = $.NSDate.dateWithTimeIntervalSinceNow(-{} * 24 * 3600);
-var end = $.NSDate.dateWithTimeIntervalSinceNow({} * 24 * 3600);
-var pred = store.predicateForEventsWithStartDateEndDateCalendars(start, end, filteredCals);
-var events = store.eventsMatchingPredicate(pred);
-
-var formatter = $.NSDateFormatter.alloc.init;
-formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss";
-
-var res = [];
-for (var i = 0; i < events.count; i++) {{
-    var ev = events.objectAtIndex(i);
-    var title = ObjC.unwrap(ev.title) || '';
-    var notes = ObjC.unwrap(ev.notes) || null;
-    var allDay = ObjC.unwrap(ev.isAllDay) ? true : false;
-    var startTime = ObjC.unwrap(formatter.stringFromDate(ev.startDate));
-    var endTime = ev.endDate ? ObjC.unwrap(formatter.stringFromDate(ev.endDate)) : null;
-    res.push({{
-        title: title,
-        notes: notes,
-        start_time: startTime,
-        end_time: endTime,
-        all_day: allDay
-    }});
-}}
-JSON.stringify(res);
 "#, days_ahead, days_ahead);
         
         let output = Command::new("osascript")

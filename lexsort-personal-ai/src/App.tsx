@@ -307,6 +307,9 @@ export default function App() {
   const [settingsTab, setSettingsTab] = useState<"model" | "updates" | "pro" | "calendar">("model");
   const [calendarImported, setCalendarImported] = useState<string | null>(() => localStorage.getItem('vera_calendar_imported'));
   const [calendarLastImport, setCalendarLastImport] = useState<string | null>(() => localStorage.getItem('vera_calendar_last_import'));
+  const [calendarSyncLoading, setCalendarSyncLoading] = useState<boolean>(false);
+  const [calendarSyncError, setCalendarSyncError] = useState<string | null>(null);
+  const [calendarSyncSuccess, setCalendarSyncSuccess] = useState<string | null>(null);
   const [updateStatus, setUpdateStatus] = useState<UpdateStatus>({
       phase: 'idle',
       moduleId: null,
@@ -728,6 +731,36 @@ export default function App() {
       invoke<number | null>("get_last_benchmark").then(tps => setLastBenchmarkTps(tps));
     }
   }, [showSettings]);
+
+  const handleSyncCalendar = async () => {
+    setCalendarSyncLoading(true);
+    setCalendarSyncError(null);
+    setCalendarSyncSuccess(null);
+    try {
+      const allowed = await invoke<boolean>('request_calendar_permission');
+      if (allowed) {
+        localStorage.setItem('vera_calendar_imported', 'approved');
+        setCalendarImported('approved');
+        
+        // Directly invoke import to verify it works and get count of events
+        const events = await invoke<any[]>('import_calendar_events', { daysAhead: 30 });
+        const nowStr = new Date().toLocaleString();
+        localStorage.setItem('vera_calendar_last_import', nowStr);
+        setCalendarLastImport(nowStr);
+        setCalendarSyncSuccess(`Successfully imported ${events.length} events from system calendar!`);
+        window.dispatchEvent(new CustomEvent('vera-calendar-refresh'));
+      } else {
+        localStorage.setItem('vera_calendar_imported', 'declined');
+        setCalendarImported('declined');
+        setCalendarSyncError("Calendar access not authorized by user/system settings.");
+      }
+    } catch (e) {
+      console.error('Failed to sync calendar:', e);
+      setCalendarSyncError(typeof e === 'string' ? e : e instanceof Error ? e.message : String(e));
+    } finally {
+      setCalendarSyncLoading(false);
+    }
+  };
 
   const handleManualBenchmark = async () => {
     if (!hardware?.model.id) return;
@@ -2069,11 +2102,11 @@ export default function App() {
                   >
                     Pro Features
                   </button>
-                  <button 
+                   <button 
                     className={`settings-tab-btn ${settingsTab === "calendar" ? "active" : ""}`} 
                     onClick={() => setSettingsTab("calendar")}
                   >
-                    Calendar
+                    Calendar Sync
                   </button>
                 </div>
 
@@ -2388,6 +2421,25 @@ export default function App() {
                         VERA imports events from your local system calendar (macOS Calendar.app or Windows Calendar) to help you view and plan around your schedules. VERA never sends your calendar data online.
                       </p>
 
+                      {calendarSyncLoading && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 0', color: 'var(--text-muted)', fontSize: '13px' }}>
+                          <Spinner />
+                          <span>Syncing calendar events...</span>
+                        </div>
+                      )}
+
+                      {calendarSyncError && (
+                        <div style={{ padding: '10px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid var(--red)', borderRadius: '8px', color: 'var(--red)', fontSize: '12px', textAlign: 'left', lineHeight: '1.4' }}>
+                          ⚠️ <strong>Failed to import:</strong> {calendarSyncError}
+                        </div>
+                      )}
+
+                      {calendarSyncSuccess && (
+                        <div style={{ padding: '10px', background: 'rgba(16, 185, 129, 0.1)', border: '1px solid var(--green)', borderRadius: '8px', color: 'var(--green)', fontSize: '12px', textAlign: 'left', lineHeight: '1.4' }}>
+                          ✓ {calendarSyncSuccess}
+                        </div>
+                      )}
+
                       <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', borderTop: '1px solid var(--border)', paddingTop: '12px' }}>
                         {calendarImported === 'approved' ? (
                           <>
@@ -2396,49 +2448,18 @@ export default function App() {
                               localStorage.removeItem('vera_calendar_last_import');
                               setCalendarImported('declined');
                               setCalendarLastImport(null);
+                              setCalendarSyncError(null);
+                              setCalendarSyncSuccess(null);
                               window.dispatchEvent(new CustomEvent('vera-calendar-disconnect'));
-                            }} style={{ border: '1px solid var(--red)', color: 'var(--red)', cursor: 'pointer', background: 'transparent' }}>
+                            }} style={{ border: '1px solid var(--red)', color: 'var(--red)', cursor: 'pointer', background: 'transparent' }} disabled={calendarSyncLoading}>
                               Disconnect Calendar
                             </button>
-                            <button className="hdr-btn" onClick={async () => {
-                              try {
-                                const allowed = await invoke<boolean>('request_calendar_permission');
-                                if (allowed) {
-                                  localStorage.setItem('vera_calendar_imported', 'approved');
-                                  const nowStr = new Date().toLocaleString();
-                                  localStorage.setItem('vera_calendar_last_import', nowStr);
-                                  setCalendarImported('approved');
-                                  setCalendarLastImport(nowStr);
-                                  window.dispatchEvent(new CustomEvent('vera-calendar-refresh'));
-                                }
-                              } catch (e) {
-                                console.error('Failed to refresh calendar:', e);
-                              }
-                            }} style={{ border: '1px solid var(--accent)', color: 'var(--text)', cursor: 'pointer', background: 'transparent' }}>
+                            <button className="hdr-btn" onClick={handleSyncCalendar} style={{ border: '1px solid var(--accent)', color: 'var(--text)', cursor: 'pointer', background: 'transparent' }} disabled={calendarSyncLoading}>
                               Refresh Now
                             </button>
                           </>
                         ) : (
-                          <button className="hdr-btn" onClick={async () => {
-                            try {
-                              const allowed = await invoke<boolean>('request_calendar_permission');
-                              if (allowed) {
-                                localStorage.setItem('vera_calendar_imported', 'approved');
-                                const nowStr = new Date().toLocaleString();
-                                localStorage.setItem('vera_calendar_last_import', nowStr);
-                                setCalendarImported('approved');
-                                setCalendarLastImport(nowStr);
-                                window.dispatchEvent(new CustomEvent('vera-calendar-refresh'));
-                              } else {
-                                localStorage.setItem('vera_calendar_imported', 'declined');
-                                setCalendarImported('declined');
-                              }
-                            } catch (e) {
-                              console.error('Failed to connect calendar:', e);
-                              localStorage.setItem('vera_calendar_imported', 'declined');
-                              setCalendarImported('declined');
-                            }
-                          }} style={{ border: '1px solid var(--accent)', color: 'var(--text)', cursor: 'pointer', background: 'transparent' }}>
+                          <button className="hdr-btn" onClick={handleSyncCalendar} style={{ border: '1px solid var(--accent)', color: 'var(--text)', cursor: 'pointer', background: 'transparent' }} disabled={calendarSyncLoading}>
                             Connect Calendar
                           </button>
                         )}

@@ -62,6 +62,8 @@ export function QuickOrganizer({ activeModel = "llama3.2:3b", serverPort = 11434
     const [calendarImported, setCalendarImported] = useState<string | null>(() => {
         return localStorage.getItem('vera_calendar_imported');
     });
+    const [systemEventsLoading, setSystemEventsLoading] = useState<boolean>(false);
+    const [systemEventsError, setSystemEventsError] = useState<string | null>(null);
     
     // Task Edit / Add Modal state
     const [editingTask, setEditingTask] = useState<Task | null>(null);
@@ -105,12 +107,17 @@ export function QuickOrganizer({ activeModel = "llama3.2:3b", serverPort = 11434
     }
 
     async function loadSystemEvents() {
+        setSystemEventsLoading(true);
+        setSystemEventsError(null);
         try {
             const fetched = await invoke<Task[]>('import_calendar_events', { daysAhead: 30 });
             console.log('[QuickOrganizer] import_calendar_events returned:', fetched);
             setSystemEvents(fetched);
         } catch (e) {
             console.error('Failed to load system events:', e);
+            setSystemEventsError(typeof e === 'string' ? e : e instanceof Error ? e.message : String(e));
+        } finally {
+            setSystemEventsLoading(false);
         }
     }
 
@@ -426,6 +433,19 @@ export function QuickOrganizer({ activeModel = "llama3.2:3b", serverPort = 11434
                                     setCalendarImported('declined');
                                 }}>Decline</button>
                             </div>
+                        </div>
+                    )}
+
+                    {systemEventsLoading && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 14px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)', borderRadius: '8px', margin: '0 0 12px 0', fontSize: '13px', color: 'var(--text-muted)' }}>
+                            <div className="spinner" style={{ width: "14px", height: "14px", border: "2px solid var(--border)", borderTopColor: "var(--accent)", borderRadius: "50%", animation: "spin 1s linear infinite" }} />
+                            <span>Updating system calendar events...</span>
+                        </div>
+                    )}
+                    
+                    {systemEventsError && (
+                        <div style={{ padding: '10px 14px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid var(--red)', borderRadius: '8px', margin: '0 0 12px 0', color: 'var(--red)', fontSize: '12px', textAlign: 'left', lineHeight: '1.4' }}>
+                            ⚠️ <strong>Calendar integration error:</strong> {systemEventsError}
                         </div>
                     )}
 
