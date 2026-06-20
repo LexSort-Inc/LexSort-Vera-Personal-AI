@@ -61,8 +61,8 @@ function collectFiles(dir, baseDir) {
 }
 
 const filesToSign = [
-  manifestPath,
-  ...collectFiles(distDir, distDir),
+  path.join(distDir, 'bundle.js'),
+  path.join(distDir, 'manifest.json'),
 ].sort((a, b) => path.basename(a).localeCompare(path.basename(b))); // Sort by filename only — must match Rust verifier's sort-by-ZIP-entry-name
 
 console.log(`Signing ${filesToSign.length} files:`);

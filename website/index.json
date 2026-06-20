@@ -14,22 +14,22 @@
         "macos_aarch64": {
           "url": "https://modules.lexsort.com/modules/promailer-1.0.0-macos_aarch64.vera-module",
           "size_bytes": 15215,
-          "sha256": "99f887138693e007f060283d870ea8a63753577e5202543d12850f9a7abbd90f"
+          "sha256": "a797575265d8abc38d5239ed7763d42c3084983010844aadbd3ee8d711fd3e24"
         },
         "macos_x86_64": {
           "url": "https://modules.lexsort.com/modules/promailer-1.0.0-macos_x86_64.vera-module",
           "size_bytes": 15215,
-          "sha256": "99f887138693e007f060283d870ea8a63753577e5202543d12850f9a7abbd90f"
+          "sha256": "a797575265d8abc38d5239ed7763d42c3084983010844aadbd3ee8d711fd3e24"
         },
         "windows_x86_64": {
           "url": "https://modules.lexsort.com/modules/promailer-1.0.0-windows_x86_64.vera-module",
           "size_bytes": 15215,
-          "sha256": "99f887138693e007f060283d870ea8a63753577e5202543d12850f9a7abbd90f"
+          "sha256": "a797575265d8abc38d5239ed7763d42c3084983010844aadbd3ee8d711fd3e24"
         },
         "linux_x86_64": {
           "url": "https://modules.lexsort.com/modules/promailer-1.0.0-linux_x86_64.vera-module",
           "size_bytes": 15215,
-          "sha256": "99f887138693e007f060283d870ea8a63753577e5202543d12850f9a7abbd90f"
+          "sha256": "a797575265d8abc38d5239ed7763d42c3084983010844aadbd3ee8d711fd3e24"
         }
       }
     },
@@ -46,22 +46,22 @@
         "macos_aarch64": {
           "url": "https://modules.lexsort.com/modules/guardian-watch-1.0.0-macos_aarch64.vera-module",
           "size_bytes": 4108,
-          "sha256": "65588ca489e8283f6fc5c46bb9621ec58ab2bd2463a86d9c7847a71aad13d8de"
+          "sha256": "1d2d679487c6d8e42ae60ff06bf54d3b79046fee7b81d4bdc7577a85bd1652d3"
         },
         "macos_x86_64": {
           "url": "https://modules.lexsort.com/modules/guardian-watch-1.0.0-macos_x86_64.vera-module",
           "size_bytes": 4108,
-          "sha256": "65588ca489e8283f6fc5c46bb9621ec58ab2bd2463a86d9c7847a71aad13d8de"
+          "sha256": "1d2d679487c6d8e42ae60ff06bf54d3b79046fee7b81d4bdc7577a85bd1652d3"
         },
         "windows_x86_64": {
           "url": "https://modules.lexsort.com/modules/guardian-watch-1.0.0-windows_x86_64.vera-module",
           "size_bytes": 4108,
-          "sha256": "65588ca489e8283f6fc5c46bb9621ec58ab2bd2463a86d9c7847a71aad13d8de"
+          "sha256": "1d2d679487c6d8e42ae60ff06bf54d3b79046fee7b81d4bdc7577a85bd1652d3"
         },
         "linux_x86_64": {
           "url": "https://modules.lexsort.com/modules/guardian-watch-1.0.0-linux_x86_64.vera-module",
           "size_bytes": 4108,
-          "sha256": "65588ca489e8283f6fc5c46bb9621ec58ab2bd2463a86d9c7847a71aad13d8de"
+          "sha256": "1d2d679487c6d8e42ae60ff06bf54d3b79046fee7b81d4bdc7577a85bd1652d3"
         }
       }
     },
@@ -78,22 +78,22 @@
         "macos_aarch64": {
           "url": "https://modules.lexsort.com/modules/research-lab-1.0.0-macos_aarch64.vera-module",
           "size_bytes": 12979,
-          "sha256": "8bc00c5d55be559cada5975e42c6d01a095ad41cdc81b14ed940cd6f2b7b22bb"
+          "sha256": "031a7385454fa7bc76994f756e89b433002dbb6a2e71ab8b4be122dfde40c115"
         },
         "macos_x86_64": {
           "url": "https://modules.lexsort.com/modules/research-lab-1.0.0-macos_x86_64.vera-module",
           "size_bytes": 12979,
-          "sha256": "8bc00c5d55be559cada5975e42c6d01a095ad41cdc81b14ed940cd6f2b7b22bb"
+          "sha256": "031a7385454fa7bc76994f756e89b433002dbb6a2e71ab8b4be122dfde40c115"
         },
         "windows_x86_64": {
           "url": "https://modules.lexsort.com/modules/research-lab-1.0.0-windows_x86_64.vera-module",
           "size_bytes": 12979,
-          "sha256": "8bc00c5d55be559cada5975e42c6d01a095ad41cdc81b14ed940cd6f2b7b22bb"
+          "sha256": "031a7385454fa7bc76994f756e89b433002dbb6a2e71ab8b4be122dfde40c115"
         },
         "linux_x86_64": {
           "url": "https://modules.lexsort.com/modules/research-lab-1.0.0-linux_x86_64.vera-module",
           "size_bytes": 12979,
-          "sha256": "8bc00c5d55be559cada5975e42c6d01a095ad41cdc81b14ed940cd6f2b7b22bb"
+          "sha256": "031a7385454fa7bc76994f756e89b433002dbb6a2e71ab8b4be122dfde40c115"
         }
       }
     },
