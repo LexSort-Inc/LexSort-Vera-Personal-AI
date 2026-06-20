@@ -578,10 +578,11 @@ pub mod commands {
         app: AppHandle,
     ) -> Result<String, String> {
         use futures_util::StreamExt;
+        let resolved = resolve_model_id(&model_id).await;
 
         // Check if model already exists
         let check = Command::new(ollama_path())
-            .args(["show", &model_id])
+            .args(["show", &resolved])
             .output();
         if let Ok(out) = check {
             if out.status.success() {
@@ -591,13 +592,13 @@ pub mod commands {
                     "downloaded": 100,
                     "total": 100
                 }));
-                return Ok(format!("Model {} already cached", model_id));
+                return Ok(format!("Model {} already cached", resolved));
             }
         }
 
         let client = reqwest::Client::new();
         let res = client.post("http://127.0.0.1:11434/api/pull")
-            .json(&serde_json::json!({ "name": model_id }))
+            .json(&serde_json::json!({ "name": resolved }))
             .send()
             .await
             .map_err(|e| format!("Failed to send pull request to Ollama: {}", e))?;
@@ -651,10 +652,11 @@ pub mod commands {
     }
 
     #[tauri::command]
-    pub fn start_inference_server(
+    pub async fn start_inference_server(
         server: State<'_, ServerProcess>,
         model_id: String,
     ) -> Result<String, String> {
+        let resolved = resolve_model_id(&model_id).await;
         let port: u16 = 11434;
         let mut guard = server.0.lock().map_err(|e| e.to_string())?;
         if guard.is_some() {
@@ -666,7 +668,7 @@ pub mod commands {
             .output();
         if check.is_ok() {
             *guard = None; // ollama already running externally, don't manage it
-            return Ok(format!("Ollama already running, using model {}", model_id));
+            return Ok(format!("Ollama already running, using model {}", resolved));
         }
         let child = silent_cmd_sync(ollama_path())
             .args(["serve"])
@@ -675,7 +677,7 @@ pub mod commands {
             .spawn()
             .map_err(|e| format!("Failed to start ollama: {}", e))?;
         *guard = Some(child);
-        Ok(format!("Inference server started with model {}", model_id))
+        Ok(format!("Inference server started with model {}", resolved))
     }
 
     #[tauri::command]
@@ -855,9 +857,10 @@ pub mod commands {
     }
 
     #[tauri::command]
-    pub fn set_active_model(model_id: String) -> Result<(), String> {
+    pub async fn set_active_model(model_id: String) -> Result<(), String> {
+        let resolved = resolve_model_id(&model_id).await;
         let mut config = load_app_config();
-        config.active_model = Some(model_id);
+        config.active_model = Some(resolved);
         save_app_config(&config)
     }
 
@@ -887,11 +890,78 @@ pub mod commands {
         save_app_config(&config)
     }
 
+    async fn resolve_model_id(model_id: &str) -> String {
+        let path = super::ollama_path();
+        
+        // 1. Try running `ollama show <model_id>`
+        let mut cmd = super::silent_cmd(&path);
+        cmd.args(["show", model_id]);
+        if super::run_command_with_timeout(cmd, 6).await.is_some() {
+            return model_id.to_string();
+        }
+
+        // 2. If it failed, list all installed models and see if we have a match
+        let mut installed = Vec::new();
+        let mut cmd_list = super::silent_cmd(&path);
+        cmd_list.arg("list");
+        if let Some(out) = super::run_command_with_timeout(cmd_list, 6).await {
+            let stdout_str = String::from_utf8_lossy(&out.stdout);
+            let mut lines = stdout_str.lines();
+            let _header = lines.next();
+            for line in lines {
+                let parts: Vec<&str> = line.split_whitespace().collect();
+                if !parts.is_empty() {
+                    installed.push(parts[0].to_string());
+                }
+            }
+        }
+
+        // Search in installed
+        // A. Match model prefix (e.g. "mistral" matches "mistral:7b-instruct-v0.3-q4_0")
+        let prefix = format!("{}:", model_id);
+        for m in &installed {
+            if m.starts_with(&prefix) {
+                return m.clone();
+            }
+        }
+
+        // B. Match model name prefix before colon (e.g. "qwen2.5:14b" matches "qwen2.5-coder:7b" or similar starting with "qwen2.5")
+        if model_id.contains(':') {
+            let parts: Vec<&str> = model_id.split(':').collect();
+            let main_part = parts[0];
+            for m in &installed {
+                if m.starts_with(main_part) {
+                    return m.clone();
+                }
+            }
+        }
+
+        // C. General fallback matches
+        if model_id == "mistral" {
+            for m in &installed {
+                if m.starts_with("mistral") {
+                    return m.clone();
+                }
+            }
+        }
+
+        if model_id.starts_with("qwen2.5") {
+            for m in &installed {
+                if m.contains("qwen2.5") {
+                    return m.clone();
+                }
+            }
+        }
+
+        model_id.to_string()
+    }
+
     #[tauri::command]
     pub async fn check_model_exists(model_id: String) -> bool {
+        let resolved = resolve_model_id(&model_id).await;
         let path = super::ollama_path();
         let mut cmd = super::silent_cmd(&path);
-        cmd.args(["show", &model_id]);
+        cmd.args(["show", &resolved]);
         super::run_command_with_timeout(cmd, 10)
             .await
             .is_some()
@@ -1704,7 +1774,7 @@ pub mod commands {
         {
             if let Ok(current_exe) = std::env::current_exe() {
                 let path_str = current_exe.to_string_lossy().to_lowercase();
-                if path_str.contains("/volumes/lexsort personal ai") || path_str.contains("/volumes/lexsort.personal.ai") {
+                if path_str.contains("/volumes/lexsort vera") || path_str.contains("/volumes/lexsort.personal.ai") {
                     return true;
                 }
             }
@@ -1729,7 +1799,7 @@ fn cleanup_unused_mounted_dmg_volumes() {
             if path.is_dir() {
                 if let Some(name) = path.file_name().and_then(|n| n.to_str()) {
                     let name_lower = name.to_lowercase();
-                    if name_lower.starts_with("lexsort personal ai") || name_lower.starts_with("lexsort.personal.ai") {
+                    if name_lower.starts_with("lexsort vera") || name_lower.starts_with("lexsort.personal.ai") {
                         // Check if current exe is running from this volume path.
                         if current_exe.starts_with(&path) {
                             println!("[VERA] Running from mounted volume: {:?}. Skipping eject.", path);
@@ -1757,7 +1827,7 @@ pub fn run() {
     let _instance_lock = match std::net::TcpListener::bind("127.0.0.1:58737") {
         Ok(listener) => listener,
         Err(_) => {
-            eprintln!("[LexSort Personal AI] Another instance of LexSort Personal AI is already running. Exiting.");
+            eprintln!("[LexSort VERA] Another instance of LexSort VERA is already running. Exiting.");
             std::process::exit(0);
         }
     };

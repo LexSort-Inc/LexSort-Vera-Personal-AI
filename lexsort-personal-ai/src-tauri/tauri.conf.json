@@ -1,5 +1,5 @@
 {
-  "productName": "LexSort Personal AI",
+  "productName": "LexSort VERA",
   "version": "1.1.7",
   "identifier": "com.lexsort.vera",
   "build": {
@@ -13,7 +13,7 @@
       {
         "fullscreen": false,
         "resizable": true,
-        "title": "LexSort Personal AI",
+        "title": "LexSort VERA",
         "width": 1200,
         "height": 800
       }
