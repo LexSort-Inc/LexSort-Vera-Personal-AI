@@ -5,6 +5,7 @@ import { Task, TaskList, TaskCategory } from './types';
 import { parseNaturalLanguageTask } from './nlpParser';
 import { VeraCopilot } from './VeraCopilot';
 import { useSpeechRecognition } from '../../hooks/useSpeechRecognition';
+import './QuickOrganizer.css';
 
 const CATEGORIES: { id: TaskCategory; label: string; color: string }[] = [
     { id: 'urgent',   label: 'Urgent',   color: 'var(--red)' },
