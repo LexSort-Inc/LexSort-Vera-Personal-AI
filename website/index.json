@@ -13,23 +13,23 @@
       "targets": {
         "macos_aarch64": {
           "url": "https://modules.lexsort.com/modules/promailer-1.0.0-macos_aarch64.vera-module",
-          "size_bytes": 22596,
-          "sha256": "ef596d80a7854a48f885a181d9cceea5bf01b9f3c8f3b1cf2fd08a2c8b00697a"
+          "size_bytes": 15215,
+          "sha256": "99f887138693e007f060283d870ea8a63753577e5202543d12850f9a7abbd90f"
         },
         "macos_x86_64": {
           "url": "https://modules.lexsort.com/modules/promailer-1.0.0-macos_x86_64.vera-module",
-          "size_bytes": 22596,
-          "sha256": "ef596d80a7854a48f885a181d9cceea5bf01b9f3c8f3b1cf2fd08a2c8b00697a"
+          "size_bytes": 15215,
+          "sha256": "99f887138693e007f060283d870ea8a63753577e5202543d12850f9a7abbd90f"
         },
         "windows_x86_64": {
           "url": "https://modules.lexsort.com/modules/promailer-1.0.0-windows_x86_64.vera-module",
-          "size_bytes": 22596,
-          "sha256": "ef596d80a7854a48f885a181d9cceea5bf01b9f3c8f3b1cf2fd08a2c8b00697a"
+          "size_bytes": 15215,
+          "sha256": "99f887138693e007f060283d870ea8a63753577e5202543d12850f9a7abbd90f"
         },
         "linux_x86_64": {
           "url": "https://modules.lexsort.com/modules/promailer-1.0.0-linux_x86_64.vera-module",
-          "size_bytes": 22596,
-          "sha256": "ef596d80a7854a48f885a181d9cceea5bf01b9f3c8f3b1cf2fd08a2c8b00697a"
+          "size_bytes": 15215,
+          "sha256": "99f887138693e007f060283d870ea8a63753577e5202543d12850f9a7abbd90f"
         }
       }
     },
@@ -45,23 +45,23 @@
       "targets": {
         "macos_aarch64": {
           "url": "https://modules.lexsort.com/modules/guardian-watch-1.0.0-macos_aarch64.vera-module",
-          "size_bytes": 7218,
-          "sha256": "080ec767588c58a4b9a7cd8b8cd73e9ade26d83ecea97169cb21ee225e388c22"
+          "size_bytes": 4108,
+          "sha256": "65588ca489e8283f6fc5c46bb9621ec58ab2bd2463a86d9c7847a71aad13d8de"
         },
         "macos_x86_64": {
           "url": "https://modules.lexsort.com/modules/guardian-watch-1.0.0-macos_x86_64.vera-module",
-          "size_bytes": 7218,
-          "sha256": "080ec767588c58a4b9a7cd8b8cd73e9ade26d83ecea97169cb21ee225e388c22"
+          "size_bytes": 4108,
+          "sha256": "65588ca489e8283f6fc5c46bb9621ec58ab2bd2463a86d9c7847a71aad13d8de"
         },
         "windows_x86_64": {
           "url": "https://modules.lexsort.com/modules/guardian-watch-1.0.0-windows_x86_64.vera-module",
-          "size_bytes": 7218,
-          "sha256": "080ec767588c58a4b9a7cd8b8cd73e9ade26d83ecea97169cb21ee225e388c22"
+          "size_bytes": 4108,
+          "sha256": "65588ca489e8283f6fc5c46bb9621ec58ab2bd2463a86d9c7847a71aad13d8de"
         },
         "linux_x86_64": {
           "url": "https://modules.lexsort.com/modules/guardian-watch-1.0.0-linux_x86_64.vera-module",
-          "size_bytes": 7218,
-          "sha256": "080ec767588c58a4b9a7cd8b8cd73e9ade26d83ecea97169cb21ee225e388c22"
+          "size_bytes": 4108,
+          "sha256": "65588ca489e8283f6fc5c46bb9621ec58ab2bd2463a86d9c7847a71aad13d8de"
         }
       }
     },
@@ -77,23 +77,23 @@
       "targets": {
         "macos_aarch64": {
           "url": "https://modules.lexsort.com/modules/research-lab-1.0.0-macos_aarch64.vera-module",
-          "size_bytes": 16240,
-          "sha256": "fd2fcde062ae76c5b767ff09ffcf499be02ad8433383751c819311bef2bd9f1d"
+          "size_bytes": 12979,
+          "sha256": "8bc00c5d55be559cada5975e42c6d01a095ad41cdc81b14ed940cd6f2b7b22bb"
         },
         "macos_x86_64": {
           "url": "https://modules.lexsort.com/modules/research-lab-1.0.0-macos_x86_64.vera-module",
-          "size_bytes": 16240,
-          "sha256": "fd2fcde062ae76c5b767ff09ffcf499be02ad8433383751c819311bef2bd9f1d"
+          "size_bytes": 12979,
+          "sha256": "8bc00c5d55be559cada5975e42c6d01a095ad41cdc81b14ed940cd6f2b7b22bb"
         },
         "windows_x86_64": {
           "url": "https://modules.lexsort.com/modules/research-lab-1.0.0-windows_x86_64.vera-module",
-          "size_bytes": 16240,
-          "sha256": "fd2fcde062ae76c5b767ff09ffcf499be02ad8433383751c819311bef2bd9f1d"
+          "size_bytes": 12979,
+          "sha256": "8bc00c5d55be559cada5975e42c6d01a095ad41cdc81b14ed940cd6f2b7b22bb"
         },
         "linux_x86_64": {
           "url": "https://modules.lexsort.com/modules/research-lab-1.0.0-linux_x86_64.vera-module",
-          "size_bytes": 16240,
-          "sha256": "fd2fcde062ae76c5b767ff09ffcf499be02ad8433383751c819311bef2bd9f1d"
+          "size_bytes": 12979,
+          "sha256": "8bc00c5d55be559cada5975e42c6d01a095ad41cdc81b14ed940cd6f2b7b22bb"
         }
       }
     },
