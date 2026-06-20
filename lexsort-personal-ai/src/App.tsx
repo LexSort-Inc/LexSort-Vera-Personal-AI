@@ -935,6 +935,7 @@ export default function App() {
       //    We deferred this from detect_hardware to avoid a Windows hang.
       try {
         const installed = await invoke<string[]>("list_installed_models") as string[];
+        setLocalModels(installed);
         const isLocal = installed.includes(overrideModelId) ||
           installed.some(m => m.startsWith(overrideModelId + ":") || overrideModelId.startsWith(m + ":"));
         hw.model_exists = isLocal;
