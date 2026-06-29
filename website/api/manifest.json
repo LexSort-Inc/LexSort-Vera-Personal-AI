@@ -1,32 +1,16 @@
 {
   "manifest_version": "1",
-  "generated_at": "2026-06-17T10:00:00Z",
+  "generated_at": "2026-06-29T20:00:00Z",
   "core": {
     "freeware": {
-      "version": "1.1.6",
+      "version": "1.1.7",
       "min_os": { "macos": "12.0", "windows": "10" },
-      "release_notes": "Quick Organizer month view replaced with a proper 7-column Mon–Sun calendar grid. Fixed Windows native build (better-sqlite3 MSVC 2022 env). Website updated with real app screenshots and expanded FAQ."
+      "release_notes": "Repo restructured: lexsort-personal-ai renamed to vera-freeware, new vera-engine standalone binary, vera-go-ios companion app. All docs aligned with new layout. Pre-commit hooks fixed (graceful skip). READMEs for every subproject."
     },
     "pro": {
       "version": "1.0.5",
       "min_os": { "macos": "12.0", "windows": "10" },
       "release_notes": "Fixed Windows CI (keyring v3). In-app update banner fully wired with download progress and Install & Restart flow."
-    }
-  },
-  "modules": {
-    "promailer": {
-      "version": "1.0.0",
-      "min_pro_version": "1.0.0",
-      "size_bytes": 204800,
-      "release_notes": "Initial release.",
-      "supported_platforms": ["macos_aarch64", "macos_x86_64", "windows_x86_64", "linux_x86_64"]
-    },
-    "taxmate": {
-      "version": "1.0.0",
-      "min_pro_version": "1.0.0",
-      "size_bytes": 307200,
-      "release_notes": "Initial release.",
-      "supported_platforms": ["macos_aarch64", "macos_x86_64", "windows_x86_64", "linux_x86_64"]
     }
   }
 }
