@@ -81,4 +81,77 @@ Triggered when no active model is configured in the backend registry.
 
 ---
 
-*See also: [ARCHITECTURE.md](ARCHITECTURE.md) · [BUILD_AND_RELEASE.md](BUILD_AND_RELEASE.md)*
+## 7. Share Sheet Processing — "Private AI Inbox" (Pro — Planned)
+
+### Architecture: Share Extension, Not Custom Recorder
+
+Every phone already has a built-in recorder. Building another one inside VERA Go is redundant. Instead, VERA Go registers as a **Share Sheet destination** — users record in any app they already use (Voice Memos, etc.), tap Share, select VERA Go, and the file is processed on the desktop.
+
+### Philosophy
+
+```
+Phone (any app)                     VERA Go              VERA Desktop
+─────────────                       ────────             ───────────
+Voice Memos app                      Share Extension      whisper.cpp → STT
+  → tap Share                        → receive .m4a       → LLM: summarize
+  → select VERA Go                   → stream over WiFi     → extract tasks
+                                       ────────             → SQLite
+PDF / Office doc                                           → LLM: summarize
+  → tap Share                                               → extract action items
+  → select VERA Go                   (same pipeline)      
+                                                           → push tasks + results
+Photo                                                         to VERA Go via REST
+  → tap Share
+  → select VERA Go                   (same pipeline)
+```
+
+### Why Share Extension Over Custom Recorder
+
+- **Zero microphone permissions** — recording happens in the user's app of choice
+- **Zero recording UI to build** — Share Extension is ~80 lines of Swift
+- **Supports any media type** — audio, PDF, images, web pages, emails
+- **Users already trust their recorder** — no learning curve
+- **VERA Go becomes an intake point**, not a feature clone of native apps
+
+### Supported Share Types (by Phase)
+
+| Phase | Media Type | Desktop Processing | User Sees |
+|---|---|---|---|
+| Phase 4 | Audio (.m4a, .wav, .mp3) | whisper.cpp → LLM | Transcript + extracted tasks |
+| Phase 4 | PDF / Office docs | text extraction → LLM | Summary + action items |
+| Phase 5 | Images / Whiteboard photos | OCR → LLM | Text extraction + tasks |
+| Phase 5 | Web pages / URLs | HTML fetch → LLM | Summary + save to context |
+| Phase 5 | Emails (copied text) | LLM | Summary + action items |
+
+### Pipeline (Audio — Phase 4)
+
+1. User records in Voice Memos → taps Share → selects VERA Go
+2. VERA Go receives the `.m4a` file via Share Extension
+3. Streams file to desktop over LAN WebSocket
+4. Desktop runs `whisper.cpp` (local, offline) → produces transcript
+5. Desktop runs transcript through local LLM → summary + action items
+6. Action items → `quick_organizer::save_task` → persisted to SQLite
+7. Tasks + transcript pushed to VERA Go via REST/WebSocket
+
+### iOS Implementation
+
+- **Target:** `VERAShareExtension` — small Swift target in `vera-go-ios` Xcode project
+- **Entry point:** `NSExtensionActivationRule` for `public.audio`, `public.pdf`, `public.image`, `public.url`
+- **Flow:** Receive file → write to shared app group container → notify main app via `CFNotificationCenter` → main app streams to desktop
+- **Lines of code:** ~80
+
+### Dependencies
+
+- **vera-engine:** `whisper-rs` crate wrapping `whisper.cpp` — **NOT YET IN CARGO.TOML** — flag for Phase 4 build
+- **vera-go-ios:** No new dependencies — uses existing LAN WebSocket + REST client
+- **vera-freeware:** No changes — processing happens in vera-engine
+
+### Status
+
+- **Design:** 🏗 In progress
+- **Dependency flag:** `whisper-rs` / `whisper.cpp` needs adding to `vera-engine/Cargo.toml` before Phase 4 starts
+- **Target:** VERA Pro v1.2 (Phase 4)
+
+---
+
+*See also: [ARCHITECTURE.md](ARCHITECTURE.md) · [BUILD_AND_RELEASE.md](BUILD_AND_RELEASE.md) · [MARKETING_AND_ROADMAP.md](MARKETING_AND_ROADMAP.md)*

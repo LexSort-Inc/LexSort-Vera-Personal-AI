@@ -1,6 +1,6 @@
 # VERA — Marketing & Roadmap
 
-*Last updated: June 17, 2026 — v1.1.5 Freeware / v1.0.5 Pro released*
+*Last updated: June 29, 2026 — v1.1.7 Freeware / Phase 3b scoped*
 
 ---
 
@@ -45,6 +45,12 @@
 
 ---
 
+## 🚀 Phase 3b — VERA Go Mobile Companion (July 2026)
+
+- [ ] **Quick Capture widget** — Home screen / Dynamic Island shortcut for 2-second task entry (dictate or type, organize later)
+- [ ] **Habit streaks** — Recurring tasks with streak counter (private Streaks replacement)
+- [ ] **Chat via WebSocket** — `/v1/chat/stream` proxy to local engine (already built)
+
 ## 🚀 Phase 4 — Execution Checklist
 
 - [ ] Update @LexSortAI bio/links on X to point to Freeware Foundation page
@@ -81,7 +87,8 @@
 | LexSort-GO | Pro | 🏗 Design | LAN mobile bridge (QR scan) |
 | Business Organizer | Pro | 🏗 Design | Receipts, ledger, CCA schedules |
 | Wealth & Tax Intel | Pro | 📅 Soon | CRA tax prep + credit discovery |
-| Voice Input (STT) | Both | ⏸ Blocked | Needs native Rust audio layer |
+| Share Sheet Processing | Pro | 🏗 Design | Phone shares audio/PDF/photo → desktop transcribes/summarizes/extracts tasks. Private AI inbox. |
+| Voice Input (STT) | Both | ⏸ Blocked | Subsumed by Share Sheet Processing — needs native Rust audio layer |
 
 ### Pricing
 - **VERA Freeware:** Free forever

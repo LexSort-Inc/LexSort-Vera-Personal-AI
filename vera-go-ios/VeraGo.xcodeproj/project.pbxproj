@@ -1,0 +1,390 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		28CA994D4ACB1E8C7D520BA8 /* TaskListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 518413A3D2F1ECA557C9E45A /* TaskListView.swift */; };
+		501EA3EA599068124A10A870 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44BBFFB19703B0E5975A1910 /* SettingsView.swift */; };
+		5301291FBFB408728CA6F871 /* VERAChatService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BCBC313C3887CDC139A4E7B /* VERAChatService.swift */; };
+		56E417D2C76572F45310662F /* CalendarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCC41F7D221FA2E79167879B /* CalendarView.swift */; };
+		5AE87D29F7E45751EB336E8E /* VERADiscoveryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA047B19B9F3964D72F10DD /* VERADiscoveryService.swift */; };
+		6C19DC72EB13A1E4D88937C2 /* DiscoveryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3F6FC8B8CA6D1646E9C662C /* DiscoveryView.swift */; };
+		6F437B1478B1D23565A130C7 /* VERAAuthStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D4A6130ADC109D60CF4CD04 /* VERAAuthStore.swift */; };
+		74E2DD2687105930436B0549 /* DesktopDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4FE4F8165BF619E715969CA /* DesktopDevice.swift */; };
+		7B120D876BB8C4FE1A5E601F /* VERASyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA9A70E6927EB2CBC582DEAD /* VERASyncService.swift */; };
+		922C4C307B3BA77B4B0EBDEB /* VeraTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D2E76B28BD065D5501FED2B /* VeraTask.swift */; };
+		930D403C8950BB45797F5A20 /* VeraGoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = C67E0D31A8C9A615A28171A9 /* VeraGoApp.swift */; };
+		987577EA57EADC6243194E34 /* PairingToken.swift in Sources */ = {isa = PBXBuildFile; fileRef = 665F9A3D6E9D535C377F46BB /* PairingToken.swift */; };
+		BB9DAFDBEBD4B8E590A201D7 /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D26F0725B460D18CBCD5C87F /* ChatView.swift */; };
+		C8244D4B7663A085EE667DD8 /* VERAPairingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD92E803320DC97A15B7B26C /* VERAPairingService.swift */; };
+		C847AEA2919C3C0DA83A5739 /* PairingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 376DC1229CFE10CA034F7B13 /* PairingView.swift */; };
+		F67298E7D7B7789A40A0BDC0 /* VERANotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF6112D71BBE44E90A6EEC7F /* VERANotificationService.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		376DC1229CFE10CA034F7B13 /* PairingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairingView.swift; sourceTree = "<group>"; };
+		44BBFFB19703B0E5975A1910 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		4D4A6130ADC109D60CF4CD04 /* VERAAuthStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VERAAuthStore.swift; sourceTree = "<group>"; };
+		518413A3D2F1ECA557C9E45A /* TaskListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskListView.swift; sourceTree = "<group>"; };
+		5EA047B19B9F3964D72F10DD /* VERADiscoveryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VERADiscoveryService.swift; sourceTree = "<group>"; };
+		665F9A3D6E9D535C377F46BB /* PairingToken.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairingToken.swift; sourceTree = "<group>"; };
+		756466C5C2CE87B22F7E968D /* VeraGo.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = VeraGo.entitlements; sourceTree = "<group>"; };
+		7BCBC313C3887CDC139A4E7B /* VERAChatService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VERAChatService.swift; sourceTree = "<group>"; };
+		7D2E76B28BD065D5501FED2B /* VeraTask.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VeraTask.swift; sourceTree = "<group>"; };
+		98E44385FF2241CF5E830A2C /* VeraGo.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = VeraGo.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B70FC44C141D3AA659274D58 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		BCC41F7D221FA2E79167879B /* CalendarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarView.swift; sourceTree = "<group>"; };
+		C67E0D31A8C9A615A28171A9 /* VeraGoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VeraGoApp.swift; sourceTree = "<group>"; };
+		CD92E803320DC97A15B7B26C /* VERAPairingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VERAPairingService.swift; sourceTree = "<group>"; };
+		D26F0725B460D18CBCD5C87F /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
+		D4FE4F8165BF619E715969CA /* DesktopDevice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesktopDevice.swift; sourceTree = "<group>"; };
+		E3F6FC8B8CA6D1646E9C662C /* DiscoveryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscoveryView.swift; sourceTree = "<group>"; };
+		EF6112D71BBE44E90A6EEC7F /* VERANotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VERANotificationService.swift; sourceTree = "<group>"; };
+		FA9A70E6927EB2CBC582DEAD /* VERASyncService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VERASyncService.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		1AEF1243A10125CBB5852592 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				98E44385FF2241CF5E830A2C /* VeraGo.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		587885440833187ABBABE519 /* VeraGo */ = {
+			isa = PBXGroup;
+			children = (
+				B70FC44C141D3AA659274D58 /* Info.plist */,
+				756466C5C2CE87B22F7E968D /* VeraGo.entitlements */,
+				C67E0D31A8C9A615A28171A9 /* VeraGoApp.swift */,
+				8CF30BE987C5B9903B4EF7C3 /* Models */,
+				EED15FFC124EA444678D9ACC /* Services */,
+				C8FEA5A8198027B9128D65CF /* Views */,
+			);
+			path = VeraGo;
+			sourceTree = "<group>";
+		};
+		8CF30BE987C5B9903B4EF7C3 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				D4FE4F8165BF619E715969CA /* DesktopDevice.swift */,
+				665F9A3D6E9D535C377F46BB /* PairingToken.swift */,
+				7D2E76B28BD065D5501FED2B /* VeraTask.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		C8FEA5A8198027B9128D65CF /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				BCC41F7D221FA2E79167879B /* CalendarView.swift */,
+				D26F0725B460D18CBCD5C87F /* ChatView.swift */,
+				E3F6FC8B8CA6D1646E9C662C /* DiscoveryView.swift */,
+				376DC1229CFE10CA034F7B13 /* PairingView.swift */,
+				44BBFFB19703B0E5975A1910 /* SettingsView.swift */,
+				518413A3D2F1ECA557C9E45A /* TaskListView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		EAA11CBF92A5CBD936850588 = {
+			isa = PBXGroup;
+			children = (
+				587885440833187ABBABE519 /* VeraGo */,
+				1AEF1243A10125CBB5852592 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		EED15FFC124EA444678D9ACC /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				4D4A6130ADC109D60CF4CD04 /* VERAAuthStore.swift */,
+				7BCBC313C3887CDC139A4E7B /* VERAChatService.swift */,
+				5EA047B19B9F3964D72F10DD /* VERADiscoveryService.swift */,
+				EF6112D71BBE44E90A6EEC7F /* VERANotificationService.swift */,
+				CD92E803320DC97A15B7B26C /* VERAPairingService.swift */,
+				FA9A70E6927EB2CBC582DEAD /* VERASyncService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		"TEMP_C9A44AE6-FF7E-46AD-A45A-8BD766BAA960" /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		4779183AA7E953204FC5FA86 /* VeraGo */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A26D81E64FC57B2049898A78 /* Build configuration list for PBXNativeTarget "VeraGo" */;
+			buildPhases = (
+				41436AEF3BAA99A744AB24F5 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = VeraGo;
+			packageProductDependencies = (
+			);
+			productName = VeraGo;
+			productReference = 98E44385FF2241CF5E830A2C /* VeraGo.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		D5D1E9639FD19FB4ED01BBBA /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1540;
+				TargetAttributes = {
+					4779183AA7E953204FC5FA86 = {
+						DevelopmentTeam = C76T5D27A2;
+					};
+				};
+			};
+			buildConfigurationList = E87810B10067110F7BACC07D /* Build configuration list for PBXProject "VeraGo" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = EAA11CBF92A5CBD936850588;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 1AEF1243A10125CBB5852592 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				4779183AA7E953204FC5FA86 /* VeraGo */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		41436AEF3BAA99A744AB24F5 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				56E417D2C76572F45310662F /* CalendarView.swift in Sources */,
+				BB9DAFDBEBD4B8E590A201D7 /* ChatView.swift in Sources */,
+				74E2DD2687105930436B0549 /* DesktopDevice.swift in Sources */,
+				6C19DC72EB13A1E4D88937C2 /* DiscoveryView.swift in Sources */,
+				987577EA57EADC6243194E34 /* PairingToken.swift in Sources */,
+				C847AEA2919C3C0DA83A5739 /* PairingView.swift in Sources */,
+				501EA3EA599068124A10A870 /* SettingsView.swift in Sources */,
+				28CA994D4ACB1E8C7D520BA8 /* TaskListView.swift in Sources */,
+				6F437B1478B1D23565A130C7 /* VERAAuthStore.swift in Sources */,
+				5301291FBFB408728CA6F871 /* VERAChatService.swift in Sources */,
+				5AE87D29F7E45751EB336E8E /* VERADiscoveryService.swift in Sources */,
+				F67298E7D7B7789A40A0BDC0 /* VERANotificationService.swift in Sources */,
+				C8244D4B7663A085EE667DD8 /* VERAPairingService.swift in Sources */,
+				7B120D876BB8C4FE1A5E601F /* VERASyncService.swift in Sources */,
+				930D403C8950BB45797F5A20 /* VeraGoApp.swift in Sources */,
+				922C4C307B3BA77B4B0EBDEB /* VeraTask.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		05DD1A289C0018426106F9A6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = C76T5D27A2;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_FILE = VeraGo/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MARKETING_VERSION = 1.0.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.10;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		4F71B3E98D7338A83A4A22FE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = VeraGo/VeraGo.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = VeraGo/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.lexsort.vera-go";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		5B7C7078545DCC60C28813A8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = VeraGo/VeraGo.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = VeraGo/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.lexsort.vera-go";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		F11CBD05D2ED4E289F7A55EE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = C76T5D27A2;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_FILE = VeraGo/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MARKETING_VERSION = 1.0.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.10;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		A26D81E64FC57B2049898A78 /* Build configuration list for PBXNativeTarget "VeraGo" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5B7C7078545DCC60C28813A8 /* Debug */,
+				4F71B3E98D7338A83A4A22FE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		E87810B10067110F7BACC07D /* Build configuration list for PBXProject "VeraGo" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F11CBD05D2ED4E289F7A55EE /* Debug */,
+				05DD1A289C0018426106F9A6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = D5D1E9639FD19FB4ED01BBBA /* Project object */;
+}
