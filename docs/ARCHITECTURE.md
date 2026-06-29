@@ -304,7 +304,7 @@ const ProComponents = __VERA_PRO__
 
 ```bash
 git clone <repo>
-cd lexsort-personal-ai
+cd vera-freeware
 npm install
 
 # For the M1 Pro today (Freeware, MLX on macOS / Ollama on Win):

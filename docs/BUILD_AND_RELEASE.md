@@ -41,7 +41,7 @@ GitHub Actions minutes are a limited resource. macOS runners cost **10× Linux**
 
 ```bash
 # Run the full app in dev mode (hot reload)
-cd lexsort-personal-ai
+cd vera-freeware
 npm run tauri dev
 
 # Build frontend only (type-check + bundle)
@@ -77,11 +77,11 @@ The workflow is triggered automatically by any tag matching `v*`.
 
 Bump the version number in **all 3 files per repo** — they must stay in sync:
 
-### Freeware (`Lexsort-personal-ai/`)
+### Freeware (`vera-freeware/`)
 
-- [ ] `lexsort-personal-ai/src-tauri/tauri.conf.json` → `"version"`
-- [ ] `lexsort-personal-ai/src-tauri/Cargo.toml` → `version =`
-- [ ] `lexsort-personal-ai/package.json` → `"version"`
+- [ ] `vera-freeware/src-tauri/tauri.conf.json` → `"version"`
+- [ ] `vera-freeware/src-tauri/Cargo.toml` → `version =`
+- [ ] `vera-freeware/package.json` → `"version"`
 
 ### Pro (`Lexsort-Vera-Pro/`)
 

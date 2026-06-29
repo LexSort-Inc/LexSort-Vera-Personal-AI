@@ -15,5 +15,5 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
       - name: Run contract tests
         run: |
-          cd lexsort-personal-ai/src-tauri
+          cd vera-freeware/src-tauri
           cargo test --test contracts -- --nocapture

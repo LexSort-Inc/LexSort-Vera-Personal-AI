@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="resources/logos/lexsort-personal-ai.jpg" width="120" alt="LexSort Personal AI" style="border-radius: 16px;" />
+  <img src="resources/logos/vera-freeware.jpg" width="120" alt="LexSort Personal AI" style="border-radius: 16px;" />
 
   <h1>LexSort Personal AI — VERA</h1>
 
@@ -98,7 +98,7 @@ Go to **[lexsort.com](https://lexsort.com)** and download the installer for your
 ```bash
 # Clone the repository
 git clone https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI.git
-cd LexSort-Vera-Personal-AI/lexsort-personal-ai
+cd LexSort-Vera-Personal-AI/vera-freeware
 
 # Install dependencies
 npm install
@@ -191,5 +191,5 @@ Licensed under the [Apache License 2.0](LICENSE). Free to use, modify, and distr
 
 <div align="center">
   <sub>Built by <a href="https://lexsort.com">LexSort Inc.</a> — The future of local-first intelligence.</sub><br>
-  <sub><em>Last updated: June 10, 2026 — v1.0.0 released. CI/CD pipeline active for all platforms.</em></sub>
+  <sub><em>Last updated: June 29, 2026 — v1.1.7. Repo restructured: vera-freeware, vera-engine, vera-go-ios.</em></sub>
 </div>

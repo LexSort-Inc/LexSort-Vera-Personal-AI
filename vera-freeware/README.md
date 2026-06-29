@@ -1,13 +1,24 @@
-# LexSort VERA Desktop Client (Tauri Workspace)
+# VERA Freeware — Desktop Client (Tauri v2)
 
-This directory contains the desktop shell client (built with Tauri v2, React, and TypeScript) for VERA.
+The desktop shell client for VERA. Built with Tauri v2 (Rust backend + React/TypeScript frontend).
 
-For full setup, installation instructions, and community support links, please refer to the main repository [README.md](../README.md).
+For full setup, install instructions, and community links, see the [main README](../README.md).
 
-## 📡 Support & Community Channels
+## Tech Stack
 
-If you need help installing VERA or configuring your local hardware:
-- 📖 Read the **[Troubleshooting Guide & FAQ](https://lexsort.com/faq.html)**
-- 💬 Join the **[Discord Community Server](https://discord.gg/kpZ3hWyAaq)**
-- 🪟 Discuss on **[Reddit Community](https://www.reddit.com/r/LexSort/)**
-- 🚨 Report bugs or search active tickets on **[GitHub Issues](https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/issues)**
+- **Shell:** Tauri v2 (Rust)
+- **Frontend:** React 19 + TypeScript
+- **Backend:** Rust (`src-tauri/src/commands/`, `team_lab/`)
+- **Inference proxy:** Ollama (managed child process) → eventually embedded llama.cpp
+
+## Dev
+
+```bash
+npm run tauri dev
+```
+
+## Notable
+
+- `src-tauri/src/docs/quick_organizer.md` — feature doc
+- `docs/architectural-debt.md` — known debt items
+- Pre-commit hooks run contract tests (skip gracefully if targets missing)

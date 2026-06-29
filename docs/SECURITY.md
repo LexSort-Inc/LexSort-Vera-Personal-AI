@@ -8,7 +8,7 @@ Tauri v2 sandboxes the webview and blocks `<a target="_blank">` tags from naviga
 
 ### The Fix — `openExternalUrl` helper
 
-Defined in [SupportPanel.tsx](../lexsort-personal-ai/src/SupportPanel.tsx) and re-exported for use across the app:
+Defined in [SupportPanel.tsx](../vera-freeware/src/SupportPanel.tsx) and re-exported for use across the app:
 
 ```typescript
 export async function openExternalUrl(url: string) {
@@ -41,7 +41,7 @@ Usage in JSX — always intercept the default click:
 
 ## 2. Tauri Capability Whitelisting
 
-[capabilities/default.json](../lexsort-personal-ai/src-tauri/capabilities/default.json) explicitly permits `plugin-opener` only for approved domains:
+[capabilities/default.json](../vera-freeware/src-tauri/capabilities/default.json) explicitly permits `plugin-opener` only for approved domains:
 
 ```json
 {

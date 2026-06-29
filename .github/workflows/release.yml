@@ -93,7 +93,7 @@ jobs:
 
       - name: install frontend dependencies
         run: npm ci
-        working-directory: lexsort-personal-ai
+        working-directory: vera-freeware
 
       - name: Setup Apple signing (macOS only)
         if: startsWith(matrix.platform, 'macos')
@@ -126,4 +126,4 @@ jobs:
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
-          projectPath: lexsort-personal-ai
+          projectPath: vera-freeware

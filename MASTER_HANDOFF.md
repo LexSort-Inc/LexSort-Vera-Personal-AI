@@ -2,7 +2,7 @@
 
 **Project:** LexSort VERA — Local-First Private AI Desktop App  
 **Parent Brand:** LexSort Inc.  
-**Current Versions:** VERA Freeware v1.1.6 ✅ · VERA Pro v1.0.5 (Quick Organizer overhauled, Windows CI pending)  
+**Current Versions:** VERA Freeware v1.1.7 ✅ · VERA Pro v1.0.5 (Windows CI pending) · VERA Engine v1.0.0 ✅  
 **Stack:** React 19 (TypeScript) + Rust (Tauri v2) + Ollama  
 **Launch Date:** July 1, 2026  
 
@@ -26,11 +26,28 @@
 
 ---
 
+## 📋 SR&ED Logging — Read This First
+
+LexSort Inc. is enrolled in the Canadian SR&ED program (35% refundable R&D credit).
+
+| Item | Location |
+|---|---|
+| Logging protocol | `lexsortinc/01_ACTIVE/Lexsort-Legal/SRED_LOGGING_PROTOCOL.md` |
+| VERA log file | `lexsortinc/01_ACTIVE/Lexsort-Legal/sred_log_vera.html` |
+| Legal log file | `lexsortinc/01_ACTIVE/Lexsort-Legal/sred_log.html` |
+| Evidence snapshots | `lexsortinc/01_ACTIVE/Lexsort-Legal/sred_evidence/YYYY-MM-DD/` |
+| Machine inventory | `lexsortinc/01_ACTIVE/Lexsort-Legal/sred_evidence/MACHINE_INVENTORY.md` |
+| Session briefing | `AGENTS.md` (in this repo) |
+
+**Mandatory:** At end of every session, prepend an entry to `SEED_ENTRIES` in `sred_log_vera.html`. Create an evidence snapshot in `sred_evidence/YYYY-MM-DD/`. See `SRED_LOGGING_PROTOCOL.md` for the schema and CRA writing rules.
+
+---
+
 ## ⚡ Quick Reference
 
 ### Run in dev mode
 ```bash
-cd lexsort-personal-ai && npm run tauri dev
+cd vera-freeware && npm run tauri dev
 ```
 
 ### Release a new Freeware version
@@ -45,19 +62,23 @@ netlify deploy --prod --dir=website
 
 ### Release a new Pro version
 ```bash
-# In /02_ACTIVE_PROJECTS/Lexsort-Vera-Pro/
+# Pro repo is in a separate private repo (Lexsort-Vera-Pro/)
 # 1. Bump version in: lexsort-vera-pro/tauri.conf.json, package.json, Cargo.toml
 # 2. Commit & push, then tag:
 git tag v1.0.6 && git push origin v1.0.6
 ```
 
+### Run VERA Engine standalone
+```bash
+cd vera-engine && cargo run
+```
+
 ### Build a standalone module
 ```bash
-# From Lexsort-personal-ai repo root:
+# From VERA repo root:
 ./scripts/build-module.sh promailer           # build + local deploy
 ./scripts/build-module.sh promailer --sign    # build + Ed25519 sign + local deploy
 # Requires: .env.local with MODULE_SIGNING_PRIVATE_KEY=<128-char hex>
-# Key is also in Netlify env vars (MODULE_SIGNING_PRIVATE_KEY)
 ```
 
 ### Deploy the website to lexsort.com
@@ -189,29 +210,32 @@ The old license signing key (for Stripe-issued Pro licenses) was in `scripts/gen
 ## 🏗 Repo Structure
 
 ```
-Lexsort-personal-ai/              # Freeware repo + website
-├── lexsort-personal-ai/          # Tauri app (React + Rust)
-├── website/                      # Static marketing + API
-│   ├── index.json                # Module catalog (served at modules.lexsort.com/index.json)
-│   ├── index.json.sig            # Ed25519 signature for catalog
-│   └── modules/                  # Modules CDN subfolder
-├── netlify/                      # Serverless functions (Stripe, license, uptime)
+VERA/                             # This repo — Freeware + Engine + iOS + website
+├── vera-freeware/                # Tauri v2 desktop app (React 19 + Rust)
+│   ├── src/                      # React frontend (App.tsx, components, hooks)
+│   ├── src-tauri/                # Rust backend (lib.rs, commands, team_lab)
+│   └── package.json
+├── vera-engine/                  # Standalone Rust binary (LLM proxy, model manager)
+│   └── src/main.rs               # Entry point: hardware detect, download, llama-server
+├── vera-go-ios/                  # Swift iOS companion app (Xcode project)
+│   └── VeraGo/                   # Models, Services, Views
+├── website/                      # Static marketing site (lexsort.com)
+│   ├── index.json                # Module catalog (served at modules.lexsort.com)
+│   ├── index.json.sig            # Ed25519 signature
+│   └── netlify/                  # Serverless functions (Stripe, license, uptime)
 ├── scripts/
-│   ├── build-module.sh           # Build + sign + deploy any module
-│   └── sign-module.js            # Ed25519 signing (128-char hex key)
-└── docs/                         # Architecture, security, build docs
+│   ├── build-module.sh           # Build + sign + deploy modules
+│   └── sign-module.js            # Ed25519 signing
+├── docs/                         # Architecture, security, build, engine docs
+├── resources/                    # Logos, icons
+├── AGENTS.md                     # Session briefing (read first)
+└── MASTER_HANDOFF.md             # THIS FILE
 
-Lexsort-Vera-Pro/                 # Pro repo (private)
-├── lexsort-vera-pro/
-│   ├── src/                      # React app (App.tsx is lean core)
-│   ├── src-tauri/
-│   │   ├── lexsort_public_key.bin  # Module verification key (rotated Jun 17)
-│   │   └── tests/contracts.rs      # 7 contract tests, all passing
-│   └── modules/                  # Standalone module packages
-│       ├── promailer/            # Vite IIFE build → dist/bundle.js
-│       ├── guardian-watch/       # Vite IIFE build → dist/bundle.js
-│       └── research-lab/         # Vite IIFE build → dist/bundle.js
-└── .github/workflows/            # CI/CD (per-platform Node, node-gyp pre-install)
+Lexsort-Vera-Pro/                 # Pro repo (private, separate clone)
+└── lexsort-vera-pro/             # Tauri app with Pro feature flags
+    ├── modules/promailer/        # Standalone module packages
+    ├── modules/guardian-watch/
+    └── modules/research-lab/
 ```
 
 ---
@@ -219,11 +243,11 @@ Lexsort-Vera-Pro/                 # Pro repo (private)
 ## 🔑 Key Facts for Next Session
 
 - **Module CDN:** `modules.lexsort.com/index.json` is live and signed. DNS CNAME already set.
-- **Signing key:** `.env.local` in Lexsort-personal-ai root (gitignored). Also in Netlify env.
+- **Signing key:** `.env.local` in VERA repo root (gitignored). Also in Netlify env.
 - **Module bundles:** Already deployed to `~/.lexsort/modules/` locally. Not yet signed as `.vera-module` ZIPs.
-- **App.tsx is clean:** Only imports QuickOrganizer + MobileBridgeModule + BusinessOrganizerModule. All Pro modules load from disk dynamically.
-- **Contract tests:** 7/7 passing on both repos. Pre-commit hook blocks regressions.
-- **Freeware:** v1.1.6 is stable and deployed. Do not touch until calendar import fix is verified.
+- **Freeware App.tsx:** Clean — imports QuickOrganizer + TeamLab. Dynamic module registration via `window.registerVeraModule()`.
+- **Contract tests:** Pre-commit hook skips gracefully if contracts test target missing (tests live in Pro repo).
+- **Freeware:** v1.1.7 is stable and deployed. Do not touch until calendar import fix is verified.
 - **Quick Organizer (committed Jun 17):** Full calendar UX working on BOTH Freeware and Pro:
   localStorage task backend, UTC timezone fix, 7 AM–10 PM visible, click-any-day→Day view,
   Day view time slot click to add.
@@ -265,6 +289,33 @@ Lexsort-Vera-Pro/                 # Pro repo (private)
 | Windows CI blocked | ⏳ Spending limit — increase in GitHub Settings |
 | Windows-only rebuild workflow | ✅ Added |
 | All changes committed and pushed | ✅ |
+
+---
+
+## 📋 Session Log — June 29, 2026
+
+| Item | Status |
+|---|---|
+| Staged 161-file repo restructure committed | ✅ `cef8a72` |
+| Pre-commit hook fixed (graceful skip on missing test target) | ✅ Both `.git/hooks` and `scripts/hooks/` |
+| `AGENTS.md` created — session briefing with SR&ED obligation | ✅ New file |
+| `SRED_LOGGING_PROTOCOL.md` paths fixed | ✅ `02_ACTIVE_PROJECTS/Lexsort/` → `01_ACTIVE/Lexsort-Legal/` |
+| `MASTER_HANDOFF.md` updated — SR&ED section, restructured paths | ✅ |
+| `README.md` updated — build path fixed, footer bumped | ✅ |
+| `docs/ARCHITECTURE.md` Getting Started path fixed | ✅ |
+| `vera-engine/README.md` created — architecture, API, build steps | ✅ New file |
+| `discord-bot/README.md` created — commands, setup, env vars | ✅ New file |
+| `scripts/README.md` created — script reference table | ✅ New file |
+| `website/README.md` created — site structure, deploy command | ✅ New file |
+| `sidecar/README.md` created — reserved directory note | ✅ New file |
+| `vera-freeware/README.md` expanded — tech stack, dev command, notable files | ✅ |
+| SR&ED log entry logged (3.0h, Technical Documentation) | ✅ `sred_log_vera.html` |
+| Evidence snapshot created | ✅ `sred_evidence/2026-06-29/` |
+| All stale `lexsort-personal-ai/` local-path refs scrubbed (12 docs, 2 CI workflows, 1 HTML) | ✅ grep returns zero |
+| Image file renamed: `lexsort-personal-ai.jpg` → `vera-freeware.jpg` | ✅ |
+| `package.json` name updated + lockfile regenerated | ✅ `npm install` |
+| Windows CI — waiting for July 1 minutes reset | ⏳ 2 days |
+| Pro version bump | ⏳ Needs Pro repo access |
 
 ---
 

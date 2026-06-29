@@ -5,14 +5,14 @@ If you change any of these without updating all consumers (and updating this fil
 
 ## 1. Public Key Embedded in Binary
 
-- **Location**: `lexsort-personal-ai/src-tauri/lexsort_public_key.bin`
+- **Location**: `vera-freeware/src-tauri/lexsort_public_key.bin`
 - **Fingerprint (first 8 bytes)**: `3183e9e4a95b99b3`
 - **Consumers**:
   - Tauri binary startup check
 - **Change requires**: Re‑build every binary.
 
 ## 2. AppConfig Serialization
-- **Rust struct**: `AppConfig` in `lexsort-personal-ai/src-tauri/src/lib.rs` (under `commands` module).
+- **Rust struct**: `AppConfig` in `vera-freeware/src-tauri/src/lib.rs` (under `commands` module).
 - **Fields**: `active_model`, `last_benchmark_tps`, `module_models`, `module_benchmark_tps`.
 - **Consumers**: Settings UI, chat page.
 - **Change requires**: Write a migration for existing config files.
