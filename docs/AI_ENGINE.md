@@ -119,9 +119,19 @@ select_model(manifest, available_models)
 | `vera-freeware` settings UI | API key management screen (add/remove/rotate keys) |
 | `vera-go-ios` | Optional: mobile key management via Settings view |
 
+### Community API Key Distribution (Discord Integration)
+
+The VERA Pro Discord bot (`discord-bot/tester-manager.js`) handles beta onboarding. This same infrastructure can distribute cloud API keys:
+
+- **`/apikeys`** slash command lists partner providers (Z.ai, OpenAI, Anthropic, Google, etc.) with affiliate/referral links
+- **`approval-bot.js`** auto-verifies license tier and DMs a curated starter pack — e.g. "$X credit for GLM 5.2, GPT-5.6 trial key"
+- Users paste keys once in VERA settings; engine's keychain-backed rotation pool handles the rest
+- No per-user rate limit friction — the round-robin pool distributes load across all contributed keys
+
 ### Status
 
 - **Architecture:** Proposed
+- **Discord integration:** Noted — build alongside cloud routing engine work
 - **Target:** VERA Pro v1.2+
 
 ## 7. Share Sheet Processing — "Private AI Inbox" (Pro — Planned)

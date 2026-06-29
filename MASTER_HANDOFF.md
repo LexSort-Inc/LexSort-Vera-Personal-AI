@@ -316,7 +316,7 @@ Lexsort-Vera-Pro/                 # Pro repo (private, separate clone)
 | `package.json` name updated + lockfile regenerated | ✅ `npm install` |
 | Windows CI — waiting for July 1 minutes reset | ⏳ 2 days |
 | Pro version bump | ⏳ Needs Pro repo access |
-| Cloud model routing for Team Lab (key rotation, cost sharing) | 📝 Proposed in `docs/AI_ENGINE.md` §5 |
+| Cloud model routing + Discord API key distribution for Team Lab | 📝 Proposed in `docs/AI_ENGINE.md` §5 |
 
 ---
 
