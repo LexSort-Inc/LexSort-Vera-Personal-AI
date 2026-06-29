@@ -81,6 +81,49 @@ Triggered when no active model is configured in the backend registry.
 
 ---
 
+## 5. Cloud Model Routing for Team Lab (Pro — Roadmap)
+
+### Rationale
+
+Team Lab agents (reviewer, tester, workflow runner) can benefit from frontier cloud models (GLM 5.2, Claude, GPT) for QA, validation, and complex code review — while keeping interactive chat on local inference. This is already anticipated by the engine's capability manifest system.
+
+### Architecture
+
+The existing `CapabilityManifest` + `select_model()` in `vera-engine/src/models.rs` already routes module tasks to the best available model. Adding a `provider` dimension enables:
+
+```
+Module Manifest
+  └─ capabilities_required: { tool_calling, json_output, context_window_min }
+  └─ model_preferences: [{ model_id: "glm-5.2", ... }]
+       │
+       ▼
+select_model(manifest, available_models)
+       │
+       ├─ Local models (Ollama/llama-server)  →  /v1/chat/completions (existing)
+       └─ Cloud models (API key pool)         →  provider API endpoint
+```
+
+### Key Rotation & Cost Sharing
+
+- Team members contribute API keys to a shared keychain-backed pool
+- Engine rotates keys round-robin per project to stay within free-tier limits
+- Each Team Lab session tracks token usage per key, with per-project budgets
+- No cloud keys in git — stored in system keychain via `VERAAuthStore` pattern (same as iOS Go pairing)
+
+### Integration Points
+
+| Component | Change Required |
+|---|---|
+| `vera-engine/src/models.rs` | Add `provider: "ollama" | "openai" | "zai"` to model baseline |
+| `vera-engine/src/router.rs` | `/v1/chat/completions` routes by provider, not just local proxy |
+| `vera-freeware` settings UI | API key management screen (add/remove/rotate keys) |
+| `vera-go-ios` | Optional: mobile key management via Settings view |
+
+### Status
+
+- **Architecture:** Proposed
+- **Target:** VERA Pro v1.2+
+
 ## 7. Share Sheet Processing — "Private AI Inbox" (Pro — Planned)
 
 ### Architecture: Share Extension, Not Custom Recorder
