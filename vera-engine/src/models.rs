@@ -149,3 +149,159 @@ pub fn select_model(
         capabilities: vec!["chat".to_string()],
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn installed_baseline() -> Vec<String> {
+        vec!["Llama-3.2-3B-Instruct-Q6_K".to_string()]
+    }
+
+    fn basic_manifest() -> CapabilityManifest {
+        CapabilityManifest {
+            module: "test".to_string(),
+            version: "1.0.0".to_string(),
+            capabilities_required: CapabilityRequirements {
+                tool_calling: false,
+                json_output: false,
+                context_window_min: 4096,
+            },
+            model_preferences: vec![
+                ModelPreference {
+                    model_id: "Llama-3.2-3B-Instruct-Q6_K".to_string(),
+                    reason: "default".to_string(),
+                },
+            ],
+        }
+    }
+
+    #[test]
+    fn test_select_model_matches_installed() {
+        let result = select_model(&basic_manifest(), &installed_baseline());
+        assert_eq!(result.selected_model, "Llama-3.2-3B-Instruct-Q6_K");
+        assert_eq!(result.status, "ready");
+    }
+
+    #[test]
+    fn test_select_model_prefers_first_match() {
+        let manifest = CapabilityManifest {
+            model_preferences: vec![
+                ModelPreference {
+                    model_id: "mistral-nemo".to_string(),
+                    reason: "preferred".to_string(),
+                },
+                ModelPreference {
+                    model_id: "Llama-3.2-3B-Instruct-Q6_K".to_string(),
+                    reason: "fallback".to_string(),
+                },
+            ],
+            ..basic_manifest()
+        };
+        let installed = vec![
+            "Llama-3.2-3B-Instruct-Q6_K".to_string(),
+            "mistral-nemo".to_string(),
+        ];
+        let result = select_model(&manifest, &installed);
+        assert_eq!(result.selected_model, "mistral-nemo");
+    }
+
+    #[test]
+    fn test_select_model_requires_tool_calling() {
+        let manifest = CapabilityManifest {
+            capabilities_required: CapabilityRequirements {
+                tool_calling: true,
+                json_output: false,
+                context_window_min: 4096,
+            },
+            model_preferences: vec![
+                ModelPreference {
+                    model_id: "Llama-3.2-3B-Instruct-Q6_K".to_string(),
+                    reason: "default".to_string(),
+                },
+            ],
+            ..basic_manifest()
+        };
+        let result = select_model(&manifest, &installed_baseline());
+        assert_eq!(result.status, "degraded", "Q6_K cannot do tool calling");
+    }
+
+    #[test]
+    fn test_select_model_requires_json_output() {
+        let manifest = CapabilityManifest {
+            capabilities_required: CapabilityRequirements {
+                tool_calling: false,
+                json_output: true,
+                context_window_min: 4096,
+            },
+            model_preferences: vec![
+                ModelPreference {
+                    model_id: "deepseek-r1".to_string(),
+                    reason: "preferred".to_string(),
+                },
+                ModelPreference {
+                    model_id: "Llama-3.2-3B-Instruct-Q6_K".to_string(),
+                    reason: "fallback".to_string(),
+                },
+            ],
+            ..basic_manifest()
+        };
+        let installed = vec![
+            "deepseek-r1".to_string(),
+            "Llama-3.2-3B-Instruct-Q6_K".to_string(),
+        ];
+        let result = select_model(&manifest, &installed);
+        assert_eq!(result.selected_model, "deepseek-r1");
+        assert!(result.capabilities.contains(&"json_output".to_string()));
+    }
+
+    #[test]
+    fn test_select_model_requires_large_context() {
+        let manifest = CapabilityManifest {
+            capabilities_required: CapabilityRequirements {
+                tool_calling: false,
+                json_output: false,
+                context_window_min: 65536,
+            },
+            model_preferences: vec![
+                ModelPreference {
+                    model_id: "Llama-3.2-3B-Instruct-Q6_K".to_string(),
+                    reason: "default".to_string(),
+                },
+            ],
+            ..basic_manifest()
+        };
+        let result = select_model(&manifest, &installed_baseline());
+        assert_eq!(result.status, "degraded", "Q6_K has only 8K context");
+    }
+
+    #[test]
+    fn test_select_model_no_installed_fallback() {
+        let manifest = basic_manifest();
+        let result = select_model(&manifest, &[]);
+        assert_eq!(result.status, "unreliable");
+        assert_eq!(result.selected_model, "llama3.2:3b");
+    }
+
+    #[test]
+    fn test_deepseek_has_tool_calling() {
+        let cap = BASELINE.get("deepseek-r1").unwrap();
+        assert!(cap.tool_calling);
+        assert!(cap.json_output_reliable);
+        assert_eq!(cap.context_window, 128000);
+    }
+
+    #[test]
+    fn test_mistral_nemo_has_tool_calling() {
+        let cap = BASELINE.get("mistral-nemo").unwrap();
+        assert!(cap.tool_calling);
+        assert_eq!(cap.context_window, 32768);
+    }
+
+    #[test]
+    fn test_llama3_2_3b_no_tool_calling() {
+        let cap = BASELINE.get("Llama-3.2-3B-Instruct-Q6_K").unwrap();
+        assert!(!cap.tool_calling);
+        assert_eq!(cap.speed_tier, "fast");
+    }
+}

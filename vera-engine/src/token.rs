@@ -20,3 +20,33 @@ pub fn write_token(token: &str, path: &PathBuf) -> anyhow::Result<()> {
     fs::write(path, token)?;
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_generate_token_length() {
+        let token = generate_token();
+        assert_eq!(token.len(), 128);
+    }
+
+    #[test]
+    fn test_generate_token_charset() {
+        let token = generate_token();
+        for c in token.chars() {
+            assert!(
+                c.is_ascii_alphanumeric(),
+                "token contained non-alphanumeric char: {}",
+                c
+            );
+        }
+    }
+
+    #[test]
+    fn test_generate_token_uniqueness() {
+        let t1 = generate_token();
+        let t2 = generate_token();
+        assert_ne!(t1, t2, "two consecutively generated tokens should differ");
+    }
+}

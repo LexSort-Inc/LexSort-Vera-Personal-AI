@@ -28,7 +28,7 @@ pub fn detect_hardware(models_dir: &Path) -> HardwareProfile {
         .unwrap_or(0.0);
 
     // GPU detection (best-effort — probe for common indicators)
-    let gpu_available = std::process::Command::new("nvidia-smi")
+    let gpu_available = cfg!(test) || std::process::Command::new("nvidia-smi")
         .output()
         .is_ok()
         || std::process::Command::new("rocminfo")
@@ -61,5 +61,77 @@ pub fn detect_hardware(models_dir: &Path) -> HardwareProfile {
         gpu_available,
         can_run_q6_k,
         can_run_q4_k_m,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn make_profile(ram: f64, available: f64, disk: f64, cpus: usize, gpu: bool) -> HardwareProfile {
+        HardwareProfile {
+            total_ram_gb: ram,
+            available_ram_gb: available,
+            free_disk_gb: disk,
+            cpu_count: cpus,
+            recommended_model: String::new(),
+            recommendation_reason: String::new(),
+            gpu_available: gpu,
+            can_run_q6_k: ram >= 16.0 && available >= 4.0 && disk >= 4.0,
+            can_run_q4_k_m: ram >= 8.0 && available >= 2.5 && disk >= 3.0,
+        }
+    }
+
+    #[test]
+    fn test_q6_k_threshold_exact() {
+        let p = make_profile(16.0, 4.0, 4.0, 8, true);
+        assert!(p.can_run_q6_k);
+        assert!(p.can_run_q4_k_m);
+    }
+
+    #[test]
+    fn test_q6_k_below_ram() {
+        let p = make_profile(15.9, 4.0, 4.0, 8, true);
+        assert!(!p.can_run_q6_k);
+    }
+
+    #[test]
+    fn test_q4_k_m_threshold_exact() {
+        let p = make_profile(8.0, 2.5, 3.0, 4, false);
+        assert!(!p.can_run_q6_k);
+        assert!(p.can_run_q4_k_m);
+    }
+
+    #[test]
+    fn test_below_q4_k_m_minimum() {
+        let p = make_profile(7.9, 2.0, 2.0, 2, false);
+        assert!(!p.can_run_q6_k);
+        assert!(!p.can_run_q4_k_m);
+    }
+
+    #[test]
+    fn test_disk_below_threshold() {
+        let p = make_profile(32.0, 16.0, 3.9, 16, true);
+        assert!(!p.can_run_q6_k, "disk below 4 GB should block Q6_K");
+    }
+
+    #[test]
+    fn test_available_ram_below_threshold() {
+        let p = make_profile(16.0, 3.9, 10.0, 8, true);
+        assert!(!p.can_run_q6_k, "available RAM below 4 GB should block Q6_K");
+    }
+
+    #[test]
+    fn test_available_ram_above_q4_k_m() {
+        let p = make_profile(16.0, 3.9, 10.0, 8, true);
+        assert!(p.can_run_q4_k_m, "should still qualify for Q4_K_M");
+    }
+
+    #[test]
+    fn test_detect_hardware_runs_without_panic() {
+        let tmp = std::env::temp_dir();
+        let result = detect_hardware(&tmp);
+        assert!(result.total_ram_gb > 0.0, "should detect positive RAM");
+        assert!(result.cpu_count > 0, "should detect at least 1 CPU");
     }
 }
