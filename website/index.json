@@ -13,8 +13,8 @@
       "targets": {
         "macos_aarch64": {
           "url": "https://modules.lexsort.com/modules/promailer-1.0.0-macos_aarch64.vera-module",
-          "size_bytes": 15215,
-          "sha256": "a797575265d8abc38d5239ed7763d42c3084983010844aadbd3ee8d711fd3e24"
+          "size_bytes": 21020,
+          "sha256": "e05702011a7360e23e7cd6de7913477fe18a6e5f8dd859fc1b05580f6edcb827"
         },
         "macos_x86_64": {
           "url": "https://modules.lexsort.com/modules/promailer-1.0.0-macos_x86_64.vera-module",
