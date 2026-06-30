@@ -2097,6 +2097,39 @@ pub mod commands {
         Ok(())
     }
 
+    #[tauri::command]
+    pub async fn emailer_search_leads(query: String, max_results: u32) -> Result<serde_json::Value, String> {
+        let script_path = super::lexsort_dir()
+            .join("modules")
+            .join("promailer")
+            .join("current")
+            .join("lead_finder.py");
+
+        if !script_path.exists() {
+            return Err("Lead finder script (lead_finder.py) not found in module directory.".to_string());
+        }
+
+        let output = std::process::Command::new("python3")
+            .arg(script_path)
+            .arg("--json-query")
+            .arg(&query)
+            .arg("--json-limit")
+            .arg(max_results.to_string())
+            .output()
+            .map_err(|e| format!("Failed to execute python3 command: {}", e))?;
+
+        if !output.status.success() {
+            let err_msg = String::from_utf8_lossy(&output.stderr).into_owned();
+            return Err(format!("Lead finder script exited with error: {}", err_msg));
+        }
+
+        let stdout_str = String::from_utf8_lossy(&output.stdout).into_owned();
+        let parsed_json: serde_json::Value = serde_json::from_str(&stdout_str)
+            .map_err(|e| format!("Failed to parse JSON output from lead finder script: {}. Raw output: {}", e, stdout_str))?;
+
+        Ok(parsed_json)
+    }
+
     // ─── Guardian Watch Commands ───
 
     #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -2651,6 +2684,7 @@ pub fn run() {
             commands::emailer_stop_campaign,
             commands::emailer_generate_draft,
             commands::emailer_send,
+            commands::emailer_search_leads,
             commands::get_system_stats,
             commands::get_ai_system_report,
             commands::run_quick_prompt,
