@@ -389,6 +389,132 @@
     .btn-reddit { background-color: #FF4500; }
     .btn-x { background-color: #000000; border: 1px solid var(--border); }
 
+    /* Benchmark Section */
+    .benchmark-section {
+      padding: 100px 0;
+      border-top: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .benchmark-section::before {
+      content: '';
+      position: absolute;
+      top: -100px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 800px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(16,185,129,0.06) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .benchmark-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .benchmark-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .benchmark-card:hover {
+      transform: translateY(-3px);
+      border-color: rgba(255,255,255,0.1);
+    }
+
+    .benchmark-card--best {
+      border-color: rgba(16,185,129,0.35);
+      background: linear-gradient(160deg, rgba(16,185,129,0.06) 0%, var(--surface) 60%);
+    }
+
+    .benchmark-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      background: rgba(16,185,129,0.15);
+      color: #10b981;
+      border: 1px solid rgba(16,185,129,0.3);
+      width: fit-content;
+    }
+
+    .benchmark-model {
+      font-family: 'Outfit', sans-serif;
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .benchmark-speed {
+      font-family: 'Outfit', sans-serif;
+      font-size: 36px;
+      font-weight: 900;
+      color: #fff;
+      line-height: 1;
+    }
+
+    .benchmark-speed span {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+
+    .benchmark-bar-track {
+      height: 4px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .benchmark-bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 1s ease;
+    }
+
+    .benchmark-details {
+      display: flex;
+      gap: 6px;
+      font-size: 11px;
+      color: var(--text-muted);
+      flex-wrap: wrap;
+    }
+
+    .benchmark-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-top: 4px;
+    }
+
+    .benchmark-footnote {
+      text-align: center;
+      font-size: 12px;
+      color: rgba(156,163,175,0.6);
+      margin-top: 8px;
+    }
+
+    @media (max-width: 860px) {
+      .benchmark-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 520px) {
+      .benchmark-grid { grid-template-columns: 1fr; }
+    }
+
     /* Footer */
     footer {
       border-top: 1px solid var(--border);
@@ -547,14 +673,14 @@
   <!-- Hero Section -->
   <section class="hero">
     <div class="container">
-      <div class="free-pill">🛡 Freeware Release v1.1.5</div>
+      <div class="free-pill">🛡 Freeware Release v1.1.7</div>
       <h1>Your AI. Your Computer.<br><span class="gradient-text">Owned Permanently.</span></h1>
       <p class="hero-tagline">
         The Sovereign Choice in local intelligence. Built for professional workflows where security and data privacy are not optional. No cloud, no subscription, no tracking.
       </p>
       <div class="cta-container">
         <a href="download.html" class="cta-btn">
-          ⬇ Download LexSort v1.1.5 (Freeware)
+          ⬇ Download LexSort v1.1.7 (Freeware)
         </a>
       </div>
       <p class="cta-subtext">Apache 2.0 Open Source &nbsp;·&nbsp; For macOS, Windows, and Linux</p>
@@ -565,7 +691,7 @@
   <section class="preview-section">
     <div class="container">
       <h2 class="section-title">See It In Action</h2>
-      <p class="section-subtitle">Real screenshots from LexSort Vera v1.1.5. No demos, no mock-ups — this is the actual app.</p>
+      <p class="section-subtitle">Real screenshots from LexSort Vera v1.1.7. No demos, no mock-ups — this is the actual app.</p>
 
       <div class="preview-tabs">
         <button class="preview-tab-btn active" onclick="switchPreview(event, 'prev-chat')">💬 VERA Chat</button>
@@ -631,7 +757,7 @@
       <div class="comparison-grid">
         <!-- Freeware -->
         <div class="comp-box">
-          <span class="comp-badge freeware">LexSort Vera Freeware (v1.1.5)</span>
+          <span class="comp-badge freeware">LexSort Vera Freeware (v1.1.7)</span>
           <h3>Complete Workspace</h3>
           <p class="comp-desc">An unrestricted, private desktop environment with no usage tracking.</p>
           <ul class="feature-list">
@@ -680,6 +806,74 @@
           @LexSortAI
         </a>
       </div>
+    </div>
+  </section>
+
+  <!-- Real-World Benchmark Section -->
+  <section class="benchmark-section">
+    <div class="container">
+      <h2 class="section-title" style="text-align:center;">Real Hardware. Real Speed.</h2>
+      <p class="section-subtitle" style="text-align:center;max-width:620px;margin:0 auto 48px;">
+        Every number below was measured live on an Apple M1 Pro 16GB Mac — no synthetic tests, no marketing estimates. This is what you actually get.
+      </p>
+
+      <div class="benchmark-grid">
+        <div class="benchmark-card benchmark-card--best">
+          <div class="benchmark-badge">🏆 Fastest</div>
+          <div class="benchmark-model">Llama 3.2 3B</div>
+          <div class="benchmark-speed">45.5 <span>tok/sec</span></div>
+          <div class="benchmark-bar-track"><div class="benchmark-bar-fill" style="width:100%;background:linear-gradient(90deg,#10b981,#34d399);"></div></div>
+          <div class="benchmark-details">
+            <span>2.0 GB download</span>
+            <span>·</span>
+            <span>Works on 4GB+ RAM</span>
+          </div>
+          <p class="benchmark-desc">Instant, real-time responses. Best for everyday tasks, Q&amp;A, and quick drafts.</p>
+        </div>
+
+        <div class="benchmark-card">
+          <div class="benchmark-badge" style="background:rgba(251,146,60,0.15);color:#fb923c;border-color:rgba(251,146,60,0.3);">⚡ Fast</div>
+          <div class="benchmark-model">Mistral 7B</div>
+          <div class="benchmark-speed">33.9 <span>tok/sec</span></div>
+          <div class="benchmark-bar-track"><div class="benchmark-bar-fill" style="width:74%;background:linear-gradient(90deg,#f59e0b,#fb923c);"></div></div>
+          <div class="benchmark-details">
+            <span>4.1 GB download</span>
+            <span>·</span>
+            <span>Works on 8GB+ RAM</span>
+          </div>
+          <p class="benchmark-desc">Excellent writing, reasoning, and general assistant tasks. The sweet spot for most users.</p>
+        </div>
+
+        <div class="benchmark-card">
+          <div class="benchmark-badge" style="background:rgba(59,130,246,0.15);color:#60a5fa;border-color:rgba(59,130,246,0.3);">🎯 Balanced</div>
+          <div class="benchmark-model">Qwen 2.5 Coder 7B</div>
+          <div class="benchmark-speed">24.3 <span>tok/sec</span></div>
+          <div class="benchmark-bar-track"><div class="benchmark-bar-fill" style="width:53%;background:linear-gradient(90deg,#3b82f6,#60a5fa);"></div></div>
+          <div class="benchmark-details">
+            <span>4.7 GB download</span>
+            <span>·</span>
+            <span>16GB+ RAM</span>
+          </div>
+          <p class="benchmark-desc">High quality code generation and technical reasoning. Ideal for developers on 16GB Apple Silicon.</p>
+        </div>
+
+        <div class="benchmark-card">
+          <div class="benchmark-badge" style="background:rgba(167,139,250,0.15);color:#a78bfa;border-color:rgba(167,139,250,0.3);">💎 Quality</div>
+          <div class="benchmark-model">Qwen 2.5 Coder 14B</div>
+          <div class="benchmark-speed">12.4 <span>tok/sec</span></div>
+          <div class="benchmark-bar-track"><div class="benchmark-bar-fill" style="width:27%;background:linear-gradient(90deg,#8b5cf6,#a78bfa);"></div></div>
+          <div class="benchmark-details">
+            <span>9.0 GB download</span>
+            <span>·</span>
+            <span>16GB+ RAM</span>
+          </div>
+          <p class="benchmark-desc">Maximum local AI quality. Best for deep code review, architecture planning, and complex problem solving.</p>
+        </div>
+      </div>
+
+      <p class="benchmark-footnote">
+        Tested on Apple M1 Pro, 16 GB unified memory, macOS 15 · June 2026 · All models run fully offline via Ollama
+      </p>
     </div>
   </section>
 
