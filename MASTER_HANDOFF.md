@@ -138,6 +138,16 @@ Module signing keypair (rotated Jun 17, 2026):
 
 ---
 
+## 🏛 Project & Architecture Relationships
+
+> [!IMPORTANT]
+> **Standalone ProMailer vs. VERA ProMailer Module:**
+> * **Standalone ProMailer:** This is a separate, standalone Python/Flask application (located in the workspace under `JustMeMedia/01_ACTIVE/ProMailer-Mac` or similar) already shipped on a live site from a different GitHub account.
+> * **VERA ProMailer Module:** This is a custom React/TypeScript module built specifically for the VERA Pro desktop app, located under `Lexsort-Vera-Pro/lexsort-vera-pro/modules/promailer` (frontend React entry) and supported natively in Rust by VERA Pro's Tauri backend (`src-tauri/src/modules/emailer.rs`).
+> * **Freeware Subprocess Fallback:** In the VERA Freeware edition, because native Pro modules are not compiled into the Tauri binary, a fallback bridge is implemented in `lib.rs` that calls out to the Python `lead_finder.py` script from the standalone ProMailer project using non-interactive arguments (`--json-query` and `--json-limit`).
+
+---
+
 ## ⚠️ Outstanding Items (as of Jun 17, 2026)
 
 ### 1. Upload signed .vera-module ZIPs to CDN — TONIGHT
