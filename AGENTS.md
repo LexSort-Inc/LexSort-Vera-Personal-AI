@@ -1,7 +1,7 @@
 # VERA — Agent Session Briefing
 
 **Project:** LexSort VERA — Local-First Private AI Desktop App
-**Parent:** LexSort Inc. (Corp #1799606-3, BN 774849178, Federal CBCA)
+**Parent:** LexSort Inc. (Corp #1799606-3, BN 774849178, DUNS 243369420, Federal CBCA)
 **Stack:** React 19 (TypeScript) + Rust (Tauri v2) + Ollama/llama-server
 **Freeware v1.1.7** · **Pro v1.0.5** · **Engine v1.0.0** · **iOS Go (Phase 3b)**
 **Launch:** July 1, 2026

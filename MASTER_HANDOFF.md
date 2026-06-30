@@ -1,7 +1,7 @@
 # VERA — Developer Handoff Index
 
 **Project:** LexSort VERA — Local-First Private AI Desktop App  
-**Parent Brand:** LexSort Inc.  
+**Parent Brand:** LexSort Inc. (DUNS 243369420)  
 **Current Versions:** VERA Freeware v1.1.7 ✅ · VERA Pro v1.0.5 (Windows CI pending) · VERA Engine v1.0.0 ✅  
 **Stack:** React 19 (TypeScript) + Rust (Tauri v2) + Ollama  
 **Launch Date:** July 1, 2026  
