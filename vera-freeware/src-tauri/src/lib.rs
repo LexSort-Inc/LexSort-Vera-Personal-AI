@@ -163,9 +163,13 @@ pub struct UpdateCheckResult {
 }
 
 pub fn lexsort_dir() -> PathBuf {
-    dirs::home_dir()
-        .unwrap_or_else(|| PathBuf::from("."))
-        .join(".lexsort")
+    if let Ok(path) = std::env::var("LEXSORT_DIR_OVERRIDE") {
+        PathBuf::from(path)
+    } else {
+        dirs::home_dir()
+            .unwrap_or_else(|| PathBuf::from("."))
+            .join(".lexsort")
+    }
 }
 
 pub fn installed_registry_path() -> PathBuf {
@@ -2721,6 +2725,9 @@ mod tests {
 
     #[test]
     fn test_dir_creation() {
+        let temp_dir = std::env::temp_dir().join(format!("lexsort_test_{}", uuid::Uuid::new_v4()));
+        std::env::set_var("LEXSORT_DIR_OVERRIDE", &temp_dir);
+
         let _ = std::fs::remove_dir_all(lexsort_dir());
         assert!(ensure_lexsort_dirs("pro").is_ok());
         assert!(lexsort_dir().exists());
@@ -2732,6 +2739,9 @@ mod tests {
         let reg: InstalledRegistry = serde_json::from_str(&content).unwrap();
         assert_eq!(reg.core_version, env!("CARGO_PKG_VERSION"));
         assert_eq!(reg.edition, "pro");
+
+        let _ = std::fs::remove_dir_all(&temp_dir);
+        std::env::remove_var("LEXSORT_DIR_OVERRIDE");
     }
 
     #[tokio::test]
