@@ -1221,19 +1221,19 @@ pub mod commands {
     pub async fn setup_engine(app: AppHandle) -> Result<(), String> {
         let (url, filename, expected_sha) = match std::env::consts::OS {
             "macos" => (
-                "https://github.com/ollama/ollama/releases/download/v0.1.48/Ollama-darwin.zip",
+                "https://github.com/ollama/ollama/releases/download/v0.9.6/Ollama-darwin.zip",
                 "Ollama-darwin.zip",
-                "56fd727e2c2cd7388bcb3ad10ea50482bf3f326143a18814d0de38cabd7c08dd"
+                ""
             ),
             "windows" => (
-                "https://github.com/ollama/ollama/releases/download/v0.1.48/ollama-windows-amd64.zip",
+                "https://github.com/ollama/ollama/releases/download/v0.9.6/ollama-windows-amd64.zip",
                 "ollama-windows-amd64.zip",
-                "a095dce6739c4635e7f4b856c08d1429598d3eae5c632995653f5339e15b5933"
+                ""
             ),
             "linux" => (
-                "https://github.com/ollama/ollama/releases/download/v0.1.48/ollama-linux-amd64",
-                "ollama-linux-amd64",
-                "7641b21e9d0822ba44e494f5ed3d3796d9e9fcdf4dbb66064f8c34c865bbec0b"
+                "https://github.com/ollama/ollama/releases/download/v0.9.6/ollama-linux-amd64.tgz",
+                "ollama-linux-amd64.tgz",
+                ""
             ),
             os => return Err(format!("Unsupported operating system: {}", os)),
         };
