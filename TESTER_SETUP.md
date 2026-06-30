@@ -1,247 +1,152 @@
-# VERA Pro — Tester Infrastructure Setup Guide
+# VERA Pro — Tester Setup Guide
 
-This document walks through setting up the complete VERA Pro beta tester pipeline:
-**Stripe → Netlify Webhook → License Key → Discord DM + Role Grant**
+**Last Updated:** June 30, 2026
+**Current Beta Version:** v1.0.12
 
----
-
-## Architecture Overview
-
-```
-User clicks /register in Discord
-        ↓
-Discord Bot → POST /api/create-tester-checkout
-        ↓
-Netlify Function → Create Stripe Checkout Session
-        ↓
-User completes $5.99 / month checkout (14-day free trial)
-        ↓
-Stripe fires webhook → POST /api/stripe-webhook
-        ↓
-Netlify Function:
-  1. Generates Ed25519-signed license key
-  2. Calls Discord API → grants "Beta Tester" role
-  3. Sends DM with license key embed
-        ↓
-User pastes key into VERA → local verification → Pro unlocked ✅
-```
+> [!IMPORTANT]
+> **This is the LIVE tester flow as of June 30, 2026.**
+> The old Stripe checkout flow is no longer used for beta testers. Testers get free keys via Discord.
 
 ---
 
-## Step 1: Stripe Setup (Edit Existing LexSort Account)
+## How Testers Get Access (Current Flow)
 
-> ✅ You already have a Stripe account for LexSort. You only need to add the missing pieces below.
+```
+Tester joins LexSort Discord
+        ↓
+Types /register in any channel
+        ↓
+LexSort Bot DMs them a checkout link
+  (Free beta — no credit card for beta testers)
+        ↓
+Bot DMs tester their VERA-PRO-... license key
+        ↓
+Tester downloads VERA from lexsort.com/download
+        ↓
+App launches → OnboardingWizard runs automatically
+  Step 1: Detects + installs Ollama AI engine (~180MB, one-time)
+  Step 2: Selects best AI model for their hardware + downloads it
+  Step 3: Tester pastes their license key → verified offline instantly
+  Step 4: Pro modules unlock → app ready
+```
 
-### 1.1 Confirm Mode
-- Go to [dashboard.stripe.com](https://dashboard.stripe.com)
-- Top-right toggle: start in **Test Mode** for initial testing, switch to **Live** when ready to charge real cards
+**Zero terminal commands required. Zero manual setup.**
 
-### 1.2 Create the VERA Pro Product & Prices
-> If a VERA Pro product already exists, you can just add the second pricing plan (Yearly) to it.
+---
 
-1. Stripe Dashboard → **Products** → **+ Add Product**
-2. Name: `VERA Pro Subscription`
-3. Pricing model: **Recurring**
-4. Create **two prices** under this product:
-   * **Monthly Plan:** **$5.99 CAD** (or USD) · Billing: **Monthly**
-   * **Yearly Plan:** **$59.00 CAD** (or USD) · Billing: **Yearly**
-5. Click **Save product**
-6. Copy the **Price IDs** from the product page — they look like `price_1ABC...`
-   - Copy the Monthly Price ID. This is your `STRIPE_PRO_PRICE_ID_MONTHLY`
-   - Copy the Yearly Price ID. This is your `STRIPE_PRO_PRICE_ID_YEARLY`
-   - *(Note: `STRIPE_PRO_PRICE_ID` is supported as a fallback for the Monthly plan)*
+## Discord Bot Commands (LexSort Server)
 
-### 1.3 Add the Webhook Endpoint
-> Check **Developers → Webhooks** first — if a lexsort.com webhook already exists, just add the missing events.
-
-1. Stripe Dashboard → **Developers** → **Webhooks** → **+ Add endpoint**
-2. Endpoint URL: `https://lexsort.com/.netlify/functions/stripe-webhook`
-3. Events to listen for (select these 3):
-   - `customer.subscription.created`
-   - `invoice.payment_succeeded`
-   - `customer.subscription.deleted`
-4. Click **Add endpoint**
-5. Click **Reveal** under Signing Secret → copy it (`whsec_...`)
-   - This is your `STRIPE_WEBHOOK_SECRET`
-
-### 1.4 Get Your API Keys
-1. Stripe Dashboard → **Developers** → **API Keys**
-2. Copy the **Secret key** (`sk_live_...` or `sk_test_...`)
-   - This is your `STRIPE_SECRET_KEY`
-   - Use `sk_test_...` for testing, `sk_live_...` for production
-
-### 1.5 Keys Summary
-| Netlify Env Variable | Where to find it |
+| Command | What it does |
 |---|---|
-| `STRIPE_SECRET_KEY` | Developers → API Keys → Secret key |
-| `STRIPE_PRO_PRICE_ID_MONTHLY` | Products → VERA Pro → Monthly Price ID |
-| `STRIPE_PRO_PRICE_ID_YEARLY` | Products → VERA Pro → Yearly Price ID |
-| `STRIPE_WEBHOOK_SECRET` | Developers → Webhooks → your endpoint → Signing secret |
+| `/register` | Start beta registration — bot DMs download link + key |
+| `/mykey` | Re-send your license key to your DMs |
+| `/mystatus` | Check if your subscription/key is active |
+| `/help` | Show all available commands |
+
+**Bot is live on Railway.** If commands aren't responding, check Railway dashboard.
 
 ---
 
-## Step 2: Discord Bot Setup
+## Generating Beta Keys Manually (for manual distribution)
 
-### 2.1 Create the Discord Application
-1. Go to [discord.com/developers/applications](https://discord.com/developers/applications)
-2. Click **New Application** → Name it `VERA Pro Bot`
-3. Go to **Bot** tab → Enable these **Privileged Gateway Intents**:
-   - ✅ Server Members Intent
-4. Copy the **Bot Token**
+If you need to generate extra keys to DM testers directly:
 
-### 2.2 Set Bot Permissions
-Under **OAuth2 → URL Generator**:
-- Scopes: `bot`, `applications.commands`
-- Bot Permissions:
-  - ✅ Manage Roles
-  - ✅ Send Messages
-  - ✅ Use Slash Commands
-  - ✅ Read Message History
+```bash
+# From VERA repo root — requires .env.local with LICENSE_SIGNING_PRIVATE_KEY
+cd /Users/williamcommu/Desktop/JUST_ME_MEDIA_VAULT/LexSortInc/01_ACTIVE/VERA
+node scripts/generate-test-keys.js 5   # generates 5 keys
+```
 
-Copy the generated URL and use it to invite the bot to your server.
+Keys expire 30 days from generation. DM each key privately — never post in public channels.
 
-### 2.3 Create the Beta Tester Role
-1. Discord Server Settings → **Roles** → Create Role
-2. Name: `Beta Tester` (or `VERA Pro Tester`)
-3. Give it access to your `#pro-pre-release`, `#pro-feedback`, `#pro-bug-reports` channels
-4. **Right-click the role** → Copy Role ID
+---
 
-### 2.4 Collect your Discord IDs
-| Variable | How to get it |
+## What Testers Need
+
+| Requirement | Notes |
 |---|---|
-| `DISCORD_BOT_TOKEN` | Developer Portal → Bot → Token |
-| `DISCORD_CLIENT_ID` | Developer Portal → General Information → Application ID |
-| `DISCORD_GUILD_ID` | Right-click your server → Copy Server ID |
-| `DISCORD_TESTER_ROLE_ID` | Right-click the Beta Tester role → Copy Role ID |
-
-> **Enable Developer Mode**: Discord Settings → Advanced → Developer Mode ON (required to copy IDs)
+| macOS (Apple Silicon or Intel) | `.dmg` download from lexsort.com/download |
+| Windows 64-bit | `.exe` from GitHub releases (once CI passes) |
+| ~5 GB free disk space | For AI model download |
+| Internet for first setup | Engine + model download (one-time) |
+| **Nothing else** | Ollama is installed automatically by the app |
 
 ---
 
-## Step 3: Netlify Environment Variables
+## Download Links
 
-In your Netlify dashboard → **Site Configuration** → **Environment Variables**, add:
-
-| Variable | Value |
+| Platform | Link |
 |---|---|
-| `STRIPE_SECRET_KEY` | From Step 1.4 |
-| `STRIPE_PRO_PRICE_ID` | From Step 1.4 |
-| `STRIPE_WEBHOOK_SECRET` | From Step 1.4 |
-| `DISCORD_BOT_TOKEN` | From Step 2.4 |
-| `DISCORD_GUILD_ID` | From Step 2.4 |
-| `DISCORD_TESTER_ROLE_ID` | From Step 2.4 |
-| `LICENSE_SIGNING_PRIVATE_KEY` | From your `src-tauri/private_key.hex` file |
-
-> **Security**: `LICENSE_SIGNING_PRIVATE_KEY` is your Ed25519 secret key used to sign license keys. It must be a 96-character hex string as generated by your build process. Keep it strictly confidential.
+| macOS Apple Silicon | [lexsort.com/download](https://lexsort.com/download) → auto-detected |
+| macOS Intel | [lexsort.com/download](https://lexsort.com/download) → auto-detected |
+| Windows | GitHub releases: github.com/Lexsort-Core/Lexsort-Vera-Pro/releases |
 
 ---
 
-## Step 4: Deploy the Discord Bot
+## What Testers Should Test
 
-The bot needs to run 24/7 on a server. Options:
+### ProMailer Module
+1. Open VERA → Sidebar → ProMailer
+2. Lead Finder tab → type: `"find 10 plumbers in Toronto"`
+3. Click **Search** — results should appear within 30 seconds
+4. Compose tab → draft a campaign email using AI
+5. Send tab → test with a personal test inbox
 
-### Option A: Railway (Recommended — Free tier available)
-```bash
-# Install Railway CLI
-npm install -g @railway/cli
-railway login
-railway init
-railway up
-```
+### Guardian Watch Module
+1. Sidebar → Guardian Watch
+2. Confirm system metrics (CPU, RAM, disk) are displayed
+3. Set a disk space alert threshold → confirm it triggers
 
-### Option B: Fly.io
-```bash
-fly launch
-fly deploy
-```
+### Research Lab Module
+1. Sidebar → Research Lab
+2. Run a Quick Prompt test
+3. Run a benchmark suite → confirm results appear
 
-### Option C: VPS (DigitalOcean, etc.)
-```bash
-cd discord-bot
-npm install
-# Add your .env values
-cp .env.example .env
-nano .env  # Fill in your values
-node tester-manager.js
-# Use PM2 to keep it alive:
-npm install -g pm2
-pm2 start tester-manager.js --name vera-pro-bot
-pm2 save
-pm2 startup
-```
+### Chat (Core)
+1. Chat → ask a question
+2. Confirm streaming response works
+3. Test conversation history (previous conversations in sidebar)
 
 ---
 
-## Step 5: Set Up Discord Channels
+## Bug Reporting
 
-Create these channels in your VERA Pro Discord server:
+Ask testers to post in **#pro-bug-reports** on Discord with:
+- What they were doing
+- What happened vs. what they expected
+- OS version (macOS 14.x, Windows 11, etc.)
+- Screenshot or error message if available
 
-| Channel | Purpose | Who Can See |
+---
+
+## Infrastructure Reference
+
+| Service | Status | Notes |
 |---|---|---|
-| `#pro-announcements` | Official news from LexSort | Everyone (read-only) |
-| `#pro-pre-release` | Early builds & changelog | Beta Tester role only |
-| `#pro-feedback` | Feature requests & ideas | Beta Tester role only |
-| `#pro-bug-reports` | Bug reports & tracking | Beta Tester role only |
-| `#bot-commands` | Where users run /register | Everyone |
+| Discord Bot | ✅ Live on Railway | `/register`, `/mykey`, `/mystatus`, `/help` |
+| License key validation | ✅ Offline Ed25519 | No internet needed after first setup |
+| Stripe | ⏳ Not active for beta | Bypassed — free keys for all beta testers |
+| GitHub CI | ✅ v1.0.12 building | check: github.com/Lexsort-Core/Lexsort-Vera-Pro/actions |
 
 ---
 
-## Step 6: Test the Full Flow
+## Stripe Setup (for when paid flow goes live — not yet active)
 
-### Local Testing
-```bash
-# Generate test license keys
-node scripts/generate-test-keys.js 3
+When we're ready to charge users:
 
-# Test Stripe webhook locally (install Stripe CLI)
-stripe listen --forward-to localhost:8888/.netlify/functions/stripe-webhook
-```
+1. **Stripe Dashboard** → Products → VERA Pro Subscription → create two prices:
+   - Monthly: **$5.99 CAD** recurring
+   - Yearly: **$59.00 CAD** recurring
 
-### End-to-End Test
-1. In Discord, type `/register` in `#bot-commands`
-2. Click the checkout button (use Stripe test card: `4242 4242 4242 4242`)
-3. Complete checkout
-4. Verify:
-   - ✅ You received a DM with a license key
-   - ✅ You got the "Beta Tester" role
-   - ✅ You can now see `#pro-pre-release` channel
-5. Paste the license key into VERA → Pro modules should unlock
+2. **Netlify Environment Variables** → add:
+   ```
+   STRIPE_SECRET_KEY=sk_live_...
+   STRIPE_PRO_PRICE_ID_MONTHLY=price_...
+   STRIPE_WEBHOOK_SECRET=whsec_...
+   LICENSE_SIGNING_PRIVATE_KEY=302e020100...  (from .env.local)
+   DISCORD_BOT_TOKEN=...
+   DISCORD_GUILD_ID=...
+   DISCORD_TESTER_ROLE_ID=...
+   ```
 
----
-
-## Environment Variables Quick Reference
-
-### Netlify (via Dashboard)
-```
-STRIPE_SECRET_KEY=sk_live_...
-STRIPE_PRO_PRICE_ID_MONTHLY=price_...
-STRIPE_PRO_PRICE_ID_YEARLY=price_...
-STRIPE_WEBHOOK_SECRET=whsec_...
-DISCORD_BOT_TOKEN=...
-DISCORD_GUILD_ID=...
-DISCORD_TESTER_ROLE_ID=...
-LICENSE_SIGNING_PRIVATE_KEY=<96-character hex private key from private_key.hex>
-```
-
-### Discord Bot (.env file)
-```
-DISCORD_BOT_TOKEN=...
-DISCORD_CLIENT_ID=...
-DISCORD_GUILD_ID=...
-DISCORD_TESTER_ROLE_ID=...
-NETLIFY_SITE_URL=https://lexsort.com
-```
-
----
-
-## Files Reference
-
-| File | Purpose |
-|---|---|
-| `netlify/functions/create-tester-checkout.js` | Creates Stripe checkout session |
-| `netlify/functions/stripe-webhook.js` | Handles payment events, issues keys + roles |
-| `netlify/functions/verify-tester-status.js` | Checks if Discord user has active sub |
-| `discord-bot/tester-manager.js` | Discord bot with `/register`, `/mystatus`, `/mykey`, `/help` |
-| `discord-bot/package.json` | Bot dependencies (discord.js, dotenv) |
-| `discord-bot/.env.example` | Template for bot environment variables |
-| `scripts/generate-test-keys.js` | Generate test keys for local dev |
+3. Update Discord bot's `/register` command to point to real Stripe checkout instead of free beta flow.
