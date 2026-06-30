@@ -76,10 +76,8 @@ export function QuickOrganizer({ activeModel = "llama3.2:3b", serverPort = 11434
 
     useEffect(() => {
         loadTasks();
-        if (calendarImported === 'approved') {
-            loadSystemEvents();
-        }
-    }, [calendarImported]);
+        loadSystemEvents();
+    }, []);
 
     useEffect(() => {
         const handleRefresh = () => {
@@ -122,6 +120,11 @@ export function QuickOrganizer({ activeModel = "llama3.2:3b", serverPort = 11434
     }
 
     async function loadSystemEvents() {
+        const status = localStorage.getItem('vera_calendar_imported');
+        if (status !== 'approved') {
+            setSystemEvents([]);
+            return;
+        }
         setSystemEventsLoading(true);
         setSystemEventsError(null);
         try {
@@ -245,12 +248,20 @@ export function QuickOrganizer({ activeModel = "llama3.2:3b", serverPort = 11434
             if (allowed) {
                 localStorage.setItem('vera_calendar_imported', 'approved');
                 setCalendarImported('approved');
+                setTimeout(() => {
+                    loadSystemEvents();
+                }, 100);
             } else {
                 localStorage.setItem('vera_calendar_imported', 'declined');
                 setCalendarImported('declined');
             }
         } catch (e) {
             console.error('Calendar permission request failed:', e);
+            const errMsg = String(e);
+            if (errMsg.includes('not authorized') || errMsg.includes('-2700') || errMsg.toLowerCase().includes('denied')) {
+                alert('Calendar access not authorized. Please enable Calendar access for VERA in System Settings > Privacy & Security > Calendars.');
+                invoke('open_calendar_settings').catch(err => console.error("Failed to open calendar settings:", err));
+            }
             localStorage.setItem('vera_calendar_imported', 'declined');
             setCalendarImported('declined');
         }
@@ -460,8 +471,90 @@ export function QuickOrganizer({ activeModel = "llama3.2:3b", serverPort = 11434
                     )}
                     
                     {systemEventsError && (
-                        <div style={{ padding: '10px 14px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid var(--red)', borderRadius: '8px', margin: '0 0 12px 0', color: 'var(--red)', fontSize: '12px', textAlign: 'left', lineHeight: '1.4' }}>
-                            ⚠️ <strong>Calendar integration error:</strong> {systemEventsError}
+                        <div style={{ 
+                            padding: '12px 16px', 
+                            background: 'rgba(239, 68, 68, 0.08)', 
+                            border: '1px solid rgba(239, 68, 68, 0.2)', 
+                            borderRadius: '8px', 
+                            margin: '0 0 16px 0', 
+                            color: '#ff6b6b', 
+                            fontSize: '12.5px', 
+                            textAlign: 'left', 
+                            lineHeight: '1.5' 
+                        }}>
+                            <div style={{ fontWeight: 600, marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                ⚠️ Calendar Permission Required
+                            </div>
+                            {systemEventsError.includes("access not authorized") || systemEventsError.includes("-2700") || systemEventsError.includes("authorized") ? (
+                                <div>
+                                    VERA doesn't have permission to read your system calendar. 
+                                    <div style={{ marginTop: '6px', fontSize: '11.5px', color: 'var(--text-muted)' }}>
+                                        <strong>How to fix:</strong>
+                                        <ol style={{ margin: '4px 0 0 16px', padding: 0 }}>
+                                            <li>Open <strong>System Settings &gt; Privacy &amp; Security &gt; Calendars</strong>.</li>
+                                            <li>Toggle the switch for <strong>LexSort VERA</strong> (or your terminal / IDE) to <strong>ON</strong>.</li>
+                                            <li>Or, reset the calendar prompt by running this command in your Terminal: <code style={{ background: 'rgba(255,255,255,0.05)', padding: '2px 4px', borderRadius: '4px', fontFamily: 'monospace', fontSize: '10.5px' }}>tccutil reset Calendar</code></li>
+                                        </ol>
+                                    </div>
+                                    <button 
+                                        className="hdr-btn" 
+                                        style={{ marginTop: '10px', fontSize: '11px', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#ff6b6b', padding: '4px 8px', borderRadius: '4px', background: 'transparent', cursor: 'pointer', marginRight: '8px' }}
+                                        onClick={() => {
+                                            localStorage.removeItem('vera_calendar_imported');
+                                            setCalendarImported(null);
+                                            setSystemEventsError(null);
+                                        }}
+                                    >
+                                        Reset Status
+                                    </button>
+                                    <button 
+                                        className="hdr-btn" 
+                                        style={{ marginTop: '10px', fontSize: '11px', border: '1px solid var(--accent)', color: 'var(--accent)', padding: '4px 8px', borderRadius: '4px', background: 'transparent', cursor: 'pointer' }}
+                                        onClick={() => {
+                                            invoke('open_calendar_settings').catch(err => console.error("Failed to open settings:", err));
+                                        }}
+                                    >
+                                        Open System Settings
+                                    </button>
+                                </div>
+                            ) : (
+                                <div>{systemEventsError}</div>
+                            )}
+                        </div>
+                    )}
+
+                    {calendarImported === 'approved' && !systemEventsLoading && (
+                        <div style={{ padding: '6px 14px', margin: '0 0 8px 0', fontSize: '12px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                📅 {systemEvents.length} calendar event{systemEvents.length !== 1 ? 's' : ''} loaded
+                            </div>
+                            <button 
+                                className="hdr-btn"
+                                style={{ background: 'transparent', border: 'none', color: '#ff6b6b', fontSize: '11px', cursor: 'pointer', padding: 0 }}
+                                onClick={() => {
+                                    localStorage.removeItem('vera_calendar_imported');
+                                    setCalendarImported(null);
+                                    setSystemEvents([]);
+                                }}
+                            >
+                                Disconnect
+                            </button>
+                        </div>
+                    )}
+
+                    {calendarImported === 'declined' && (
+                        <div style={{ padding: '6px 14px', margin: '0 0 8px 0', fontSize: '12px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <span>📅 Calendar integration is inactive.</span>
+                            <button 
+                                className="hdr-btn"
+                                style={{ background: 'transparent', border: 'none', color: 'var(--accent)', fontSize: '11px', cursor: 'pointer', padding: 0 }}
+                                onClick={() => {
+                                    localStorage.removeItem('vera_calendar_imported');
+                                    setCalendarImported(null);
+                                }}
+                            >
+                                Enable Sync
+                            </button>
                         </div>
                     )}
 
