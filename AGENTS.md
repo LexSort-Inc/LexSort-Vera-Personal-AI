@@ -2,9 +2,9 @@
 
 **Project:** LexSort VERA — Local-First Private AI Desktop App
 **Parent:** LexSort Inc. (Corp #1799606-3, BN 774849178, DUNS 243369420, Federal CBCA)
-**Stack:** React 19 (TypeScript) + Rust (Tauri v2) + Ollama/llama-server
-**Freeware v1.1.7** · **Pro v1.0.5** · **Engine v1.0.0** · **iOS Go (Phase 3b)**
-**Launch:** July 1, 2026
+**Stack:** React 19 (TypeScript) + Rust (Tauri v2) + Ollama v0.9.6
+**Freeware v1.1.7** · **Pro v1.0.12** · **Engine v1.0.0** · **iOS Go (Phase 3b)**
+**Last Updated:** June 30, 2026
 
 ---
 
@@ -30,66 +30,116 @@ LexSort Inc. is enrolled in the Canadian SR&ED tax incentive program (35% refund
 ## Repo Structure
 
 ```
-VERA/
-├── vera-freeware/          # Tauri v2 desktop app (React + Rust)
-│   ├── src/                # React frontend (App.tsx, components, hooks)
-│   ├── src-tauri/          # Rust backend (lib.rs, commands, team_lab, etc.)
-│   └── package.json        # npm deps
-├── vera-engine/            # Standalone Rust binary (LLM proxy + model manager)
-│   └── src/main.rs         # Entry point: hardware detect, model download, llama-server
-├── vera-go-ios/            # Swift iOS companion app (Xcode project)
-│   └── VeraGo/             # Views, Services, Models
-├── website/                # Static marketing site (lexsort.com)
-│   └── netlify/            # Serverless functions (Stripe, license, uptime)
-├── scripts/                # Build utilities (build-module.sh, sign-module.js)
-├── docs/                   # Architecture, security, build, update docs
-│   ├── ARCHITECTURE.md     # System design, component map, decisions
-│   ├── AI_ENGINE.md        # Model selection, engine setup, voice
-│   ├── SECURITY.md         # Sandbox, CSP, Ed25519 licensing
-│   ├── BUILD_AND_RELEASE.md # CI/CD, version bump, deploy
-│   └── UPDATE_SYSTEM.md    # In-app update flow
-├── resources/              # Icons, logos
-├── AGENTS.md               # THIS FILE — session briefing
-├── MASTER_HANDOFF.md       # Project state, blockers, session logs
-└── README.md               # Public-facing intro
+VERA/                             ← This repo (Freeware + Engine + iOS + website)
+├── vera-freeware/                # Tauri v2 desktop app (React + Rust)
+│   ├── src/                      # React frontend (App.tsx, components)
+│   ├── src-tauri/                # Rust backend (lib.rs — all commands inline)
+│   └── package.json
+├── vera-engine/                  # Standalone Rust binary (LLM proxy + model manager)
+├── vera-go-ios/                  # Swift iOS companion app
+├── website/                      # Static marketing site (lexsort.com)
+│   └── netlify/                  # Serverless functions (Stripe, license, uptime)
+├── discord-bot/                  # DEPLOYED on Railway — /register /mykey /mystatus /help
+├── scripts/                      # build-module.sh, sign-module.js, generate-test-keys.js
+├── docs/                         # ARCHITECTURE.md, SECURITY.md, BUILD_AND_RELEASE.md etc.
+├── AGENTS.md                     # THIS FILE — read every session
+├── MASTER_HANDOFF.md             # Project state, session logs, outstanding items
+└── KEY_MANIFEST.md               # Cryptographic key reference
+
+02_ACTIVE_PROJECTS/Lexsort-Vera-Pro/   ← Pro repo (separate private clone)
+└── lexsort-vera-pro/
+    ├── src/                      # React frontend — Pro-specific UI
+    │   └── components/
+    │       ├── LicenseGate.tsx   # Shown to returning users with expired license
+    │       └── OnboardingWizard.tsx  # NEW — first-launch wizard (engine+model+license)
+    ├── src-tauri/                # Rust backend — Pro feature flags + module system
+    │   └── src/modules/          # emailer.rs, license.rs, benchmark.rs, history.rs
+    ├── modules/                  # Standalone downloadable module packages
+    │   ├── promailer/            # ProMailer frontend module
+    │   ├── guardian-watch/
+    │   └── research-lab/
+    └── .github/workflows/        # CI: release.yml (v* tag → build all platforms)
 ```
 
-## ProMailer Architecture Distinction
+---
+
+## ProMailer Architecture — CRITICAL DISTINCTION
 
 > [!IMPORTANT]
-> **Standalone ProMailer vs. VERA ProMailer Module:**
-> 1. **Standalone ProMailer:** This is a separate, standalone Python/Flask application (located in the workspace under `JustMeMedia/01_ACTIVE/ProMailer-Mac` or similar) already shipped on a live site from a different GitHub account.
-> 2. **VERA ProMailer Module:** This is a custom React/TypeScript module built specifically for the VERA Pro desktop app, located under `Lexsort-Vera-Pro/lexsort-vera-pro/modules/promailer` (frontend React entry) and supported natively in Rust by VERA Pro's Tauri backend (`src-tauri/src/modules/emailer.rs`).
-> 3. **Freeware Subprocess Fallback:** In the VERA Freeware edition, because native Pro modules are not compiled into the Tauri binary, a fallback bridge is implemented in `lib.rs` that calls out to the Python `lead_finder.py` script from the standalone ProMailer project using non-interactive arguments (`--json-query` and `--json-limit`).
+> **Three separate things — do NOT confuse them:**
+>
+> 1. **Standalone ProMailer** (`JustMeMedia/01_ACTIVE/ProMailer-Mac/`) — A separate Python/Flask application already shipped on a live site from a **different GitHub account**. Has its own `lead_finder.py` web scraper.
+>
+> 2. **VERA Freeware bridge** — `lib.rs` in the Freeware Tauri backend calls `lead_finder.py` as a subprocess using `--json-query` and `--json-limit` CLI flags. This is a temporary bridge until the Pro binary is shipped.
+>
+> 3. **VERA Pro native module** — `src-tauri/src/modules/emailer.rs` implements lead finding natively in Rust using `reqwest` (DuckDuckGo HTML scraper + Google Places). The `modules/promailer/` folder contains the React frontend IIFE bundle.
 
-### Key Files at Session Start
-Always read these to understand current state:
-1. `MASTER_HANDOFF.md` — latest project state, blockers, last session notes
-2. `AGENTS.md` — this briefing
-3. `docs/ARCHITECTURE.md` — system design
-4. `sred_log_vera.html` — latest SR&ED log entries (nearby, in `01_ACTIVE/Lexsort-Legal/`)
+---
+
+## Key Infrastructure — Current State (Jun 30, 2026)
+
+| Component | Status | Location |
+|---|---|---|
+| Discord Bot | ✅ **LIVE** on Railway | `/register`, `/mykey`, `/mystatus`, `/help` all working |
+| Stripe Webhook | ⚠️ Needs env vars in Netlify | `netlify/functions/stripe-webhook.js` |
+| Freeware CI | ✅ Active — auto-builds on `v*` tag | `Lexsort-Core/LexSort-Vera-Personal-AI` |
+| Pro CI | ✅ Active — auto-builds on `v*` tag | `Lexsort-Core/Lexsort-Vera-Pro` |
+| GitHub Actions Secrets (Pro) | ✅ All 6 Apple secrets set | Set 2 weeks ago — APPLE_ID, CERT, TEAM_ID etc. |
+| License Signing Keypair | ✅ Rotated Jun 30 | Private key in `.env.local`, public key in Pro `lexsort_public_key.bin` |
+| Module Signing Keypair | ✅ Active Jun 17 | Private key in `.env.local` (`MODULE_SIGNING_PRIVATE_KEY`) |
+| Netlify deploy | ✅ CLI only — NEVER connect GitHub | `netlify deploy --prod --dir=website` |
 
 ---
 
 ## Dev Commands
 
 ```bash
-# Run Freeware in dev mode
-cd vera-freeware && npm run tauri dev
+# ── Desktop Launcher Shortcuts (double-click on Desktop) ─────────────────────
+# Vera_Freeware_Dev.command  → launches Freeware dev server
+# Vera_Pro_Dev.command       → launches Pro dev server
 
-# Run VERA Engine standalone
-cd vera-engine && cargo run
+# ── Run manually ─────────────────────────────────────────────────────────────
+cd vera-freeware && npm run tauri dev        # Freeware
+cd vera-engine && cargo run                 # Engine standalone
+cd vera-freeware/src-tauri && cargo check   # Rust compile check
+cd vera-freeware/src-tauri && cargo test    # Run tests (sandboxed)
 
-# Check Rust compiles
-cd vera-freeware/src-tauri && cargo check
+# ── Deploy website ────────────────────────────────────────────────────────────
+netlify deploy --prod --dir=website   # CLI ONLY — never connect GitHub to Netlify
 
-# Run tests
-cd vera-freeware/src-tauri && cargo test
-cd vera-engine && cargo test
-
-# Deploy website
+# ── Release a new Freeware version ───────────────────────────────────────────
+# 1. Bump: vera-freeware/src-tauri/tauri.conf.json, package.json, Cargo.toml
+# 2. Bump: website/api/manifest.json
+git tag v1.1.8 && git push origin v1.1.8
 netlify deploy --prod --dir=website
+
+# ── Release a new Pro version ─────────────────────────────────────────────────
+# 1. Bump: lexsort-vera-pro/src-tauri/tauri.conf.json, package.json, Cargo.toml
+git tag v1.0.13 && git push origin v1.0.13
+# CI builds and creates Draft Release automatically on GitHub
+
+# ── Generate beta license keys (for testers) ──────────────────────────────────
+# From VERA repo root (requires LICENSE_SIGNING_PRIVATE_KEY in .env.local)
+node scripts/generate-test-keys.js 5
+
+# ── Build + sign a module ZIP ────────────────────────────────────────────────
+./scripts/build-module.sh promailer --sign
 ```
+
+---
+
+## Version History — Pro CI Tags
+
+> [!NOTE]
+> Pro CI has been running since v1.0.2. Tags v1.0.5–v1.0.11 were workflow fix iterations.
+> **v1.0.12 is the first release with real feature content (onboarding wizard).**
+
+| Tag | What Changed |
+|---|---|
+| v1.0.2 | Initial Pro release |
+| v1.0.5 | Base Pro features |
+| v1.0.6–v1.0.11 | CI/workflow fixes only (Windows runner, signing, node-gyp) |
+| **v1.0.12** | **OnboardingWizard, Ollama v0.9.6 engine URLs, new license keypair** |
 
 ---
 
@@ -101,9 +151,21 @@ netlify deploy --prod --dir=website
 
 ---
 
-## Current Blockers (as of Jun 29, 2026)
-- Windows CI: GitHub spending cap $0 — minutes reset Jul 1
-- CDN module ZIPs: not yet uploaded to modules.lexsort.com
-- Calendar import hang: fix committed, needs device verification
-- Pro version files: still show v1.0.5 (not bumped)
-- License signing key: rotation needed (coordinate with customers)
+## Current Blockers (as of Jun 30, 2026)
+
+- **Pro v1.0.12 CI build** — In progress. Check: https://github.com/Lexsort-Core/Lexsort-Vera-Pro/actions
+- **TAURI_PRIVATE_KEY** — May need adding to Pro repo GitHub secrets if CI fails on update signing step
+- **Stripe env vars** — Not yet set in Netlify dashboard (free beta bypasses Stripe for now)
+- **Module ZIPs** — `.vera-module` signed ZIPs not yet uploaded to CDN (`modules.lexsort.com`)
+- **Freeware public launch** — Held until Windows CI confirmed on real device
+
+---
+
+## DO NOT section — Agent Rules
+
+> [!CAUTION]
+> - **Never** connect GitHub repo to Netlify auto-deploy
+> - **Never** run `cargo test` without `LEXSORT_DIR_OVERRIDE` sandbox env var — it will delete `~/.lexsort`
+> - **Never** assume Pro tag history = version number (tags v1.0.6–v1.0.11 were CI fixes)
+> - **Never** edit the standalone ProMailer (`JustMeMedia/ProMailer-Mac`) as if it's the VERA module
+> - **Never** commit the `.env.local` file (contains private signing keys)
