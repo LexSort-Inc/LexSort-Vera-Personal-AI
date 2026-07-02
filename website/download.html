@@ -126,7 +126,7 @@
 
     /* Hero */
     .download-hero {
-      padding: 60px 0 40px;
+      padding: 60px 0 20px;
       text-align: center;
     }
 
@@ -194,66 +194,6 @@
     .switch-btn.active.pro-active {
       background: linear-gradient(135deg, #a855f7 0%, #6b21a8 100%);
       box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);
-    }
-
-    /* Interactive Console */
-    .console-container {
-      background: #080a0c;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      max-width: 680px;
-      margin: 0 auto 28px;
-      text-align: left;
-      font-family: monospace;
-      font-size: 12px;
-      overflow: hidden;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-    }
-
-    .console-header {
-      background: #161b22;
-      padding: 10px 16px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .console-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-    }
-
-    .dot-red { background: #ff5f56; }
-    .dot-yellow { background: #ffbd2e; }
-    .dot-green { background: #27c93f; }
-
-    .console-title {
-      color: var(--text-muted);
-      margin-left: 10px;
-      font-size: 11px;
-    }
-
-    .console-body {
-      padding: 16px;
-      line-height: 1.6;
-      color: #38bdf8;
-      min-height: 150px;
-    }
-
-    .console-line {
-      margin-bottom: 6px;
-      opacity: 0;
-      transform: translateY(4px);
-      animation: fadeInLine 0.4s forwards;
-    }
-
-    @keyframes fadeInLine {
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
     }
 
     /* Detected OS Action Panel */
@@ -604,23 +544,10 @@
       <p class="subtitle" id="hero-subtitle-text">Secure, sovereign, local-first core. Choose the installer for your platform.</p>
 
       <!-- Interactive Switcher -->
-      <div style="text-align: center; margin-bottom: 30px;">
+      <div style="text-align: center; margin-bottom: 40px;">
         <div class="tier-switcher">
           <button id="btn-switch-free" class="switch-btn active" onclick="switchTier('free')">VERA Freeware</button>
           <button id="btn-switch-pro" class="switch-btn" onclick="switchTier('pro')">VERA Pro (License Required)</button>
-        </div>
-      </div>
-
-      <!-- Interactive Scan -->
-      <div id="scan-console" class="console-container">
-        <div class="console-header">
-          <span class="console-dot dot-red"></span>
-          <span class="console-dot dot-yellow"></span>
-          <span class="console-dot dot-green"></span>
-          <span class="console-title" id="console-title-text">lexsort@vera-freeware-installer-scanner:~</span>
-        </div>
-        <div id="console-body" class="console-body">
-          <!-- Populated by JS -->
         </div>
       </div>
 
@@ -768,26 +695,11 @@
     // Global State for active tier
     let currentTier = "free";
     let detectedRecommendation = "";
-    let detectedDownloadLink = "";
 
     const downloadData = {
       free: {
         title: "LexSort VERA Freeware",
         subtitle: "Secure, sovereign, local-first core. Choose the installer for your platform.",
-        consoleTitle: "lexsort@vera-freeware-installer-scanner:~",
-        tagline: "Recommended: LexSort Vera macOS Apple Silicon (.dmg)",
-        badges: {
-          'mac-silicon': "🍏 macOS (Apple Silicon) Detected",
-          'mac-intel': "🖥️ macOS (Intel Core) Detected",
-          'windows': "🪟 Windows (x64) Detected",
-          'linux': "🐧 Linux (x86_64) Detected"
-        },
-        recTitles: {
-          'mac-silicon': "Download LexSort Vera for Mac (Apple Silicon)",
-          'mac-intel': "Download LexSort Vera for Mac (Intel)",
-          'windows': "Download LexSort Vera for Windows",
-          'linux': "Download LexSort Vera for Linux"
-        },
         links: {
           'mac-silicon': "https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/releases/download/v1.1.7/LexSort.Personal.AI_1.1.7_aarch64.dmg",
           'mac-intel': "https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/releases/download/v1.1.7/LexSort.Personal.AI_1.1.7_x64.dmg",
@@ -808,20 +720,6 @@
       pro: {
         title: "LexSort VERA Pro",
         subtitle: "Secure, sovereign, local-first professional workspace. Choose the installer for your platform.",
-        consoleTitle: "lexsort@vera-pro-installer-scanner:~",
-        tagline: "Recommended: LexSort VERA Pro macOS Apple Silicon (.dmg)",
-        badges: {
-          'mac-silicon': "🍏 macOS (Apple Silicon) Detected",
-          'mac-intel': "🖥️ macOS (Intel Core) Detected",
-          'windows': "🪟 Windows (x64) Detected",
-          'linux': "🐧 Linux (x86_64) Detected"
-        },
-        recTitles: {
-          'mac-silicon': "Download LexSort VERA Pro for Mac (Apple Silicon)",
-          'mac-intel': "Download LexSort VERA Pro for Mac (Intel)",
-          'windows': "Download LexSort VERA Pro for Windows",
-          'linux': "Download LexSort VERA Pro for Linux"
-        },
         links: {
           'mac-silicon': "https://github.com/Lexsort-Core/Lexsort-Vera-Pro/releases/download/v1.0.12/LexSort.VERA.Pro_1.0.12_aarch64.dmg",
           'mac-intel': "https://github.com/Lexsort-Core/Lexsort-Vera-Pro/releases/download/v1.0.12/LexSort.VERA.Pro_1.0.12_x64.dmg",
@@ -854,7 +752,6 @@
         titleText.classList.remove('pro-theme');
       }
       document.getElementById('hero-subtitle-text').innerText = data.subtitle;
-      document.getElementById('console-title-text').innerText = data.consoleTitle;
 
       // Update Nav / Pro Badge
       const proBadge = document.getElementById('header-pro-tag');
@@ -916,15 +813,6 @@
       }
     }
 
-    // Console animation steps
-    const scanSteps = [
-      { text: "$ initializing system capability inspection...", delay: 300 },
-      { text: "> verifying browser agent signature...", delay: 400 },
-      { text: "> querying platform CPU architecture & memory availability...", delay: 500 },
-      { text: "> client environment identified.", delay: 300 },
-    ];
-
-    const consoleBody = document.getElementById('console-body');
     const detectedPanel = document.getElementById('detected-panel');
 
     // Detect user platform
@@ -961,59 +849,6 @@
       }
 
       return { os, isAppleSilicon };
-    }
-
-    function runConsoleScan() {
-      let stepIndex = 0;
-      consoleBody.innerHTML = ""; // Clear console
-
-      function printNextStep() {
-        if (stepIndex < scanSteps.length) {
-          const step = scanSteps[stepIndex];
-          const div = document.createElement('div');
-          div.className = 'console-line';
-          div.textContent = step.text;
-          consoleBody.appendChild(div);
-          
-          stepIndex++;
-          setTimeout(printNextStep, step.delay);
-        } else {
-          // Final OS detection step
-          const clientInfo = detectPlatform();
-          const div = document.createElement('div');
-          div.className = 'console-line';
-          div.style.color = '#10b981'; // success green
-          
-          let recommendation = "";
-
-          if (clientInfo.os === "mac") {
-            if (clientInfo.isAppleSilicon) {
-              recommendation = "mac-silicon";
-            } else {
-              recommendation = "mac-intel";
-            }
-          } else if (clientInfo.os === "linux") {
-            recommendation = "linux";
-          } else {
-            recommendation = "windows";
-          }
-
-          detectedRecommendation = recommendation;
-          const data = downloadData[currentTier];
-          const recLinkKey = recommendation === "linux" ? "linux-appimage" : recommendation;
-          
-          div.textContent = `[SUCCESS] OS: ${clientInfo.os === "mac" ? "macOS" : clientInfo.os === "linux" ? "Linux" : "Windows"}. CPU Architecture: ${clientInfo.os === "mac" && clientInfo.isAppleSilicon ? "ARM64" : "x86_64"}. Recommended build: ${data.labels[recLinkKey]}`;
-
-          consoleBody.appendChild(div);
-
-          // Animate panels
-          setTimeout(() => {
-            showDetectedPanel(recommendation);
-          }, 800);
-        }
-      }
-
-      printNextStep();
     }
 
     function showDetectedPanel(recommendation) {
@@ -1086,7 +921,18 @@
       const isProParam = urlParams.get('pro') === 'true' || urlParams.get('pro') === '1' || urlParams.get('tier') === 'pro';
       
       switchTier(isProParam ? 'pro' : 'free');
-      runConsoleScan();
+      
+      // Instantly run hardware/OS check on load (without simulated text animation)
+      const clientInfo = detectPlatform();
+      let recommendation = "";
+      if (clientInfo.os === "mac") {
+        recommendation = clientInfo.isAppleSilicon ? "mac-silicon" : "mac-intel";
+      } else if (clientInfo.os === "linux") {
+        recommendation = "linux";
+      } else {
+        recommendation = "windows";
+      }
+      showDetectedPanel(recommendation);
     };
   </script>
 </body>
