@@ -5,6 +5,7 @@ on:
     tags:
       - 'v*'
   # Manual trigger: lets you build one platform at a time to save CI minutes.
+  # Windows is manual-only (~$8/run on GitHub paid minutes). Tag pushes auto-build macOS + Linux only.
   # Go to GitHub → Actions → "Build & Release VERA Freeware" → Run workflow
   workflow_dispatch:
     inputs:
@@ -51,13 +52,8 @@ jobs:
     runs-on: ${{ matrix.platform }}
 
     # Skip jobs that don't match the selected platform on manual runs.
-    # Tag pushes always build everything (full release).
-    if: |
-      github.event_name == 'push' ||
-      inputs.platform == 'all' ||
-      (inputs.platform == 'windows-only' && matrix.label == 'windows') ||
-      (inputs.platform == 'macos-only'   && matrix.label == 'macos')   ||
-      (inputs.platform == 'linux-only'   && matrix.label == 'linux')
+    # Tag pushes build macOS + Linux only (Windows is manual-only to avoid ~$8/run).
+    if: ${{ (github.event_name == 'push' && matrix.label != 'windows') || inputs.platform == 'all' || (inputs.platform == 'windows-only' && matrix.label == 'windows') || (inputs.platform == 'macos-only' && matrix.label == 'macos') || (inputs.platform == 'linux-only' && matrix.label == 'linux') }}
 
     steps:
       - uses: actions/checkout@v4
