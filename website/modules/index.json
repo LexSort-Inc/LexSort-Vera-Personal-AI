@@ -1,35 +1,35 @@
 {
-  "generated_at": "2026-06-17T20:34:04Z",
+  "generated_at": "2026-06-15T09:37:54Z",
   "modules": {
-    "promailer": {
-      "display_name": "ProMailer",
+    "hello-world": {
+      "display_name": "Hello World Test",
       "version": "1.0.0",
-      "description": "AI-powered cold email outreach. Find leads, craft personalized emails, send via your SMTP, detect replies — 100% offline, zero cloud.",
-      "requires_pro": true,
-      "icon": "✉️",
-      "min_pro_version": "1.0.5",
-      "api_version": "1",
-      "release_notes": "Initial public release. Lead finder, campaign manager, SMTP outreach, reply detection.",
+      "description": "Verification test module to ensure VERA Pro hot-loading loader works end-to-end.",
+      "requires_pro": false,
+      "icon": "http://127.0.0.1:45000/assets/hello-world.png",
+      "min_pro_version": "1.0.0",
+      "api_version": "1.0.0",
+      "release_notes": "Initial release.",
       "targets": {
         "macos_aarch64": {
-          "url": "https://modules.lexsort.com/modules/promailer-1.0.0-macos_aarch64.vera-module",
-          "size_bytes": 15215,
-          "sha256": "a797575265d8abc38d5239ed7763d42c3084983010844aadbd3ee8d711fd3e24"
+          "url": "http://127.0.0.1:45000/modules/hello-world-1.0.0-macos_aarch64.vera-module",
+          "size_bytes": 1165,
+          "sha256": "0448a078264eb848039402bbefeace173dfac5b4d1dfe1441c7680526f2d30f9"
         },
         "macos_x86_64": {
-          "url": "https://modules.lexsort.com/modules/promailer-1.0.0-macos_x86_64.vera-module",
-          "size_bytes": 15215,
-          "sha256": "a797575265d8abc38d5239ed7763d42c3084983010844aadbd3ee8d711fd3e24"
+          "url": "http://127.0.0.1:45000/modules/hello-world-1.0.0-macos_x86_64.vera-module",
+          "size_bytes": 1165,
+          "sha256": "0448a078264eb848039402bbefeace173dfac5b4d1dfe1441c7680526f2d30f9"
         },
         "windows_x86_64": {
-          "url": "https://modules.lexsort.com/modules/promailer-1.0.0-windows_x86_64.vera-module",
-          "size_bytes": 15215,
-          "sha256": "a797575265d8abc38d5239ed7763d42c3084983010844aadbd3ee8d711fd3e24"
+          "url": "http://127.0.0.1:45000/modules/hello-world-1.0.0-windows_x86_64.vera-module",
+          "size_bytes": 1165,
+          "sha256": "0448a078264eb848039402bbefeace173dfac5b4d1dfe1441c7680526f2d30f9"
         },
         "linux_x86_64": {
-          "url": "https://modules.lexsort.com/modules/promailer-1.0.0-linux_x86_64.vera-module",
-          "size_bytes": 15215,
-          "sha256": "a797575265d8abc38d5239ed7763d42c3084983010844aadbd3ee8d711fd3e24"
+          "url": "http://127.0.0.1:45000/modules/hello-world-1.0.0-linux_x86_64.vera-module",
+          "size_bytes": 1165,
+          "sha256": "0448a078264eb848039402bbefeace173dfac5b4d1dfe1441c7680526f2d30f9"
         }
       }
     },
@@ -38,62 +38,31 @@
       "version": "1.0.0",
       "description": "Real-time system resource monitor and AI diagnostic assistant. Explains RAM/CPU usage and system health anomalies in plain English.",
       "requires_pro": true,
-      "icon": "🛡️",
-      "min_pro_version": "1.0.5",
-      "api_version": "1",
-      "release_notes": "Standalone module release. Polls CPU, RAM, disk every 2s. AI explain available in Pro.",
+      "icon": "http://127.0.0.1:45000/assets/guardian-watch.png",
+      "min_pro_version": "1.0.0",
+      "api_version": "1.0.0",
+      "supported_platforms": ["macos_aarch64", "macos_x86_64"],
+      "release_notes": "Initial release.",
       "targets": {
         "macos_aarch64": {
-          "url": "https://modules.lexsort.com/modules/guardian-watch-1.0.0-macos_aarch64.vera-module",
-          "size_bytes": 4108,
-          "sha256": "1d2d679487c6d8e42ae60ff06bf54d3b79046fee7b81d4bdc7577a85bd1652d3"
+          "url": "http://127.0.0.1:45000/modules/guardian-watch-1.0.0-macos_aarch64.vera-module",
+          "size_bytes": 4200,
+          "sha256": "45a588dd24ca8305d7c87de5fa359e1baff3c335d667718da2e4011e5d1d6d85"
         },
         "macos_x86_64": {
-          "url": "https://modules.lexsort.com/modules/guardian-watch-1.0.0-macos_x86_64.vera-module",
-          "size_bytes": 4108,
-          "sha256": "1d2d679487c6d8e42ae60ff06bf54d3b79046fee7b81d4bdc7577a85bd1652d3"
+          "url": "http://127.0.0.1:45000/modules/guardian-watch-1.0.0-macos_x86_64.vera-module",
+          "size_bytes": 4200,
+          "sha256": "45a588dd24ca8305d7c87de5fa359e1baff3c335d667718da2e4011e5d1d6d85"
         },
         "windows_x86_64": {
-          "url": "https://modules.lexsort.com/modules/guardian-watch-1.0.0-windows_x86_64.vera-module",
-          "size_bytes": 4108,
-          "sha256": "1d2d679487c6d8e42ae60ff06bf54d3b79046fee7b81d4bdc7577a85bd1652d3"
+          "url": "http://127.0.0.1:45000/modules/guardian-watch-1.0.0-windows_x86_64.vera-module",
+          "size_bytes": 4200,
+          "sha256": "45a588dd24ca8305d7c87de5fa359e1baff3c335d667718da2e4011e5d1d6d85"
         },
         "linux_x86_64": {
-          "url": "https://modules.lexsort.com/modules/guardian-watch-1.0.0-linux_x86_64.vera-module",
-          "size_bytes": 4108,
-          "sha256": "1d2d679487c6d8e42ae60ff06bf54d3b79046fee7b81d4bdc7577a85bd1652d3"
-        }
-      }
-    },
-    "research-lab": {
-      "display_name": "Research Lab",
-      "version": "1.0.0",
-      "description": "Local model benchmark suite, latency instrumentation, and semantic testbed. Compare models, log TPS, share results.",
-      "requires_pro": true,
-      "icon": "🧪",
-      "min_pro_version": "1.0.5",
-      "api_version": "1",
-      "release_notes": "Standalone module release. Full benchmark suite with history, export, and ShareCard.",
-      "targets": {
-        "macos_aarch64": {
-          "url": "https://modules.lexsort.com/modules/research-lab-1.0.0-macos_aarch64.vera-module",
-          "size_bytes": 12979,
-          "sha256": "031a7385454fa7bc76994f756e89b433002dbb6a2e71ab8b4be122dfde40c115"
-        },
-        "macos_x86_64": {
-          "url": "https://modules.lexsort.com/modules/research-lab-1.0.0-macos_x86_64.vera-module",
-          "size_bytes": 12979,
-          "sha256": "031a7385454fa7bc76994f756e89b433002dbb6a2e71ab8b4be122dfde40c115"
-        },
-        "windows_x86_64": {
-          "url": "https://modules.lexsort.com/modules/research-lab-1.0.0-windows_x86_64.vera-module",
-          "size_bytes": 12979,
-          "sha256": "031a7385454fa7bc76994f756e89b433002dbb6a2e71ab8b4be122dfde40c115"
-        },
-        "linux_x86_64": {
-          "url": "https://modules.lexsort.com/modules/research-lab-1.0.0-linux_x86_64.vera-module",
-          "size_bytes": 12979,
-          "sha256": "031a7385454fa7bc76994f756e89b433002dbb6a2e71ab8b4be122dfde40c115"
+          "url": "http://127.0.0.1:45000/modules/guardian-watch-1.0.0-linux_x86_64.vera-module",
+          "size_bytes": 4200,
+          "sha256": "45a588dd24ca8305d7c87de5fa359e1baff3c335d667718da2e4011e5d1d6d85"
         }
       }
     },
@@ -102,62 +71,49 @@
       "version": "1.0.0",
       "description": "LAN Mobile Bridge. Scan a QR code to chat with VERA from your mobile browser over local Wi-Fi, completely offline.",
       "requires_pro": true,
-      "icon": "📱",
+      "icon": "http://127.0.0.1:45000/assets/lexsort-go.png",
       "min_pro_version": "1.0.0",
       "api_version": "1.0.0",
+      "supported_platforms": ["macos_aarch64", "macos_x86_64"],
       "release_notes": "Initial release.",
       "targets": {
         "macos_aarch64": {
-          "url": "https://modules.lexsort.com/modules/lexsort-go-1.0.0-macos_aarch64.vera-module",
+          "url": "http://127.0.0.1:45000/modules/lexsort-go-1.0.0-macos_aarch64.vera-module",
           "size_bytes": 3397,
           "sha256": "95cdac6a504a212d199f2073312203d7a5df0b42e26411e15b3e4650e3cdd03b"
         },
         "macos_x86_64": {
-          "url": "https://modules.lexsort.com/modules/lexsort-go-1.0.0-macos_x86_64.vera-module",
+          "url": "http://127.0.0.1:45000/modules/lexsort-go-1.0.0-macos_x86_64.vera-module",
           "size_bytes": 3397,
           "sha256": "95cdac6a504a212d199f2073312203d7a5df0b42e26411e15b3e4650e3cdd03b"
         },
         "windows_x86_64": {
-          "url": "https://modules.lexsort.com/modules/lexsort-go-1.0.0-windows_x86_64.vera-module",
+          "url": "http://127.0.0.1:45000/modules/lexsort-go-1.0.0-windows_x86_64.vera-module",
           "size_bytes": 3397,
           "sha256": "95cdac6a504a212d199f2073312203d7a5df0b42e26411e15b3e4650e3cdd03b"
         },
         "linux_x86_64": {
-          "url": "https://modules.lexsort.com/modules/lexsort-go-1.0.0-linux_x86_64.vera-module",
+          "url": "http://127.0.0.1:45000/modules/lexsort-go-1.0.0-linux_x86_64.vera-module",
           "size_bytes": 3397,
           "sha256": "95cdac6a504a212d199f2073312203d7a5df0b42e26411e15b3e4650e3cdd03b"
         }
       }
     },
-    "hello-world": {
-      "display_name": "Hello World Test",
+    "business-organizer": {
+      "display_name": "Business Organizer",
       "version": "1.0.0",
-      "description": "Verification test module to ensure VERA Pro hot-loading loader works end-to-end.",
-      "requires_pro": false,
-      "icon": "🚀",
+      "description": "Personal and business ledger, receipt scanning, time tracking, invoicing, CRA tax worksheets, and offline grant opportunity engine.",
+      "requires_pro": true,
+      "icon": "http://127.0.0.1:45000/assets/business-organizer.png",
       "min_pro_version": "1.0.0",
       "api_version": "1.0.0",
-      "release_notes": "Initial release.",
+      "supported_platforms": ["macos_aarch64", "macos_x86_64"],
+      "release_notes": "Updated build.",
       "targets": {
         "macos_aarch64": {
-          "url": "https://modules.lexsort.com/modules/hello-world-1.0.0-macos_aarch64.vera-module",
-          "size_bytes": 1165,
-          "sha256": "0448a078264eb848039402bbefeace173dfac5b4d1dfe1441c7680526f2d30f9"
-        },
-        "macos_x86_64": {
-          "url": "https://modules.lexsort.com/modules/hello-world-1.0.0-macos_x86_64.vera-module",
-          "size_bytes": 1165,
-          "sha256": "0448a078264eb848039402bbefeace173dfac5b4d1dfe1441c7680526f2d30f9"
-        },
-        "windows_x86_64": {
-          "url": "https://modules.lexsort.com/modules/hello-world-1.0.0-windows_x86_64.vera-module",
-          "size_bytes": 1165,
-          "sha256": "0448a078264eb848039402bbefeace173dfac5b4d1dfe1441c7680526f2d30f9"
-        },
-        "linux_x86_64": {
-          "url": "https://modules.lexsort.com/modules/hello-world-1.0.0-linux_x86_64.vera-module",
-          "size_bytes": 1165,
-          "sha256": "0448a078264eb848039402bbefeace173dfac5b4d1dfe1441c7680526f2d30f9"
+          "url": "http://127.0.0.1:45000/modules/business-organizer-1.0.0-macos_aarch64.vera-module",
+          "size_bytes": 110863386,
+          "sha256": "e07adb9dbd2efc7d8e4b1a3e1b1aa0dcf4bf97d64eb59efbeac63c13558d7d77"
         }
       }
     }

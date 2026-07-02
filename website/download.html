@@ -3,25 +3,23 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Download LexSort Vera — LexSort</title>
+  <title>Download LexSort VERA</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@700;800;900&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@700;800;900&display=swap" rel="stylesheet">
   <style>
     :root {
       --canvas: #050709;
       --surface: #0a0e14;
-      --surface-glass: rgba(10, 14, 20, 0.75);
+      --surface-glass: rgba(10, 14, 20, 0.7);
       --accent: #2e71c2;
       --accent-glow: rgba(46, 113, 194, 0.15);
       --accent-gradient: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-      --border: #1f2937;
+      --border: #21262d;
       --text-main: #f3f4f6;
-      --text-muted: #9ca3af;
+      --text-muted: #7d8590;
       --success: #10b981;
       --success-glow: rgba(16, 185, 129, 0.15);
-      --terminal-bg: #030507;
-      --terminal-border: #1e293b;
     }
 
     * {
@@ -36,7 +34,7 @@
       font-family: 'Inter', -apple-system, sans-serif;
       line-height: 1.6;
       overflow-x: hidden;
-      scroll-behavior: smooth;
+      position: relative;
     }
 
     .container {
@@ -45,22 +43,22 @@
       padding: 0 24px;
     }
 
-    /* Background Glow Effects */
+    /* Ambient background glows */
     .glow-bg {
       position: absolute;
-      top: -100px;
+      top: -150px;
       left: 50%;
       transform: translateX(-50%);
       width: 1000px;
       height: 500px;
-      background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+      background: radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 65%);
       z-index: -1;
       pointer-events: none;
     }
 
-    /* Navigation Header */
+    /* Header Nav */
     header.nav-header {
-      padding: 24px 0;
+      padding: 20px 0;
       border-bottom: 1px solid var(--border);
       background: rgba(5, 7, 9, 0.85);
       backdrop-filter: blur(12px);
@@ -84,38 +82,49 @@
     }
 
     .logo-block img {
-      width: 40px;
-      height: 40px;
+      width: 36px;
+      height: 36px;
       border-radius: 8px;
       background: #fff;
-      padding: 2px;
+      padding: 1px;
     }
 
     .logo-block span.brand-name {
       font-family: 'Outfit', sans-serif;
-      font-size: 20px;
+      font-size: 18px;
       font-weight: 800;
       letter-spacing: -0.5px;
     }
 
+    .pro-tag {
+      font-size: 10px;
+      font-weight: 900;
+      background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);
+      color: #fff;
+      padding: 2px 6px;
+      border-radius: 4px;
+      letter-spacing: 0.05em;
+      display: none;
+    }
+
     .nav-links {
       display: flex;
-      gap: 24px;
+      gap: 20px;
     }
 
     .nav-links a {
       color: var(--text-muted);
       text-decoration: none;
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 500;
       transition: color 0.2s;
     }
 
-    .nav-links a:hover {
+    .nav-links a:hover, .nav-links a.active {
       color: #fff;
     }
 
-    /* Main Section */
+    /* Hero */
     .download-hero {
       padding: 60px 0 40px;
       text-align: center;
@@ -130,68 +139,111 @@
       color: #fff;
     }
 
-    .download-hero h1 span.gradient-text {
-      background: linear-gradient(135deg, #60a5fa 0%, #2563eb 100%);
+    .gradient-text {
+      background: var(--accent-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .gradient-text.pro-theme {
+      background: linear-gradient(135deg, #c084fc 0%, #a855f7 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
 
     .subtitle {
-      font-size: 18px;
+      font-size: 16px;
       color: var(--text-muted);
       max-width: 600px;
-      margin: 0 auto 40px;
+      margin: 0 auto 30px;
     }
 
-    /* Immersive System Scan Console */
+    /* Tier Switcher Styles */
+    .tier-switcher {
+      display: inline-flex;
+      background: rgba(10, 14, 20, 0.6);
+      border: 1px solid var(--border);
+      border-radius: 9999px;
+      padding: 4px;
+      margin: 0 auto;
+      backdrop-filter: blur(12px);
+    }
+
+    .switch-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 10px 24px;
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: 9999px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .switch-btn:hover {
+      color: #fff;
+    }
+
+    .switch-btn.active {
+      background: var(--accent-gradient);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    }
+
+    .switch-btn.active.pro-active {
+      background: linear-gradient(135deg, #a855f7 0%, #6b21a8 100%);
+      box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);
+    }
+
+    /* Interactive Console */
     .console-container {
-      max-width: 680px;
-      margin: 0 auto 48px;
-      background: var(--terminal-bg);
-      border: 1px solid var(--terminal-border);
+      background: #080a0c;
+      border: 1px solid var(--border);
       border-radius: 12px;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
-      overflow: hidden;
+      max-width: 680px;
+      margin: 0 auto 28px;
       text-align: left;
+      font-family: monospace;
+      font-size: 12px;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
     }
 
     .console-header {
-      background: #0d1117;
-      padding: 12px 16px;
-      border-bottom: 1px solid var(--terminal-border);
+      background: #161b22;
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
     }
 
     .console-dot {
-      width: 12px;
-      height: 12px;
+      width: 10px;
+      height: 10px;
       border-radius: 50%;
     }
-    .dot-red { background: #ef4444; }
-    .dot-yellow { background: #f59e0b; }
-    .dot-green { background: #10b981; }
+
+    .dot-red { background: #ff5f56; }
+    .dot-yellow { background: #ffbd2e; }
+    .dot-green { background: #27c93f; }
 
     .console-title {
-      font-size: 12px;
-      font-weight: 600;
       color: var(--text-muted);
-      margin-left: 8px;
-      font-family: 'Fira Code', monospace;
+      margin-left: 10px;
+      font-size: 11px;
     }
 
     .console-body {
-      padding: 24px;
-      font-family: 'Fira Code', monospace;
-      font-size: 14px;
+      padding: 16px;
       line-height: 1.6;
       color: #38bdf8;
-      min-height: 200px;
+      min-height: 150px;
     }
 
     .console-line {
-      margin-bottom: 8px;
+      margin-bottom: 6px;
       opacity: 0;
       transform: translateY(4px);
       animation: fadeInLine 0.4s forwards;
@@ -317,6 +369,7 @@
       display: flex;
       flex-direction: column;
       justify-content: space-between;
+      transition: border-color 0.3s, box-shadow 0.3s, transform 0.3s;
     }
 
     .platform-info {
@@ -386,7 +439,7 @@
 
     /* Setup Guide Section */
     .guide-section {
-      padding: 60px 0;
+      padding: 40px 0 65px;
       border-top: 1px solid var(--border);
     }
 
@@ -405,13 +458,10 @@
 
     .guide-card h3 {
       font-family: 'Outfit', sans-serif;
-      font-size: 18px;
+      font-size: 16px;
       font-weight: 700;
-      margin-bottom: 12px;
       color: #fff;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      margin-bottom: 14px;
     }
 
     .guide-card ol {
@@ -421,21 +471,17 @@
     }
 
     .guide-card ol li {
-      margin-bottom: 10px;
+      margin-bottom: 8px;
     }
 
-    .guide-card ol li strong {
-      color: #fff;
-    }
-
-    /* Community Footer Section */
+    /* Community section */
     .community-bar {
-      padding: 40px;
-      background: var(--surface);
+      background: linear-gradient(135deg, rgba(37, 99, 235, 0.05) 0%, rgba(124, 58, 237, 0.05) 100%);
       border: 1px solid var(--border);
       border-radius: 16px;
+      padding: 40px;
       text-align: center;
-      margin-bottom: 60px;
+      margin-bottom: 80px;
     }
 
     .community-bar h2 {
@@ -448,7 +494,7 @@
     .community-bar p {
       color: var(--text-muted);
       font-size: 14px;
-      margin-bottom: 20px;
+      margin-bottom: 24px;
     }
 
     .community-links {
@@ -459,32 +505,46 @@
     }
 
     .community-btn {
-      color: #fff;
       text-decoration: none;
-      padding: 10px 20px;
+      padding: 10px 24px;
       border-radius: 6px;
-      font-size: 14px;
-      font-weight: 700;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      transition: transform 0.2s, opacity 0.2s;
+      font-size: 13px;
+      font-weight: 600;
+      transition: background 0.2s, transform 0.2s;
     }
 
-    .community-btn:hover {
-      transform: translateY(-2px);
-      opacity: 0.95;
+    .btn-discord {
+      background: #5865f2;
+      color: #fff;
     }
 
-    .btn-discord { background-color: #5865F2; }
-    .btn-reddit { background-color: #FF4500; }
-    .btn-github { background-color: #24292e; border: 1px solid var(--border); }
+    .btn-discord:hover {
+      background: #4752c4;
+    }
+
+    .btn-reddit {
+      background: #ff4500;
+      color: #fff;
+    }
+
+    .btn-reddit:hover {
+      background: #e03d00;
+    }
+
+    .btn-github {
+      background: #24292f;
+      color: #fff;
+      border: 1px solid var(--border);
+    }
+
+    .btn-github:hover {
+      background: #2f363d;
+    }
 
     /* Footer */
     footer {
       border-top: 1px solid var(--border);
-      padding: 40px 0;
-      background: #020304;
+      padding: 30px 0;
       text-align: center;
     }
 
@@ -523,8 +583,9 @@
   <header class="nav-header">
     <div class="container nav-container">
       <a href="index.html" class="logo-block">
-        <img src="vera-logo-site.jpg" alt="VERA" />
-        <span class="brand-name">VERA</span>
+        <img src="vera-logo-site.jpg" alt="LexSort Logo" />
+        <span class="brand-name">LexSort VERA</span>
+        <span class="pro-tag" id="header-pro-tag">PRO</span>
       </a>
       <nav class="nav-links">
         <a href="vera.html">VERA</a>
@@ -539,8 +600,16 @@
   <!-- Hero -->
   <section class="download-hero">
     <div class="container">
-      <h1>Get <span class="gradient-text">LexSort Vera Freeware</span></h1>
-      <p class="subtitle">Secure, sovereign, local intelligence. Choose the installer for your platform.</p>
+      <h1>Get <span id="hero-title-text" class="gradient-text">LexSort VERA Freeware</span></h1>
+      <p class="subtitle" id="hero-subtitle-text">Secure, sovereign, local-first core. Choose the installer for your platform.</p>
+
+      <!-- Interactive Switcher -->
+      <div style="text-align: center; margin-bottom: 30px;">
+        <div class="tier-switcher">
+          <button id="btn-switch-free" class="switch-btn active" onclick="switchTier('free')">VERA Freeware</button>
+          <button id="btn-switch-pro" class="switch-btn" onclick="switchTier('pro')">VERA Pro (License Required)</button>
+        </div>
+      </div>
 
       <!-- Interactive Scan -->
       <div id="scan-console" class="console-container">
@@ -548,7 +617,7 @@
           <span class="console-dot dot-red"></span>
           <span class="console-dot dot-yellow"></span>
           <span class="console-dot dot-green"></span>
-          <span class="console-title">lexsort@vera-installer-scanner:~</span>
+          <span class="console-title" id="console-title-text">lexsort@vera-freeware-installer-scanner:~</span>
         </div>
         <div id="console-body" class="console-body">
           <!-- Populated by JS -->
@@ -558,12 +627,12 @@
       <!-- Dynamic OS Panel -->
       <div id="detected-panel" class="detected-panel">
         <div class="detected-os-badge" id="detected-os-badge">🍏 macOS (Apple Silicon) Detected</div>
-        <h2 id="detected-title">Download LexSort Vera for Mac</h2>
+        <h2 id="detected-title">Download LexSort VERA for Mac</h2>
         <p id="detected-desc">Optimized for Apple Silicon processors. Fully self-contained local workspace installer.</p>
         <a href="#" id="detected-download-btn" class="main-download-btn">
-          ⬇ Download LexSort Vera Freeware
+          ⬇ Download LexSort VERA
         </a>
-        <div class="detected-subtext" id="detected-subtext">Version 1.1.7 (LexSort Vera Freeware) · Calendar & Local Ollama Integration</div>
+        <div class="detected-subtext" id="detected-subtext">Version 1.1.7 (LexSort Vera Freeware) · Open-source local AI core</div>
       </div>
 
     </div>
@@ -582,8 +651,8 @@
           <span class="verification-badge">✓ Tested & working (Developer specs)</span>
         </div>
         <div class="download-links">
-          <a href="https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/releases/download/v1.1.7/LexSort.Personal.AI_1.1.7_aarch64.dmg" class="download-link">
-            <span>LexSort Vera macOS Apple Silicon</span>
+          <a href="#" id="link-mac-silicon" class="download-link">
+            <span id="label-mac-silicon">LexSort Vera macOS Apple Silicon</span>
             <span class="ext">.dmg (Apple Silicon)</span>
           </a>
         </div>
@@ -597,8 +666,8 @@
           <span class="verification-badge">✓ Compiled binary available</span>
         </div>
         <div class="download-links">
-          <a href="https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/releases/download/v1.1.7/LexSort.Personal.AI_1.1.7_x64.dmg" class="download-link">
-            <span>LexSort Vera macOS Intel</span>
+          <a href="#" id="link-mac-intel" class="download-link">
+            <span id="label-mac-intel">LexSort Vera macOS Intel</span>
             <span class="ext">.dmg (Intel)</span>
           </a>
         </div>
@@ -612,8 +681,8 @@
           <span class="verification-badge">✓ Built & tested</span>
         </div>
         <div class="download-links">
-          <a href="https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/releases/download/v1.1.7/LexSort.Personal.AI_1.1.7_x64_en-US.msi" class="download-link">
-            <span>LexSort Vera Windows Installer</span>
+          <a href="#" id="link-windows" class="download-link">
+            <span id="label-windows">LexSort Vera Windows Installer</span>
             <span class="ext">.msi (Windows Installer)</span>
           </a>
         </div>
@@ -627,12 +696,12 @@
           <span class="verification-badge">✓ Compiled binaries</span>
         </div>
         <div class="download-links">
-          <a href="https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/releases/download/v1.1.7/LexSort.Personal.AI_1.1.7_amd64.deb" class="download-link" style="margin-bottom: 8px;">
-            <span>LexSort Vera Linux Package</span>
+          <a href="#" id="link-linux-deb" class="download-link" style="margin-bottom: 8px;">
+            <span id="label-linux-deb">LexSort Vera Linux Package</span>
             <span class="ext">.deb</span>
           </a>
-          <a href="https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/releases/download/v1.1.7/LexSort.Personal.AI_1.1.7_amd64.AppImage" class="download-link">
-            <span>LexSort Vera Linux AppImage</span>
+          <a href="#" id="link-linux-appimage" class="download-link">
+            <span id="label-linux-appimage">LexSort Vera Linux AppImage</span>
             <span class="ext">.AppImage</span>
           </a>
         </div>
@@ -658,7 +727,7 @@
       <div class="guide-card">
         <h3>🪟 Windows Setup</h3>
         <ol>
-          <li>Download the <strong>.zip</strong> installer, extract, and run the <strong>.exe</strong> or <strong>.msi</strong>.</li>
+          <li>Download the installer, extract, and run the <strong>.exe</strong> or <strong>.msi</strong>.</li>
           <li>If Windows SmartScreen appears, select <strong>More Info</strong> and click <strong>Run Anyway</strong> — this is normal for new applications not yet in Microsoft's signing database.</li>
         </ol>
       </div>
@@ -667,7 +736,7 @@
       <div class="guide-card">
         <h3>🐧 Linux Setup</h3>
         <ol>
-          <li>For Debian/Ubuntu, download the <strong>.deb</strong> and install via: <code>sudo dpkg -i lexsort-vera_1.1.7_amd64.deb</code>.</li>
+          <li>For Debian/Ubuntu, download the <strong>.deb</strong> and install via: <code id="linux-install-cmd">sudo dpkg -i lexsort-vera_1.1.7_amd64.deb</code>.</li>
           <li>Alternatively use the <strong>.AppImage</strong>: <code>chmod +x *.AppImage</code> then run directly.</li>
           <li>Linux support is community-tested — if you hit any issues use the <strong>Help & Support</strong> tab inside the app to send a bug report.</li>
         </ol>
@@ -679,7 +748,7 @@
   <section class="container">
     <div class="community-bar">
       <h2>Join the Community & Give Feedback</h2>
-      <p>LexSort Vera is a community-driven freeware project. Please share bugs, feature requests, and tests on our community boards!</p>
+      <p>LexSort Vera is a community-driven project. Please share bugs, feature requests, and tests on our community boards!</p>
       <div class="community-links">
         <a href="https://discord.gg/kpZ3hWyAaq" target="_blank" class="community-btn btn-discord">Discord Server</a>
         <a href="https://www.reddit.com/r/LexSort/" target="_blank" class="community-btn btn-reddit">r/LexSort Reddit</a>
@@ -696,6 +765,157 @@
   </footer>
 
   <script>
+    // Global State for active tier
+    let currentTier = "free";
+    let detectedRecommendation = "";
+    let detectedDownloadLink = "";
+
+    const downloadData = {
+      free: {
+        title: "LexSort VERA Freeware",
+        subtitle: "Secure, sovereign, local-first core. Choose the installer for your platform.",
+        consoleTitle: "lexsort@vera-freeware-installer-scanner:~",
+        tagline: "Recommended: LexSort Vera macOS Apple Silicon (.dmg)",
+        badges: {
+          'mac-silicon': "🍏 macOS (Apple Silicon) Detected",
+          'mac-intel': "🖥️ macOS (Intel Core) Detected",
+          'windows': "🪟 Windows (x64) Detected",
+          'linux': "🐧 Linux (x86_64) Detected"
+        },
+        recTitles: {
+          'mac-silicon': "Download LexSort Vera for Mac (Apple Silicon)",
+          'mac-intel': "Download LexSort Vera for Mac (Intel)",
+          'windows': "Download LexSort Vera for Windows",
+          'linux': "Download LexSort Vera for Linux"
+        },
+        links: {
+          'mac-silicon': "https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/releases/download/v1.1.7/LexSort.Personal.AI_1.1.7_aarch64.dmg",
+          'mac-intel': "https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/releases/download/v1.1.7/LexSort.Personal.AI_1.1.7_x64.dmg",
+          'windows': "https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/releases/download/v1.1.7/LexSort.Personal.AI_1.1.7_x64_en-US.msi",
+          'linux-deb': "https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/releases/download/v1.1.7/LexSort.Personal.AI_1.1.7_amd64.deb",
+          'linux-appimage': "https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/releases/download/v1.1.7/LexSort.Personal.AI_1.1.7_amd64.AppImage"
+        },
+        labels: {
+          'mac-silicon': "LexSort Vera macOS Apple Silicon",
+          'mac-intel': "LexSort Vera macOS Intel",
+          'windows': "LexSort Vera Windows Installer",
+          'linux-deb': "LexSort Vera Linux Package",
+          'linux-appimage': "LexSort Vera Linux AppImage"
+        },
+        linuxCmd: "sudo dpkg -i lexsort-vera_1.1.7_amd64.deb",
+        subtext: "Version 1.1.7 (LexSort Vera Freeware) · Open-source local AI core"
+      },
+      pro: {
+        title: "LexSort VERA Pro",
+        subtitle: "Secure, sovereign, local-first professional workspace. Choose the installer for your platform.",
+        consoleTitle: "lexsort@vera-pro-installer-scanner:~",
+        tagline: "Recommended: LexSort VERA Pro macOS Apple Silicon (.dmg)",
+        badges: {
+          'mac-silicon': "🍏 macOS (Apple Silicon) Detected",
+          'mac-intel': "🖥️ macOS (Intel Core) Detected",
+          'windows': "🪟 Windows (x64) Detected",
+          'linux': "🐧 Linux (x86_64) Detected"
+        },
+        recTitles: {
+          'mac-silicon': "Download LexSort VERA Pro for Mac (Apple Silicon)",
+          'mac-intel': "Download LexSort VERA Pro for Mac (Intel)",
+          'windows': "Download LexSort VERA Pro for Windows",
+          'linux': "Download LexSort VERA Pro for Linux"
+        },
+        links: {
+          'mac-silicon': "https://github.com/Lexsort-Core/Lexsort-Vera-Pro/releases/download/v1.0.12/LexSort.VERA.Pro_1.0.12_aarch64.dmg",
+          'mac-intel': "https://github.com/Lexsort-Core/Lexsort-Vera-Pro/releases/download/v1.0.12/LexSort.VERA.Pro_1.0.12_x64.dmg",
+          'windows': "https://github.com/Lexsort-Core/Lexsort-Vera-Pro/releases/download/v1.0.12/LexSort.VERA.Pro_1.0.12_x64_en-US.msi",
+          'linux-deb': "https://github.com/Lexsort-Core/Lexsort-Vera-Pro/releases/download/v1.0.12/LexSort.VERA.Pro_1.0.12_amd64.deb",
+          'linux-appimage': "https://github.com/Lexsort-Core/Lexsort-Vera-Pro/releases/download/v1.0.12/LexSort.VERA.Pro_1.0.12_amd64.AppImage"
+        },
+        labels: {
+          'mac-silicon': "LexSort VERA Pro macOS Apple Silicon",
+          'mac-intel': "LexSort VERA Pro macOS Intel",
+          'windows': "LexSort VERA Pro Windows Installer",
+          'linux-deb': "LexSort VERA Pro Linux Package",
+          'linux-appimage': "LexSort VERA Pro Linux AppImage"
+        },
+        linuxCmd: "sudo dpkg -i LexSort.VERA.Pro_1.0.12_amd64.deb",
+        subtext: "Version 1.0.12 (LexSort VERA Pro) · Offline local activation"
+      }
+    };
+
+    function switchTier(tier) {
+      currentTier = tier;
+      const data = downloadData[tier];
+      
+      // Update Hero Titles
+      const titleText = document.getElementById('hero-title-text');
+      titleText.innerText = data.title;
+      if (tier === 'pro') {
+        titleText.classList.add('pro-theme');
+      } else {
+        titleText.classList.remove('pro-theme');
+      }
+      document.getElementById('hero-subtitle-text').innerText = data.subtitle;
+      document.getElementById('console-title-text').innerText = data.consoleTitle;
+
+      // Update Nav / Pro Badge
+      const proBadge = document.getElementById('header-pro-tag');
+      if (tier === 'pro') {
+        proBadge.style.display = 'inline-block';
+      } else {
+        proBadge.style.display = 'none';
+      }
+
+      // Update switcher buttons classes
+      const btnFree = document.getElementById('btn-switch-free');
+      const btnPro = document.getElementById('btn-switch-pro');
+      const switchContainer = document.querySelector('.tier-switcher');
+      if (tier === 'pro') {
+        btnFree.classList.remove('active');
+        btnPro.classList.add('active');
+        btnPro.classList.add('pro-active');
+        switchContainer.style.borderColor = "#a855f7";
+      } else {
+        btnPro.classList.remove('active');
+        btnPro.classList.remove('pro-active');
+        btnFree.classList.add('active');
+        switchContainer.style.borderColor = "var(--border)";
+      }
+
+      // Update matrix card links and text
+      document.getElementById('link-mac-silicon').href = data.links['mac-silicon'];
+      document.getElementById('label-mac-silicon').innerText = data.labels['mac-silicon'];
+      
+      document.getElementById('link-mac-intel').href = data.links['mac-intel'];
+      document.getElementById('label-mac-intel').innerText = data.labels['mac-intel'];
+      
+      document.getElementById('link-windows').href = data.links['windows'];
+      document.getElementById('label-windows').innerText = data.labels['windows'];
+      
+      document.getElementById('link-linux-deb').href = data.links['linux-deb'];
+      document.getElementById('label-linux-deb').innerText = data.labels['linux-deb'];
+      
+      document.getElementById('link-linux-appimage').href = data.links['linux-appimage'];
+      document.getElementById('label-linux-appimage').innerText = data.labels['linux-appimage'];
+
+      // Update Linux installation instruction code
+      document.getElementById('linux-install-cmd').innerText = data.linuxCmd;
+
+      // Reset hover effects for cards
+      const cards = ['card-mac-silicon', 'card-mac-intel', 'card-windows', 'card-linux'];
+      cards.forEach(cardId => {
+        const c = document.getElementById(cardId);
+        if (c) {
+          c.style.borderColor = "var(--border)";
+          c.style.boxShadow = "none";
+          c.style.transform = "none";
+        }
+      });
+
+      // Update detected panel if recommendation exists
+      if (detectedRecommendation) {
+        showDetectedPanel(detectedRecommendation);
+      }
+    }
+
     // Console animation steps
     const scanSteps = [
       { text: "$ initializing system capability inspection...", delay: 300 },
@@ -719,8 +939,6 @@
       if (userAgent.indexOf("mac") !== -1 || platform.indexOf("mac") !== -1) {
         os = "mac";
         // Check for Apple Silicon
-        // In newer browsers, window.navigator.userAgentData or WebGL renderer checks work.
-        // We'll use a basic screen & performance profile heuristic or WebGL check.
         try {
           const canvas = document.createElement("canvas");
           const gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
@@ -747,6 +965,7 @@
 
     function runConsoleScan() {
       let stepIndex = 0;
+      consoleBody.innerHTML = ""; // Clear console
 
       function printNextStep() {
         if (stepIndex < scanSteps.length) {
@@ -766,33 +985,30 @@
           div.style.color = '#10b981'; // success green
           
           let recommendation = "";
-          let downloadLink = "";
 
           if (clientInfo.os === "mac") {
             if (clientInfo.isAppleSilicon) {
-              div.textContent = "[SUCCESS] OS: macOS (Apple Silicon). CPU Architecture: ARM64. Memory: Unified Memory Map. Recommended: LexSort Vera macOS Apple Silicon (.dmg)";
               recommendation = "mac-silicon";
-              downloadLink = "https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/releases/download/v1.1.7/LexSort.Personal.AI_1.1.7_aarch64.dmg";
             } else {
-              div.textContent = "[SUCCESS] OS: macOS (Intel). CPU Architecture: x86_64. Recommended: LexSort Vera macOS Intel (.dmg)";
               recommendation = "mac-intel";
-              downloadLink = "https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/releases/download/v1.1.7/LexSort.Personal.AI_1.1.7_x64.dmg";
             }
           } else if (clientInfo.os === "linux") {
-            div.textContent = "[SUCCESS] OS: Linux. CPU Architecture: x86_64. Recommended: LexSort Vera Linux Package (.AppImage or .deb)";
             recommendation = "linux";
-            downloadLink = "https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/releases/download/v1.1.7/LexSort.Personal.AI_1.1.7_amd64.AppImage";
           } else {
-            div.textContent = "[SUCCESS] OS: Windows. CPU Architecture: x86_64. Recommended: LexSort Vera Windows Setup (.msi)";
             recommendation = "windows";
-            downloadLink = "https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/releases/download/v1.1.7/LexSort.Personal.AI_1.1.7_x64_en-US.msi";
           }
+
+          detectedRecommendation = recommendation;
+          const data = downloadData[currentTier];
+          const recLinkKey = recommendation === "linux" ? "linux-appimage" : recommendation;
+          
+          div.textContent = `[SUCCESS] OS: ${clientInfo.os === "mac" ? "macOS" : clientInfo.os === "linux" ? "Linux" : "Windows"}. CPU Architecture: ${clientInfo.os === "mac" && clientInfo.isAppleSilicon ? "ARM64" : "x86_64"}. Recommended build: ${data.labels[recLinkKey]}`;
 
           consoleBody.appendChild(div);
 
           // Animate panels
           setTimeout(() => {
-            showDetectedPanel(recommendation, downloadLink);
+            showDetectedPanel(recommendation);
           }, 800);
         }
       }
@@ -800,32 +1016,54 @@
       printNextStep();
     }
 
-    function showDetectedPanel(recommendation, downloadLink) {
+    function showDetectedPanel(recommendation) {
+      detectedRecommendation = recommendation;
       const badge = document.getElementById('detected-os-badge');
       const title = document.getElementById('detected-title');
       const desc = document.getElementById('detected-desc');
       const btn = document.getElementById('detected-download-btn');
+      const subtext = document.getElementById('detected-subtext');
       
-      btn.href = downloadLink;
+      const data = downloadData[currentTier];
+      const recLinkKey = recommendation === "linux" ? "linux-appimage" : recommendation;
+      
+      btn.href = data.links[recLinkKey];
+      btn.innerText = `⬇ Download ${data.labels[recLinkKey]}`;
+      subtext.innerText = data.subtext;
+
+      // Update button theme color depending on tier
+      if (currentTier === "pro") {
+        btn.style.background = "linear-gradient(135deg, #a855f7 0%, #7c3aed 100%)";
+        btn.style.boxShadow = "0 4px 24px rgba(168, 85, 247, 0.4)";
+        badge.style.color = "#c084fc";
+        badge.style.background = "rgba(168, 85, 247, 0.15)";
+        badge.style.borderColor = "rgba(168, 85, 247, 0.3)";
+      } else {
+        btn.style.background = "var(--accent-gradient)";
+        btn.style.boxShadow = "0 4px 24px rgba(37, 99, 235, 0.4)";
+        badge.style.color = "#60a5fa";
+        badge.style.background = "rgba(59, 130, 246, 0.15)";
+        badge.style.borderColor = "rgba(59, 130, 246, 0.3)";
+      }
 
       if (recommendation === "mac-silicon") {
         badge.innerHTML = "🍏 macOS (Apple Silicon) Detected";
-        title.innerText = "Download LexSort Vera for Mac (Apple Silicon)";
+        title.innerText = `Download ${data.labels['mac-silicon']} for Mac`;
         desc.innerText = "Optimized for Apple M1, M2, M3, M4 systems. Fully self-contained local workspace installer.";
         highlightCard('card-mac-silicon');
       } else if (recommendation === "mac-intel") {
         badge.innerHTML = "🖥️ macOS (Intel Core) Detected";
-        title.innerText = "Download LexSort Vera for Mac (Intel)";
+        title.innerText = `Download ${data.labels['mac-intel']} for Mac`;
         desc.innerText = "Optimized for older Intel-based Macs. Requires macOS 13 Ventura or newer.";
         highlightCard('card-mac-intel');
       } else if (recommendation === "windows") {
         badge.innerHTML = "🪟 Windows (x64) Detected";
-        title.innerText = "Download LexSort Vera for Windows";
+        title.innerText = `Download ${data.labels['windows']}`;
         desc.innerText = "Optimized for 64-bit Windows 10 and 11 workstations.";
         highlightCard('card-windows');
       } else if (recommendation === "linux") {
         badge.innerHTML = "🐧 Linux (x86_64) Detected";
-        title.innerText = "Download LexSort Vera for Linux";
+        title.innerText = `Download ${data.labels['linux-deb']}`;
         desc.innerText = "Compatible with Ubuntu, Debian, Fedora, and major Linux distributions.";
         highlightCard('card-linux');
       }
@@ -836,13 +1074,18 @@
     function highlightCard(cardId) {
       const card = document.getElementById(cardId);
       if (card) {
-        card.style.borderColor = "#3b82f6";
-        card.style.boxShadow = "0 0 20px rgba(59, 130, 246, 0.2)";
+        card.style.borderColor = currentTier === "pro" ? "#a855f7" : "#3b82f6";
+        card.style.boxShadow = currentTier === "pro" ? "0 0 20px rgba(168, 85, 247, 0.2)" : "0 0 20px rgba(59, 130, 246, 0.2)";
         card.style.transform = "scale(1.02)";
       }
     }
 
     window.onload = () => {
+      // Check query parameter to select default tier
+      const urlParams = new URLSearchParams(window.location.search);
+      const isProParam = urlParams.get('pro') === 'true' || urlParams.get('pro') === '1' || urlParams.get('tier') === 'pro';
+      
+      switchTier(isProParam ? 'pro' : 'free');
       runConsoleScan();
     };
   </script>
