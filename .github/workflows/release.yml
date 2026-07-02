@@ -25,9 +25,13 @@ on:
         default: ''
 
 jobs:
-  publish-tauri:
+  # ── macOS + Linux (auto on tag push, selectable via manual dispatch) ──
+  build-macos-linux:
     permissions:
       contents: write
+    if: |
+      github.event_name == 'push' ||
+      (github.event_name == 'workflow_dispatch' && (inputs.platform == 'all' || inputs.platform == 'macos-only' || inputs.platform == 'linux-only'))
     strategy:
       fail-fast: false
       matrix:
@@ -35,30 +39,14 @@ jobs:
           - platform: 'macos-latest'
             args: '--target aarch64-apple-darwin'
             target: 'aarch64-apple-darwin'
-            label: 'macos'
           - platform: 'macos-latest'
             args: '--target x86_64-apple-darwin'
             target: 'x86_64-apple-darwin'
-            label: 'macos'
           - platform: 'ubuntu-22.04'
             args: ''
             target: ''
-            label: 'linux'
-          - platform: 'windows-latest'
-            args: ''
-            target: ''
-            label: 'windows'
 
     runs-on: ${{ matrix.platform }}
-
-    # Skip jobs that don't match the selected platform on manual runs.
-    # Tag pushes always build everything (cost discipline relies on AGENTS.md rules).
-    if: |
-      github.event_name == 'push' ||
-      inputs.platform == 'all' ||
-      (inputs.platform == 'windows-only' && matrix.platform == 'windows-latest') ||
-      (inputs.platform == 'macos-only'   && startsWith(matrix.platform, 'macos')) ||
-      (inputs.platform == 'linux-only'   && matrix.platform == 'ubuntu-22.04')
 
     steps:
       - uses: actions/checkout@v4
@@ -84,13 +72,6 @@ jobs:
       - name: install Rust target (macOS cross-compile only)
         if: matrix.target != ''
         run: rustup target add ${{ matrix.target }}
-
-      - name: Configure Windows native build environment (better-sqlite3)
-        if: matrix.platform == 'windows-latest'
-        shell: pwsh
-        run: |
-          echo "npm_config_msvs_version=2022" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          echo "GYP_MSVS_VERSION=2022" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
       - name: install frontend dependencies
         run: npm ci
@@ -127,4 +108,47 @@ jobs:
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
+          projectPath: vera-freeware
+
+  # ── Windows (manual dispatch only — ~$8/run on GitHub paid minutes) ──
+  build-windows:
+    permissions:
+      contents: write
+    if: github.event_name == 'workflow_dispatch' && (inputs.platform == 'all' || inputs.platform == 'windows-only')
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Configure Windows native build environment (better-sqlite3)
+        shell: pwsh
+        run: |
+          echo "npm_config_msvs_version=2022" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          echo "GYP_MSVS_VERSION=2022" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: install frontend dependencies
+        run: npm ci
+        working-directory: vera-freeware
+
+      - name: build app
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_PRIVATE_KEY_PASSWORD }}
+        with:
+          tagName: ${{ inputs.tag_name }}
+          releaseName: 'LexSort VERA v__VERSION__ — Personal AI'
+          releaseBody: 'See changelog and release notes.'
+          releaseDraft: false
+          prerelease: false
+          args: ''
           projectPath: vera-freeware
