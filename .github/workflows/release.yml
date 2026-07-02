@@ -127,6 +127,8 @@ jobs:
 
       - name: install Rust stable
         uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
 
       - name: Configure Windows native build environment (better-sqlite3)
         shell: pwsh
