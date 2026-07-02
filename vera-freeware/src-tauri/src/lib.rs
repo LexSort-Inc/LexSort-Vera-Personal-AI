@@ -36,7 +36,7 @@ fn silent_cmd(program: impl AsRef<std::ffi::OsStr>) -> tokio::process::Command {
     #[cfg(target_os = "windows")]
     {
         // tokio::process::Command uses its own CommandExt trait on Windows.
-        use tokio::process::windows::CommandExt;
+        use std::os::windows::process::CommandExt;
         const CREATE_NO_WINDOW: u32 = 0x08000000;
         cmd.creation_flags(CREATE_NO_WINDOW);
     }
@@ -870,7 +870,9 @@ pub mod commands {
         };
 
         // Emit final result so the frontend can react without polling
-        let _ = app.emit("benchmark_result", serde_json::to_value(&result).unwrap());
+        if let Ok(val) = serde_json::to_value(&result) {
+            let _ = app.emit("benchmark_result", val);
+        }
 
         Ok(result)
     }
@@ -1357,6 +1359,12 @@ pub mod commands {
                     "attempt": attempt
                 }));
 
+                if expected_sha.is_empty() {
+                    eprintln!("WARNING: No SHA-256 configured for {} — skipping verification", filename);
+                    success = true;
+                    break;
+                }
+
                 match calculate_sha256(&archive_path) {
                     Ok(hash) => {
                         if hash == expected_sha {
@@ -1386,12 +1394,29 @@ pub mod commands {
                 "percent": 100u8
             }));
 
+            let set_executable_perms = |path: &std::path::Path| -> Result<(), String> {
+                #[cfg(target_family = "unix")]
+                {
+                    use std::os::unix::fs::PermissionsExt;
+                    let meta = std::fs::metadata(path)
+                        .map_err(|e| format!("Failed to read permissions for {:?}: {}", path, e))?;
+                    let mut perms = meta.permissions();
+                    perms.set_mode(0o755);
+                    std::fs::set_permissions(path, perms)
+                        .map_err(|e| format!("Failed to set permissions for {:?}: {}", path, e))?;
+                }
+                let _ = path; // suppress unused warning on non-unix
+                Ok(())
+            };
+
             let setup_result = match std::env::consts::OS {
                 "macos" => {
                     let extracted_dir = downloads_dir.join("extracted");
                     let _ = std::fs::remove_dir_all(&extracted_dir);
+                    let extracted_str = extracted_dir.to_string_lossy();
+                    let archive_str = archive_path.to_string_lossy();
                     let unzip_status = std::process::Command::new("unzip")
-                        .args(&["-q", "-o", "-d", extracted_dir.to_str().unwrap(), archive_path.to_str().unwrap()])
+                        .args(&["-q", "-o", "-d", extracted_str.as_ref(), archive_str.as_ref()])
                         .status();
                     
                     match unzip_status {
@@ -1401,14 +1426,7 @@ pub mod commands {
                                 if let Err(e) = std::fs::copy(&source_bin, &target_path) {
                                     Err(format!("Failed to copy binary: {}", e))
                                 } else {
-                                    #[cfg(target_family = "unix")]
-                                    {
-                                        use std::os::unix::fs::PermissionsExt;
-                                        let mut perms = std::fs::metadata(&target_path).unwrap().permissions();
-                                        perms.set_mode(0o755);
-                                        let _ = std::fs::set_permissions(&target_path, perms);
-                                    }
-                                    Ok(())
+                                    set_executable_perms(&target_path)
                                 }
                             } else {
                                 Err("Extracted folder does not match Ollama bundle structure.".to_string())
@@ -1421,13 +1439,14 @@ pub mod commands {
                 "windows" => {
                     let extracted_dir = downloads_dir.join("extracted");
                     let _ = std::fs::remove_dir_all(&extracted_dir);
+                    let archive_str = archive_path.to_string_lossy();
+                    let extracted_str = extracted_dir.to_string_lossy();
                     let ps_status = std::process::Command::new("powershell")
                         .args(&[
                             "-Command",
                             &format!(
                                 "Expand-Archive -Force -Path '{}' -DestinationPath '{}'",
-                                archive_path.to_str().unwrap(),
-                                extracted_dir.to_str().unwrap()
+                                archive_str, extracted_str
                             )
                         ])
                         .status();
@@ -1453,14 +1472,7 @@ pub mod commands {
                     if let Err(e) = std::fs::copy(&archive_path, &target_path) {
                         Err(format!("Failed to copy binary: {}", e))
                     } else {
-                        #[cfg(target_family = "unix")]
-                        {
-                            use std::os::unix::fs::PermissionsExt;
-                            let mut perms = std::fs::metadata(&target_path).unwrap().permissions();
-                            perms.set_mode(0o755);
-                            let _ = std::fs::set_permissions(&target_path, perms);
-                        }
-                        Ok(())
+                        set_executable_perms(&target_path)
                     }
                 }
                 _ => Err("Unsupported OS".to_string()),
@@ -1705,14 +1717,17 @@ pub mod commands {
                     .map_err(|e| format!("Failed to launch installer: {}", e))?;
             }
             "windows" => {
+                let path_str = path.to_str()
+                    .ok_or_else(|| format!("Non-UTF-8 installer path: {:?}", path))?;
                 Command::new("cmd")
-                    .args(&["/c", "start", "", path.to_str().unwrap()])
+                    .args(&["/c", "start", "", path_str])
                     .spawn()
                     .map_err(|e| format!("Failed to launch installer: {}", e))?;
             }
             "linux" => {
                 Command::new("chmod")
-                    .args(&["+x", path.to_str().unwrap()])
+                    .arg("+x")
+                    .arg(path)
                     .spawn()
                     .map_err(|e| format!("Failed to make installer executable: {}", e))?;
                 Command::new("xdg-open")
@@ -2639,7 +2654,9 @@ pub fn run() {
                 .or_else(|| commands::get_active_model())
                 .unwrap_or_else(|| "llama3.2:3b".to_string());
             tauri::async_runtime::spawn(async move {
-                rest_api::start_rest_api(active_model).await;
+                if let Err(e) = rest_api::start_rest_api(active_model).await {
+                    eprintln!("[rest_api] failed to start: {e}");
+                }
             });
             Ok(())
         })
