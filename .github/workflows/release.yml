@@ -52,8 +52,13 @@ jobs:
     runs-on: ${{ matrix.platform }}
 
     # Skip jobs that don't match the selected platform on manual runs.
-    # Tag pushes build macOS + Linux only (Windows is manual-only to avoid ~$8/run).
-    if: ${{ (github.event_name == 'push' && matrix.label != 'windows') || inputs.platform == 'all' || (inputs.platform == 'windows-only' && matrix.label == 'windows') || (inputs.platform == 'macos-only' && matrix.label == 'macos') || (inputs.platform == 'linux-only' && matrix.label == 'linux') }}
+    # Tag pushes always build everything (cost discipline relies on AGENTS.md rules).
+    if: |
+      github.event_name == 'push' ||
+      inputs.platform == 'all' ||
+      (inputs.platform == 'windows-only' && matrix.platform == 'windows-latest') ||
+      (inputs.platform == 'macos-only'   && startsWith(matrix.platform, 'macos')) ||
+      (inputs.platform == 'linux-only'   && matrix.platform == 'ubuntu-22.04')
 
     steps:
       - uses: actions/checkout@v4
