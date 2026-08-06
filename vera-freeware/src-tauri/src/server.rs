@@ -30,9 +30,18 @@ fn start_ollama() -> Result<Option<std::process::Child>, String> {
         return Ok(None);
     }
     eprintln!("[server] Starting Ollama...");
-    let child = Command::new(ollama_path())
-        .args(["serve"])
+    let runner_dir = ollama_path()
+        .parent()
+        .map(|p| p.join("ollama_runners"))
+        .filter(|p| p.is_dir());
+    let mut cmd = Command::new(ollama_path());
+    cmd.args(["serve"])
         .env("OLLAMA_HOST", "127.0.0.1:11434")
+        .env("OLLAMA_ORIGINS", "http://localhost,http://localhost:1420,http://tauri.localhost,tauri://localhost,http://127.0.0.1:*");
+    if let Some(r) = runner_dir {
+        cmd.env("OLLAMA_RUNNERS_DIR", r);
+    }
+    let child = cmd
         .stdout(Stdio::null())
         .stderr(Stdio::null())
         .spawn()
@@ -70,7 +79,9 @@ async fn main() {
     eprintln!("[server] Active model: {active_model}");
 
     let rest_handle = tokio::spawn(async move {
-        lexsort_personal_ai_lib::rest_api::start_rest_api(active_model).await;
+        if let Err(e) = lexsort_personal_ai_lib::rest_api::start_rest_api(active_model).await {
+            eprintln!("[server] REST API failed to start: {e}");
+        }
     });
 
     let sched_handle = tokio::spawn(scheduler_loop());

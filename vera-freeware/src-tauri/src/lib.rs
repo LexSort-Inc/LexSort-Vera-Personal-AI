@@ -3,13 +3,14 @@ use std::sync::Mutex;
 use std::process::{Child, Command};
 use std::path::PathBuf;
 use serde::{Deserialize, Serialize};
-use sysinfo::{System, Disks};
+use sysinfo::System;
 pub mod quick_organizer;
 pub mod calendar_bridge;
 pub mod conversations;
 pub mod recurrence_parser;
 pub mod scheduler;
 pub mod team_lab;
+pub mod schema;
 pub mod rest_api;
 
 /// Run a command with a wall-clock timeout using Tokio.
@@ -35,8 +36,6 @@ fn silent_cmd(program: impl AsRef<std::ffi::OsStr>) -> tokio::process::Command {
     let mut cmd = tokio::process::Command::new(program);
     #[cfg(target_os = "windows")]
     {
-        // tokio::process::Command uses its own CommandExt trait on Windows.
-        use std::os::windows::process::CommandExt;
         const CREATE_NO_WINDOW: u32 = 0x08000000;
         cmd.creation_flags(CREATE_NO_WINDOW);
     }
@@ -54,6 +53,31 @@ fn silent_cmd_sync(program: impl AsRef<std::ffi::OsStr>) -> Command {
         cmd.creation_flags(CREATE_NO_WINDOW);
     }
     cmd
+}
+
+/// Recursively copy a directory tree (used to ship `ollama_runners/` alongside the
+/// extracted Ollama binary so the sidecar can locate its LLM backends).
+fn copy_dir_recursive(src: &std::path::Path, dst: &std::path::Path) -> std::io::Result<()> {
+    std::fs::create_dir_all(dst)?;
+    for entry in std::fs::read_dir(src)? {
+        let entry = entry?;
+        let file_type = entry.file_type()?;
+        let from = entry.path();
+        let to = dst.join(entry.file_name());
+        if file_type.is_dir() {
+            copy_dir_recursive(&from, &to)?;
+        } else if file_type.is_file() || file_type.is_symlink() {
+            std::fs::copy(&from, &to)?;
+        }
+    }
+    Ok(())
+}
+
+/// Resolve the local `ollama_runners` directory that must sit next to the portable
+/// ollama binary. Returns None when no directory was installed yet.
+fn ollama_runners_dir() -> Option<PathBuf> {
+    let runners = lexsort_dir().join("bin").join("ollama_runners");
+    runners.is_dir().then_some(runners)
 }
 
 pub struct ServerProcess(pub Mutex<Option<Child>>);
@@ -308,7 +332,7 @@ fn get_free_storage_gb() -> u64 {
     
     #[cfg(not(target_os = "windows"))]
     {
-        let disks = Disks::new_with_refreshed_list();
+        let disks = sysinfo::Disks::new_with_refreshed_list();
         let mut largest_disk_avail: u64 = 0;
         let mut max_total_space: u64 = 0;
         
@@ -730,11 +754,16 @@ pub mod commands {
             *guard = None; // ollama already running externally, don't manage it
             return Ok(format!("Ollama already running, using model {}", resolved));
         }
-        let child = silent_cmd_sync(ollama_path())
-            .args(["serve"])
+        let mut cmd = silent_cmd_sync(ollama_path());
+        cmd.args(["serve"])
             .env("OLLAMA_HOST", format!("127.0.0.1:{}", port))
-            .env("OLLAMA_ORIGINS", format!("http://127.0.0.1:{}", port))
-            .spawn()
+            .env("OLLAMA_ORIGINS", "http://localhost,http://localhost:1420,http://tauri.localhost,tauri://localhost,http://127.0.0.1:*");
+        if let Some(runners) = ollama_runners_dir() {
+            cmd.env("OLLAMA_RUNNERS_DIR", runners);
+        } else {
+            eprintln!("WARNING: OLLAMA_RUNNERS_DIR not found at {:?} — LLM inference may fail", lexsort_dir().join("bin").join("ollama_runners"));
+        }
+        let child = cmd.spawn()
             .map_err(|e| format!("Failed to start ollama: {}", e))?;
         *guard = Some(child);
         Ok(format!("Inference server started with model {}", resolved))
@@ -1426,7 +1455,20 @@ pub mod commands {
                                 if let Err(e) = std::fs::copy(&source_bin, &target_path) {
                                     Err(format!("Failed to copy binary: {}", e))
                                 } else {
-                                    set_executable_perms(&target_path)
+                                    match set_executable_perms(&target_path) {
+                                        Err(e) => Err(e),
+                                        Ok(()) => {
+                                            // Ship the LLM runner backends next to the binary.
+                                            let source_runners = extracted_dir.join("Ollama.app").join("Contents").join("Resources").join("ollama_runners");
+                                            let target_runners = bin_dir.join("ollama_runners");
+                                            if source_runners.exists() {
+                                                copy_dir_recursive(&source_runners, &target_runners)
+                                                    .map_err(|e| format!("Failed to copy ollama_runners: {}", e))
+                                            } else {
+                                                Ok(())
+                                            }
+                                        }
+                                    }
                                 }
                             } else {
                                 Err("Extracted folder does not match Ollama bundle structure.".to_string())
@@ -1458,7 +1500,18 @@ pub mod commands {
                                 if let Err(e) = std::fs::copy(&source_bin, &target_path) {
                                     Err(format!("Failed to copy binary: {}", e))
                                 } else {
-                                    Ok(())
+                                    // Ship the LLM runner backends next to the binary.
+                                    // Without these, Ollama can't launch any backend:
+                                    // "server cpu not listed in available servers map".
+                                    let source_runners = extracted_dir.join("ollama_runners");
+                                    let target_runners = bin_dir.join("ollama_runners");
+                                    if !source_runners.exists() {
+                                        eprintln!("WARNING: extraction did not include ollama_runners/ directory");
+                                        Ok(())
+                                    } else {
+                                        copy_dir_recursive(&source_runners, &target_runners)
+                                            .map_err(|e| format!("Failed to copy ollama_runners: {}", e))
+                                    }
                                 }
                             } else {
                                 Err("Extracted contents do not contain ollama.exe.".to_string())
@@ -1761,49 +1814,114 @@ pub mod commands {
     }
 
     #[tauri::command]
-    pub async fn list_installed_models() -> Result<Vec<String>, String> {
-        let path = super::ollama_path();
-        if !path.exists() {
-            return Ok(Vec::new());
-        }
-
-        // First attempt: ask ollama to list models.
-        let mut cmd = super::silent_cmd(&path);
-        cmd.arg("list");
-        let first_try = super::run_command_with_timeout(cmd, 6).await;
-
-        let raw_output = if let Some(out) = first_try {
-            out.stdout
-        } else {
-            // Ollama isn't running yet — spawn it quietly and retry once.
-            let mut serve_cmd = super::silent_cmd_sync(&path);
-            let _serve = serve_cmd
-                .args(["serve"])
-                .spawn();
-            // Wait for the server to bind (non-blocking sleep on the async runtime).
-            tokio::time::sleep(std::time::Duration::from_millis(1800)).await;
-            let mut retry_cmd = super::silent_cmd(&path);
-            retry_cmd.arg("list");
-            match super::run_command_with_timeout(retry_cmd, 6).await {
-                Some(out) => out.stdout,
-                None => return Ok(Vec::new()),
+    pub async fn list_installed_models() -> Result<Vec<ModelDetails>, String> {
+        // Try Ollama API /api/tags for structured model info
+        let client = reqwest::Client::new();
+        match client.get("http://127.0.0.1:11434/api/tags").send().await {
+            Ok(resp) if resp.status().is_success() => {
+                if let Ok(body) = resp.json::<serde_json::Value>().await {
+                    if let Some(models) = body.get("models").and_then(|m| m.as_array()) {
+                        let details: Vec<ModelDetails> = models.iter().filter_map(|m| {
+                            let name = m.get("name").and_then(|n| n.as_str())?.to_string();
+                            let size_bytes = m.get("size").and_then(|s| s.as_u64()).unwrap_or(0);
+                            let size_gb = size_bytes as f64 / 1024.0 / 1024.0 / 1024.0;
+                            let family = m.get("details")
+                                .and_then(|d| d.get("family"))
+                                .and_then(|f| f.as_str())
+                                .map(|s| s.to_string());
+                            let param_count = m.get("details")
+                                .and_then(|d| d.get("parameter_size"))
+                                .and_then(|p| p.as_str())
+                                .map(|s| s.to_string());
+                            let quant = m.get("details")
+                                .and_then(|d| d.get("quantization_level"))
+                                .and_then(|q| q.as_str())
+                                .unwrap_or("Q4_K_M");
+                            Some(ModelDetails {
+                                id: name.clone(),
+                                display_name: name,
+                                quantization: quant.to_string(),
+                                size_gb: (size_gb * 10.0).round() / 10.0,
+                                family,
+                                parameter_count: param_count,
+                                context_length: Some(128000),
+                                template: None,
+                            })
+                        }).collect();
+                        return Ok(details);
+                    }
+                }
+                Err("Failed to parse Ollama API response".to_string())
             }
-        };
+            _ => {
+                // Fallback: parse `ollama list` CLI output
+                let path = super::ollama_path();
+                if !path.exists() {
+                    return Ok(Vec::new());
+                }
+                let mut cmd = super::silent_cmd(&path);
+                cmd.arg("list");
+                let first_try = super::run_command_with_timeout(cmd, 6).await;
 
-        let stdout_str = String::from_utf8_lossy(&raw_output);
-        let mut models = Vec::new();
+                let raw_output = if let Some(out) = first_try {
+                    out.stdout
+                } else {
+                    let mut serve_cmd = super::silent_cmd_sync(&path);
+                    if let Some(runners) = super::ollama_runners_dir() {
+                        serve_cmd.env("OLLAMA_RUNNERS_DIR", runners);
+                    }
+                    let _serve = serve_cmd.args(["serve"]).spawn();
+                    tokio::time::sleep(std::time::Duration::from_millis(1800)).await;
+                    let mut retry_cmd = super::silent_cmd(&path);
+                    retry_cmd.arg("list");
+                    match super::run_command_with_timeout(retry_cmd, 6).await {
+                        Some(out) => out.stdout,
+                        None => return Ok(Vec::new()),
+                    }
+                };
 
-        let mut lines = stdout_str.lines();
-        let _header = lines.next();
+                let stdout_str = String::from_utf8_lossy(&raw_output);
+                let mut models = Vec::new();
+                let mut lines = stdout_str.lines();
+                let _header = lines.next();
 
-        for line in lines {
-            let parts: Vec<&str> = line.split_whitespace().collect();
-            if !parts.is_empty() {
-                models.push(parts[0].to_string());
+                for line in lines {
+                    let parts: Vec<&str> = line.split_whitespace().collect();
+                    if parts.len() >= 4 {
+                        let size_str = parts[2];
+                        let unit = parts.get(3).unwrap_or(&"GB");
+                        let size_gb: f64 = match *unit {
+                            "MB" => size_str.parse::<f64>().unwrap_or(0.0) / 1024.0,
+                            "GB" => size_str.parse::<f64>().unwrap_or(0.0),
+                            _ => size_str.parse::<f64>().unwrap_or(0.0),
+                        };
+                        models.push(ModelDetails {
+                            id: parts[0].to_string(),
+                            display_name: parts[0].to_string(),
+                            quantization: "Q4_K_M".to_string(),
+                            size_gb: (size_gb * 10.0).round() / 10.0,
+                            family: None,
+                            parameter_count: None,
+                            context_length: Some(128000),
+                            template: None,
+                        });
+                    } else if !parts.is_empty() {
+                        models.push(ModelDetails {
+                            id: parts[0].to_string(),
+                            display_name: parts[0].to_string(),
+                            quantization: "Q4_K_M".to_string(),
+                            size_gb: 2.0,
+                            family: None,
+                            parameter_count: None,
+                            context_length: Some(128000),
+                            template: None,
+                        });
+                    }
+                }
+
+                Ok(models)
             }
         }
-
-        Ok(models)
     }
 
     #[derive(serde::Serialize)]
@@ -2113,7 +2231,7 @@ pub mod commands {
     }
 
     #[tauri::command]
-    pub async fn emailer_search_leads(query: String, max_results: u32) -> Result<serde_json::Value, String> {
+    pub async fn emailer_search_leads(app: AppHandle, query: String, max_results: Option<u32>) -> Result<serde_json::Value, String> {
         let script_path = super::lexsort_dir()
             .join("modules")
             .join("promailer")
@@ -2124,23 +2242,74 @@ pub mod commands {
             return Err("Lead finder script (lead_finder.py) not found in module directory.".to_string());
         }
 
-        let output = std::process::Command::new("python3")
-            .arg(script_path)
+        let max_results = max_results.unwrap_or(10);
+
+        // Load saved config for the Google Places API key
+        let api_key = super::data_dir()
+            .join("promailer")
+            .join("config.json")
+            .exists()
+            .then(|| -> Option<String> {
+                let s = std::fs::read_to_string(super::data_dir().join("promailer").join("config.json")).ok()?;
+                let cfg: serde_json::Value = serde_json::from_str(&s).ok()?;
+                cfg.get("google_places_api_key")?.as_str().map(|k| k.to_string()).filter(|k| !k.is_empty())
+            })
+            .flatten();
+
+        let mut cmd = tokio::process::Command::new("python3");
+        cmd.arg(&script_path)
             .arg("--json-query")
             .arg(&query)
             .arg("--json-limit")
-            .arg(max_results.to_string())
-            .output()
-            .map_err(|e| format!("Failed to execute python3 command: {}", e))?;
+            .arg(max_results.to_string());
 
-        if !output.status.success() {
-            let err_msg = String::from_utf8_lossy(&output.stderr).into_owned();
-            return Err(format!("Lead finder script exited with error: {}", err_msg));
+        if let Some(key) = &api_key {
+            cmd.arg("--json-api-key").arg(key);
         }
 
-        let stdout_str = String::from_utf8_lossy(&output.stdout).into_owned();
+        let mut child = cmd
+            .stdout(std::process::Stdio::piped())
+            .stderr(std::process::Stdio::piped())
+            .spawn()
+            .map_err(|e| format!("Failed to execute python3 command: {}", e))?;
+
+        let stdout_handle = child.stdout.take()
+            .ok_or_else(|| "Failed to capture stdout".to_string())?;
+        let stderr_handle = child.stderr.take()
+            .ok_or_else(|| "Failed to capture stderr".to_string())?;
+
+        // Read stdout in background task
+        let stdout_task = tokio::spawn(async move {
+            let mut output = String::new();
+            let mut reader = tokio::io::BufReader::new(stdout_handle);
+            tokio::io::AsyncReadExt::read_to_string(&mut reader, &mut output).await?;
+            Ok::<_, std::io::Error>(output)
+        });
+
+        // Stream stderr as live progress events
+        {
+            use tokio::io::AsyncBufReadExt;
+            let reader = tokio::io::BufReader::new(stderr_handle);
+            let mut lines = reader.lines();
+            while let Some(line) = lines.next_line().await.map_err(|e| e.to_string())? {
+                if line.starts_with("[STEP]") {
+                    let msg = line.trim_start_matches("[STEP] ").to_string();
+                    let _ = app.emit("search_log", msg);
+                }
+            }
+        }
+
+        let status = child.wait().await.map_err(|e| format!("Process error: {}", e))?;
+        let stdout_str = stdout_task.await
+            .map_err(|e| format!("Join error: {}", e))?
+            .map_err(|e| format!("Read stdout error: {}", e))?;
+
+        if !status.success() {
+            return Err("Lead finder script failed. Check logs for details.".to_string());
+        }
+
         let parsed_json: serde_json::Value = serde_json::from_str(&stdout_str)
-            .map_err(|e| format!("Failed to parse JSON output from lead finder script: {}. Raw output: {}", e, stdout_str))?;
+            .map_err(|e| format!("Failed to parse JSON output: {}. Raw: {}", e, stdout_str))?;
 
         Ok(parsed_json)
     }
@@ -2149,11 +2318,18 @@ pub mod commands {
 
     #[derive(Debug, Serialize, Deserialize, Clone)]
     pub struct SystemStats {
+        #[serde(rename = "cpu_usage")]
         pub cpu_usage_percent: f64,
-        pub total_memory_gb: f64,
-        pub used_memory_gb: f64,
-        pub free_memory_gb: f64,
-        pub disk_usage_percent: f64,
+        #[serde(rename = "total_memory_bytes")]
+        pub total_memory_bytes: u64,
+        #[serde(rename = "used_memory_bytes")]
+        pub used_memory_bytes: u64,
+        #[serde(rename = "free_memory_bytes")]
+        pub free_memory_bytes: u64,
+        #[serde(rename = "total_disk_bytes")]
+        pub total_disk_bytes: u64,
+        #[serde(rename = "available_disk_bytes")]
+        pub available_disk_bytes: u64,
         pub system_temperature_c: Option<f64>,
     }
 
@@ -2162,18 +2338,43 @@ pub mod commands {
         use sysinfo::System;
         let mut sys = System::new_all();
         sys.refresh_all();
-        
+
         let cpu = sys.global_cpu_info().cpu_usage() as f64;
-        let total_mem = sys.total_memory() as f64 / 1024.0 / 1024.0 / 1024.0;
-        let used_mem = sys.used_memory() as f64 / 1024.0 / 1024.0 / 1024.0;
-        let free_mem = total_mem - used_mem;
-        
+        let total_mem = sys.total_memory();
+        let used_mem = sys.used_memory();
+        let free_mem = total_mem.saturating_sub(used_mem);
+
+        // Get largest non-removable disk for storage metrics
+        let (total_disk, available_disk) = {
+            #[cfg(not(target_os = "windows"))]
+            {
+                let disks = sysinfo::Disks::new_with_refreshed_list();
+                let mut largest: u64 = 0;
+                let mut avail: u64 = 0;
+                for disk in &disks {
+                    if !disk.is_removable() {
+                        let t = disk.total_space();
+                        if t > largest {
+                            largest = t;
+                            avail = disk.available_space();
+                        }
+                    }
+                }
+                (largest, avail)
+            }
+            #[cfg(target_os = "windows")]
+            {
+                (512_000_000_000u64, 128_000_000_000u64)
+            }
+        };
+
         Ok(SystemStats {
             cpu_usage_percent: cpu,
-            total_memory_gb: total_mem,
-            used_memory_gb: used_mem,
-            free_memory_gb: free_mem,
-            disk_usage_percent: 42.0,
+            total_memory_bytes: total_mem,
+            used_memory_bytes: used_mem,
+            free_memory_bytes: free_mem,
+            total_disk_bytes: total_disk,
+            available_disk_bytes: available_disk,
             system_temperature_c: Some(45.0),
         })
     }
@@ -2186,15 +2387,26 @@ pub mod commands {
         };
         let port = get_server_port();
         let model = get_active_model();
-        
         let client = reqwest::Client::new();
-        let sys_prompt = "You are VERA Guardian Watch assistant. In exactly two paragraphs, explain this system health snapshot to the user in a helpful, friendly way. CPU: {cpu}%, RAM: {used}/{total}GB.";
+        
+        let cpu_gb = stats.cpu_usage_percent;
+        let used_gb = stats.used_memory_bytes as f64 / 1024.0 / 1024.0 / 1024.0;
+        let total_gb = stats.total_memory_bytes as f64 / 1024.0 / 1024.0 / 1024.0;
+        let used_disk_gb = (stats.total_disk_bytes - stats.available_disk_bytes) as f64 / 1024.0 / 1024.0 / 1024.0;
+        let total_disk_gb = stats.total_disk_bytes as f64 / 1024.0 / 1024.0 / 1024.0;
+        let free_disk_gb = stats.available_disk_bytes as f64 / 1024.0 / 1024.0 / 1024.0;
+
+        let sys_prompt = format!(
+            "You are VERA Guardian Watch assistant. In exactly two paragraphs, explain this system health snapshot to the user in a helpful, friendly way. CPU: {cpu}%, RAM: {used:.1}/{total:.1} GB, Disk: {disk_used:.1}/{disk_total:.1} GB used ({disk_free:.1} GB free).",
+            cpu = cpu_gb, used = used_gb, total = total_gb,
+            disk_used = used_disk_gb, disk_total = total_disk_gb, disk_free = free_disk_gb
+        );
         
         let req_body = serde_json::json!({
             "model": model,
             "messages": [
                 { "role": "system", "content": sys_prompt },
-                { "role": "user", "content": format!("CPU usage: {:.1}%, Memory: {:.1}/{:.1} GB used", stats.cpu_usage_percent, stats.used_memory_gb, stats.total_memory_gb) }
+                { "role": "user", "content": format!("CPU usage: {:.1}%, Memory: {:.1}/{:.1} GB used, Disk: {:.1}/{:.1} GB used ({:.1} GB free)", cpu_gb, used_gb, total_gb, used_disk_gb, total_disk_gb, free_disk_gb) }
             ],
             "temperature": 0.5
         });
