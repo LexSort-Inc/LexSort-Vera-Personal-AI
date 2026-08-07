@@ -1028,16 +1028,12 @@ export default function App() {
       // Apply local model override if user stepped down previously (or selected via onboarding)
       const overrideModelId = await invoke<string | null>("get_active_model");
       if (overrideModelId) {
-        const names: Record<string, string> = {
-          "qwen2.5-coder:14b": "Qwen 2.5 Coder 14B",
-          "qwen2.5-coder:7b": "Qwen 2.5 Coder 7B",
-          "llama3.1:8b": "Llama 3.1 8B",
-          "llama3.2:3b": "Llama 3.2 3B",
-          "mistral": "Mistral 7B",
-          "phi3:mini": "Phi-3 Mini"
-        };
+        const catalogEntry = MODELS_LIST.find(m => m.id === overrideModelId);
         hw.model.id = overrideModelId;
-        hw.model.name = names[overrideModelId] || overrideModelId;
+        hw.model.name = catalogEntry?.name || overrideModelId;
+        // Per-model description from the same catalog the selection UI uses —
+        // otherwise the Rust recommended-default description is shown instead.
+        hw.model.description = catalogEntry?.desc || `Custom model: ${overrideModelId}`;
         // model_exists will be resolved after engine starts — do NOT call list_installed_models
         // here because Ollama may not be running yet, which could cause a 6-8 s delay.
         hw.model_exists = false;
@@ -1285,20 +1281,48 @@ export default function App() {
       const ctrl = new AbortController();
       abortRef.current = ctrl;
 
-      const response = await fetch(`http://127.0.0.1:${serverPort}/v1/chat/completions`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        signal: ctrl.signal,
-        body: JSON.stringify({
-          model:       hardware?.model?.id ?? "llama3.2:3b",
-          messages:    history,
-          stream:      true,
-          temperature: 0.7,
-          max_tokens:  2048,
-        }),
-      });
+      const modelId = hardware?.model?.id ?? "llama3.2:3b";
+      const chatUrl = `http://127.0.0.1:${serverPort}/v1/chat/completions`;
+      const requestBody = {
+        model:       modelId,
+        messages:    history,
+        stream:      true,
+        temperature: 0.7,
+        max_tokens:  2048,
+      };
+      console.log(`[chat] sending to ${chatUrl} model=${modelId}`);
 
-      if (!response.ok) throw new Error(`Server error: ${response.status}`);
+      // Retry up to 3 times with backoff on connection-level failures, so a
+      // single transient refusal (e.g. daemon still starting) isn't fatal.
+      let response: Response | null = null;
+      let lastError: any = null;
+      for (let attempt = 0; attempt < 3 && response === null; attempt++) {
+        try {
+          response = await fetch(chatUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            signal: ctrl.signal,
+            body: JSON.stringify(requestBody),
+          });
+        } catch (fetchErr: any) {
+          lastError = fetchErr;
+          if (fetchErr.name === "AbortError") throw fetchErr;
+          if (attempt < 2) {
+            const waitMs = 750 * (attempt + 1);
+            console.warn(`[chat] request attempt ${attempt + 1} failed (${fetchErr.message}), retrying in ${waitMs}ms`);
+            await new Promise(r => setTimeout(r, waitMs));
+          }
+        }
+      }
+      if (!response) throw lastError || new Error("Request failed");
+
+      if (!response.ok) {
+        // Capture the real Ollama error body instead of a bare status.
+        let bodyDetail = "";
+        try { bodyDetail = (await response.text()).slice(0, 300); } catch { /* ignore */ }
+        console.error(`[chat] HTTP ${response.status} for model=${modelId}: ${bodyDetail}`);
+        throw new Error(`Server error: ${response.status} ${bodyDetail}`);
+      }
 
       if (!response.body) throw new Error("Response body is null");
       const reader = response.body.getReader();
@@ -1352,7 +1376,30 @@ export default function App() {
 
     } catch (e: any) {
       if (e.name !== "AbortError") {
-        const errorMsg = "⚠ Connection to local inference server lost. Please restart.";
+        const msg = String(e?.message ?? e ?? "Unknown error");
+        const isConnFailure =
+          msg.includes("Failed to fetch") ||
+          msg.includes("fetch failed") ||
+          msg.includes("NetworkError") ||
+          msg.includes("connection") ||
+          msg.includes("ECONNREFUSED");
+        console.error(`[chat] error: ${msg}`);
+        // Diagnostic: compare the requested model against what is actually
+        // installed so the next reproduction tells us definitively whether the
+        // request model matches the downloaded model list.
+        try {
+          const installed = await invoke<ModelInfo[]>("list_installed_models");
+          const installedIds = installed.map(m => typeof m === 'string' ? m : (m as any).id ?? '');
+          const requested = hardware?.model?.id ?? "llama3.2:3b";
+          console.error(`[chat] requested model="${requested}" installed=[${installedIds.join(", ")}] match=${installedIds.some(i => i === requested || i.startsWith(requested + ":") || requested.startsWith(i + ":"))}`);
+        } catch (diagErr) {
+          console.error("[chat] failed to list installed models for diagnostics:", diagErr);
+        }
+        // Surface the real failure (e.g. 404 model not found, 403 CORS) so
+        // it's diagnosable from the UI instead of a generic catch-all.
+        const errorMsg = isConnFailure
+          ? "⚠ Connection to local inference server lost. Please restart."
+          : `⚠ ${msg}`;
         setMessages(prev => {
           const next = [...prev];
           const last = next[next.length - 1];
@@ -1412,9 +1459,9 @@ export default function App() {
     return (
       <div className="boot-screen">
         <div className="boot-logo">
-          <img src={veraLogo} alt="LexSort Personal AI" className="boot-logo-img" />
+          <img src={veraLogo} alt="LexSort VERA" className="boot-logo-img" />
         </div>
-        <p className="boot-product">LexSort <span className="boot-product-sub">Personal AI</span></p>
+        <p className="boot-product">LexSort <span className="boot-product-sub">VERA</span></p>
 
         {phase === PHASE.DETECTING && (
           <div className="boot-status">
@@ -1759,9 +1806,9 @@ export default function App() {
       )}
       <header className="header">
         <div className="header-left">
-          <img src={veraLogo} alt="LexSort Personal AI" className="header-logo-img" />
+          <img src={veraLogo} alt="LexSort VERA" className="header-logo-img" />
           <div className="header-title-block">
-            <span className="header-title">LexSort <span style={{fontWeight:300}}>Personal AI</span></span>
+            <span className="header-title">LexSort <span style={{fontWeight:300}}>VERA</span></span>
             <span className="header-subtitle">by LexSort Inc.</span>
           </div>
         </div>

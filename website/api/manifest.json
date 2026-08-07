@@ -1,11 +1,11 @@
 {
   "manifest_version": "1",
-  "generated_at": "2026-07-02T00:00:00Z",
+  "generated_at": "2026-08-07T00:00:00Z",
   "core": {
     "freeware": {
-      "version": "1.1.6",
+      "version": "1.1.8",
       "min_os": { "macos": "12.0", "windows": "10" },
-      "release_notes": "Repo restructured: lexsort-personal-ai renamed to vera-freeware, new vera-engine standalone binary, vera-go-ios companion app."
+      "release_notes": "v1.1.8: chat diagnostics — request logging, HTTP error-body capture, retry on transient failures, model-vs-installed comparison surfacing."
     },
     "pro": {
       "version": "1.0.12",
