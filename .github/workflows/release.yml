@@ -24,7 +24,65 @@ on:
         required: false
         default: ''
 
+# Serialize builds that target the same release. On a tag push the group is the
+# tag ref; on a manual dispatch it is the tag_name input. A manual Windows
+# dispatch submitted while a tag-push run is still in flight waits for it
+# instead of racing to attach assets (tauri-apps/tauri-action#1270:
+# parallel builds can hit a 404 on the releases API right after createRelease).
+# cancel-in-progress: false so an already-running (paid) Windows build is never
+# cancelled by a newer dispatch.
+concurrency:
+  group: release-${{ github.event_name == 'push' && github.ref_name || github.event.inputs.tag_name }}
+  cancel-in-progress: false
+
 jobs:
+  # ── Single owner of the GitHub release ──────────────────────────────────────
+  # Creates (or finds) the release exactly once BEFORE any build job starts, and
+  # hands the resulting release_id down to every platform job. Platform jobs
+  # upload into that shared release instead of each racing to create the same
+  # tag — the root cause of the v1.1.8 missing-assets failure. Ubuntu runner is
+  # free and the step takes ~5s.
+  prepare-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      release_id: ${{ steps.create.outputs.release_id }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: prepare release
+        id: create
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ "${{ github.event_name }}" = "push" ]; then
+            TAG="${{ github.ref_name }}"
+          else
+            TAG="${{ inputs.tag_name }}"
+          fi
+
+          if [ -z "$TAG" ]; then
+            echo "::error::No release tag available (manual builds must pass tag_name)."
+            exit 1
+          fi
+
+          VERSION="${TAG#v}"
+
+          # Reuse the release if it already exists; otherwise create it once.
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists — reusing it."
+          else
+            gh release create "$TAG" \
+              --title "LexSort VERA $VERSION — Personal AI" \
+              --notes "See changelog and release notes."
+          fi
+
+          RELEASE_ID="$(gh release view "$TAG" --json id --jq '.id')"
+          echo "release_id=$RELEASE_ID" >> "$GITHUB_OUTPUT"
+          echo "Using release $TAG (id=$RELEASE_ID)."
   # ── macOS + Linux (auto on tag push, selectable via manual dispatch) ──
   build-macos-linux:
     permissions:
@@ -47,6 +105,7 @@ jobs:
             target: ''
 
     runs-on: ${{ matrix.platform }}
+    needs: prepare-release
 
     steps:
       - uses: actions/checkout@v4
@@ -102,11 +161,13 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_PRIVATE_KEY_PASSWORD }}
         with:
+          releaseId: ${{ needs.prepare-release.outputs.release_id }}
           tagName: ${{ github.event_name == 'push' && 'v__VERSION__' || inputs.tag_name }}
           releaseName: 'LexSort VERA v__VERSION__ — Personal AI'
           releaseBody: 'See changelog and release notes.'
           releaseDraft: false
           prerelease: false
+          retryAttempts: 3
           args: ${{ matrix.args }}
           projectPath: vera-freeware
 
@@ -116,6 +177,7 @@ jobs:
       contents: write
     if: github.event_name == 'workflow_dispatch' && (inputs.platform == 'all' || inputs.platform == 'windows-only')
     runs-on: windows-latest
+    needs: prepare-release
 
     steps:
       - uses: actions/checkout@v4
@@ -147,10 +209,12 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_PRIVATE_KEY_PASSWORD }}
         with:
+          releaseId: ${{ needs.prepare-release.outputs.release_id }}
           tagName: ${{ inputs.tag_name }}
           releaseName: 'LexSort VERA v__VERSION__ — Personal AI'
           releaseBody: 'See changelog and release notes.'
           releaseDraft: false
           prerelease: false
+          retryAttempts: 3
           args: ''
           projectPath: vera-freeware
