@@ -29,6 +29,15 @@ import { ModuleErrorBoundary } from "./components/ModuleErrorBoundary";
 (window as any).React = React;
 (window as any).ReactJSXRuntime = ReactJSXRuntime;
 
+// Persistent chat diagnostics — mirrors the [chat] console lines into
+// ~/.lexsort/logs/chat-debug.log so field builds (no DevTools) can be
+// debugged by reading the file. Fire-and-forget: never blocks chat.
+const logChat = (line: string) => {
+  console.log(`[chat] ${line}`);
+  invoke("append_chat_log", { line })
+    .catch((err) => console.warn(`[chat] failed to write log file: ${err}`));
+};
+
 // Expose VERAApi for Pro modules
 (window as any).VERAApi = {
   invoke: (cmd: string, args?: any) => {
@@ -1290,7 +1299,7 @@ export default function App() {
         temperature: 0.7,
         max_tokens:  2048,
       };
-      console.log(`[chat] sending to ${chatUrl} model=${modelId}`);
+      logChat(`sending to ${chatUrl} model=${modelId}`);
 
       // Retry up to 3 times with backoff on connection-level failures, so a
       // single transient refusal (e.g. daemon still starting) isn't fatal.
@@ -1309,7 +1318,7 @@ export default function App() {
           if (fetchErr.name === "AbortError") throw fetchErr;
           if (attempt < 2) {
             const waitMs = 750 * (attempt + 1);
-            console.warn(`[chat] request attempt ${attempt + 1} failed (${fetchErr.message}), retrying in ${waitMs}ms`);
+            logChat(`request attempt ${attempt + 1} failed (${fetchErr.message}), retrying in ${waitMs}ms`);
             await new Promise(r => setTimeout(r, waitMs));
           }
         }
@@ -1320,7 +1329,7 @@ export default function App() {
         // Capture the real Ollama error body instead of a bare status.
         let bodyDetail = "";
         try { bodyDetail = (await response.text()).slice(0, 300); } catch { /* ignore */ }
-        console.error(`[chat] HTTP ${response.status} for model=${modelId}: ${bodyDetail}`);
+        logChat(`HTTP ${response.status} for model=${modelId}: ${bodyDetail}`);
         throw new Error(`Server error: ${response.status} ${bodyDetail}`);
       }
 
@@ -1383,7 +1392,7 @@ export default function App() {
           msg.includes("NetworkError") ||
           msg.includes("connection") ||
           msg.includes("ECONNREFUSED");
-        console.error(`[chat] error: ${msg}`);
+        logChat(`error: ${msg}`);
         // Diagnostic: compare the requested model against what is actually
         // installed so the next reproduction tells us definitively whether the
         // request model matches the downloaded model list.
@@ -1391,9 +1400,9 @@ export default function App() {
           const installed = await invoke<ModelInfo[]>("list_installed_models");
           const installedIds = installed.map(m => typeof m === 'string' ? m : (m as any).id ?? '');
           const requested = hardware?.model?.id ?? "llama3.2:3b";
-          console.error(`[chat] requested model="${requested}" installed=[${installedIds.join(", ")}] match=${installedIds.some(i => i === requested || i.startsWith(requested + ":") || requested.startsWith(i + ":"))}`);
+          logChat(`requested model="${requested}" installed=[${installedIds.join(", ")}] match=${installedIds.some(i => i === requested || i.startsWith(requested + ":") || requested.startsWith(i + ":"))}`);
         } catch (diagErr) {
-          console.error("[chat] failed to list installed models for diagnostics:", diagErr);
+          logChat(`verbose diagnostic fail: ${diagErr}`);
         }
         // Surface the real failure (e.g. 404 model not found, 403 CORS) so
         // it's diagnosable from the UI instead of a generic catch-all.

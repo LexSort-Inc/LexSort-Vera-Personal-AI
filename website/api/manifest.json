@@ -3,9 +3,9 @@
   "generated_at": "2026-08-07T00:00:00Z",
   "core": {
     "freeware": {
-      "version": "1.1.8",
+      "version": "1.1.9",
       "min_os": { "macos": "12.0", "windows": "10" },
-      "release_notes": "v1.1.8: chat diagnostics — request logging, HTTP error-body capture, retry on transient failures, model-vs-installed comparison surfacing."
+      "release_notes": "v1.1.9: chat diagnostics redirected from webview DevTools-only console to ~/.lexsort/logs/chat-debug.log for field debugging."
     },
     "pro": {
       "version": "1.0.12",

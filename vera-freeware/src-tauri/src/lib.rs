@@ -201,6 +201,14 @@ pub fn data_dir() -> PathBuf {
     lexsort_dir().join("data")
 }
 
+pub fn log_dir() -> PathBuf {
+    lexsort_dir().join("logs")
+}
+
+pub fn chat_debug_log_path() -> PathBuf {
+    log_dir().join("chat-debug.log")
+}
+
 fn is_newer_version(current: &str, remote: &str) -> bool {
     let current_parts: Vec<&str> = current.split('.').collect();
     let remote_parts: Vec<&str> = remote.split('.').collect();
@@ -233,6 +241,7 @@ fn ensure_lexsort_dirs(edition: &str) -> Result<(), String> {
 
     std::fs::create_dir_all(base.join("modules")).map_err(|e| e.to_string())?;
     std::fs::create_dir_all(base.join("data")).map_err(|e| e.to_string())?;
+    std::fs::create_dir_all(base.join("logs")).map_err(|e| e.to_string())?;
 
     let module_ids = vec!["promailer", "organizer", "taxmate", "guardian_watch"];
     for id in &module_ids {
@@ -1051,6 +1060,22 @@ pub mod commands {
     #[tauri::command]
     pub fn init_lexsort_dirs(edition: String) -> Result<(), String> {
         super::ensure_lexsort_dirs(&edition)
+    }
+
+    #[tauri::command]
+    pub fn append_chat_log(line: String) -> Result<(), String> {
+        let dir = super::log_dir();
+        std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+        let path = dir.join("chat-debug.log");
+        let ts = chrono::Local::now().format("%Y-%m-%d %H:%M:%S%.3f");
+        use std::io::Write;
+        let mut f = std::fs::OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(&path)
+            .map_err(|e| e.to_string())?;
+        writeln!(f, "[{}] {}", ts, line).map_err(|e| e.to_string())?;
+        Ok(())
     }
 
     #[tauri::command]
@@ -2914,6 +2939,7 @@ pub fn run() {
             commands::set_module_model,
             commands::check_model_exists,
             commands::init_lexsort_dirs,
+            commands::append_chat_log,
             commands::get_installed_registry,
             commands::get_app_version,
             commands::check_for_updates,
