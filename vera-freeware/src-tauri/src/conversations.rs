@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use rusqlite::{params, Connection, Result};
+use rusqlite::{params, Connection};
 
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -32,64 +32,10 @@ fn db_connection() -> std::result::Result<Connection, String> {
     Ok(conn)
 }
 
-fn init_db(conn: &Connection) -> Result<()> {
-    conn.execute(
-        "CREATE TABLE IF NOT EXISTS conversations (
-            id TEXT PRIMARY KEY,
-            title TEXT NOT NULL,
-            created_at TEXT NOT NULL,
-            updated_at TEXT NOT NULL
-        )",
-        [],
-    )?;
-
-    conn.execute(
-        "CREATE TABLE IF NOT EXISTS messages (
-            id INTEGER NOT NULL,
-            conversation_id TEXT NOT NULL,
-            role TEXT NOT NULL,
-            content TEXT NOT NULL,
-            created_at TEXT NOT NULL,
-            FOREIGN KEY(conversation_id) REFERENCES conversations(id) ON DELETE CASCADE
-        )",
-        [],
-    )?;
-
-    conn.execute(
-        "CREATE TABLE IF NOT EXISTS tasks (
-            id              TEXT PRIMARY KEY NOT NULL,
-            title           TEXT NOT NULL,
-            notes           TEXT,
-            list            TEXT NOT NULL DEFAULT 'today',
-            completed       INTEGER NOT NULL DEFAULT 0,
-            created_at      TEXT NOT NULL,
-            completed_at    TEXT,
-            ai_breakdown    TEXT,
-            start_time      TEXT,
-            end_time        TEXT,
-            category        TEXT,
-            all_day         INTEGER,
-            recurrence_rule TEXT,
-            next_due        TEXT,
-            recurrence_end  TEXT
-        )",
-        [],
-    )?;
-
-    conn.execute(
-        "CREATE INDEX IF NOT EXISTS idx_tasks_next_due
-         ON tasks (next_due)
-         WHERE completed = 0 AND next_due IS NOT NULL",
-        [],
-    )?;
-
-    Ok(())
-}
-
 #[tauri::command]
 pub fn get_conversations() -> std::result::Result<Vec<Conversation>, String> {
     let conn = db_connection()?;
-    init_db(&conn).map_err(|e| format!("Database initialization failed: {}", e))?;
+    crate::schema::init_db(&conn).map_err(|e| format!("Database initialization failed: {}", e))?;
     
     let mut stmt = conn
         .prepare("SELECT id, title, created_at, updated_at FROM conversations ORDER BY updated_at DESC")
@@ -119,7 +65,7 @@ pub fn get_conversations() -> std::result::Result<Vec<Conversation>, String> {
 #[tauri::command]
 pub fn create_conversation(id: String, title: String) -> std::result::Result<(), String> {
     let conn = db_connection()?;
-    init_db(&conn).map_err(|e| format!("Database initialization failed: {}", e))?;
+    crate::schema::init_db(&conn).map_err(|e| format!("Database initialization failed: {}", e))?;
     
     let now = chrono::Utc::now().to_rfc3339();
     conn.execute(
@@ -134,7 +80,7 @@ pub fn create_conversation(id: String, title: String) -> std::result::Result<(),
 #[tauri::command]
 pub fn save_messages(conversation_id: String, messages: Vec<Message>) -> std::result::Result<(), String> {
     let mut conn = db_connection()?;
-    init_db(&conn).map_err(|e| format!("Database initialization failed: {}", e))?;
+    crate::schema::init_db(&conn).map_err(|e| format!("Database initialization failed: {}", e))?;
     
     let tx = conn.transaction().map_err(|e| e.to_string())?;
     
@@ -170,7 +116,7 @@ pub fn save_messages(conversation_id: String, messages: Vec<Message>) -> std::re
 #[tauri::command]
 pub fn delete_conversation(id: String) -> std::result::Result<(), String> {
     let conn = db_connection()?;
-    init_db(&conn).map_err(|e| format!("Database initialization failed: {}", e))?;
+    crate::schema::init_db(&conn).map_err(|e| format!("Database initialization failed: {}", e))?;
     
     conn.execute("DELETE FROM conversations WHERE id = ?1", params![id])
         .map_err(|e| e.to_string())?;
@@ -181,7 +127,7 @@ pub fn delete_conversation(id: String) -> std::result::Result<(), String> {
 #[tauri::command]
 pub fn rename_conversation(id: String, title: String) -> std::result::Result<(), String> {
     let conn = db_connection()?;
-    init_db(&conn).map_err(|e| format!("Database initialization failed: {}", e))?;
+    crate::schema::init_db(&conn).map_err(|e| format!("Database initialization failed: {}", e))?;
     
     let now = chrono::Utc::now().to_rfc3339();
     conn.execute(
@@ -196,7 +142,7 @@ pub fn rename_conversation(id: String, title: String) -> std::result::Result<(),
 #[tauri::command]
 pub fn load_messages(conversation_id: String) -> std::result::Result<Vec<Message>, String> {
     let conn = db_connection()?;
-    init_db(&conn).map_err(|e| format!("Database initialization failed: {}", e))?;
+    crate::schema::init_db(&conn).map_err(|e| format!("Database initialization failed: {}", e))?;
     
     let mut stmt = conn
         .prepare("SELECT id, role, content FROM messages WHERE conversation_id = ?1 ORDER BY rowid ASC")

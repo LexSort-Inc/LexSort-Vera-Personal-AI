@@ -370,8 +370,9 @@ html, body, #root {
 }
 
 .send-btn {
-  width: 44px;
+  min-width: 80px;
   height: 44px;
+  padding: 0 18px;
   border-radius: 10px;
   border: none;
   background: var(--accent);
@@ -380,8 +381,16 @@ html, body, #root {
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 6px;
   transition: background 0.15s, opacity 0.15s;
   flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.send-btn-label {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
 }
 
 .send-btn:hover:not(:disabled) {
@@ -3490,9 +3499,21 @@ html, body, #root {
 }
 
 .chat-mic-btn.active {
-  border-color: #ef4444;
-  background: rgba(239, 68, 68, 0.12);
-  animation: pulse-red-border 1.5s infinite ease-in-out;
+  border-color: var(--accent);
+  background: rgba(99, 102, 241, 0.15);
+  color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+  animation: mic-active-pulse 2s ease-in-out infinite;
+}
+
+@keyframes mic-active-pulse {
+  0%, 100% { box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2); }
+  50%       { box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1); }
+}
+
+.chat-mic-btn:disabled:not(.active) {
+  opacity: 0.35;
+  cursor: default;
 }
 
 .qo-chat-mic-btn {
@@ -3833,4 +3854,101 @@ html, body, #root {
   transform: scale(0.95);
 }
 
+/* ── Voice Session UI (Amendment 03) ─────────────────────────────── */
+
+.voice-session-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+/* Override: active session button uses green ring, not red */
+.chat-mic-btn.active {
+  border-color: #22c55e !important;
+  background: rgba(34, 197, 94, 0.12) !important;
+  animation: none !important;
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.25);
+}
+
+/* Speaking state: brighter green pulse */
+.chat-mic-btn.speaking {
+  border-color: #16a34a !important;
+  background: rgba(34, 197, 94, 0.22) !important;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.35);
+}
+
+/* ── Waveform bars ───────────────────────────────────────────────── */
+
+.voice-waveform {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 32px;
+  padding: 0 4px;
+  border-radius: 8px;
+  background: var(--bg-surface, rgba(255,255,255,0.04));
+  border: 1px solid var(--border, rgba(255,255,255,0.08));
+}
+
+.waveform-bar {
+  display: block;
+  width: 4px;
+  height: 24px;
+  border-radius: 2px;
+  transform-origin: center;
+  transition:
+    transform 120ms ease-out,
+    background 200ms ease;
+  will-change: transform;
+  animation: waveform-idle 1.8s ease-in-out infinite;
+}
+
+/* Subtle idle breathing animation when session is open but no speech */
+@keyframes waveform-idle {
+  0%, 100% { transform: scaleY(0.25); }
+  50%       { transform: scaleY(0.45); }
+}
+
+.chat-history-rename-input {
+  background: var(--bg);
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  color: var(--text);
+  font-size: 13px;
+  padding: 4px 8px;
+  outline: none;
+  width: 100%;
+}
+
+/* When speaking, JS inline transform overrides this — smooth via CSS transition */
+
+/* ==========================================================================
+   ProMailer Module Overrides
+   ========================================================================== */
+
+/* Make the max-results number input wider and more readable */
+#em-max-results {
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.02em !important;
+  min-width: 80px !important;
+  text-align: center !important;
+  -moz-appearance: textfield !important;
+  color: #e2e8f0 !important;
+  background: #1e293b !important;
+  border-color: #475569 !important;
+}
+
+#em-max-results::-webkit-inner-spin-button,
+#em-max-results::-webkit-outer-spin-button {
+  opacity: 1 !important;
+  height: 28px !important;
+  cursor: pointer !important;
+}
+
+/* Override the cramped 120px inline width on the form-group */
+.em-leads-form .em-form-group:last-of-type {
+  width: 140px !important;
+}
 

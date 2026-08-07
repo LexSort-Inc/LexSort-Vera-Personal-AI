@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { confirm } from '@tauri-apps/plugin-dialog';
 
 export interface UseSpeechRecognitionOptions {
   onResult?: (transcript: string, isFinal: boolean) => void;
@@ -47,7 +48,7 @@ export function useSpeechRecognition(options: UseSpeechRecognitionOptions = {}) 
     }
   }, [onEnd]);
 
-  const start = useCallback(() => {
+  const start = useCallback(async () => {
     if (isListening || !supported) return;
 
     // Check if we are running in macOS Tauri dev mode
@@ -56,11 +57,9 @@ export function useSpeechRecognition(options: UseSpeechRecognitionOptions = {}) 
                           window.location.hostname === 'localhost';
 
     if (isMacTauriDev) {
-      const confirmed = window.confirm(
-        "VERA Dev Mode Warning:\n\n" +
-        "On macOS, running in development mode requires your Terminal/IDE (e.g. VS Code, Terminal) to have Microphone permissions enabled in System Settings > Privacy & Security > Microphone to prevent macOS from terminating the unsigned process.\n\n" +
-        "In the packaged production release, VERA will prompt you for native permissions directly without crashing.\n\n" +
-        "Do you want to proceed and activate the microphone?"
+      const confirmed = await confirm(
+        "On macOS, running in development mode requires your Terminal/IDE to have Microphone permissions enabled in System Settings > Privacy & Security > Microphone to prevent macOS from terminating the unsigned process.\n\nIn the packaged production release, VERA will prompt you for native permissions directly.\n\nDo you want to proceed and activate the microphone?",
+        { title: 'Microphone Access', kind: 'warning' }
       );
       if (!confirmed) return;
     }
@@ -144,7 +143,7 @@ export function useSpeechRecognition(options: UseSpeechRecognitionOptions = {}) 
 
   return {
     isListening,
-    supported: false, // Disabled for now (added to future build list)
+    supported: !!((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition),
     start,
     stop,
     restart,

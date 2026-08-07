@@ -4,6 +4,7 @@ import * as ReactJSXRuntime from "react/jsx-runtime";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
+import { confirm } from "@tauri-apps/plugin-dialog";
 import "./app.css";
 import veraLogo from "./assets/vera-logo.jpg";
 import SupportPanel, { openExternalUrl } from "./SupportPanel";
@@ -11,6 +12,14 @@ import { UpdateStatusIndicator, UpdateStatus } from "./UpdateStatusIndicator";
 import { QuickOrganizer } from "./components/QuickOrganizer";
 import TeamLab from "./components/TeamLab";
 import { useSpeechRecognition } from "./hooks/useSpeechRecognition";
+import { useAudio } from "./hooks/useAudio";
+import { useSettings } from "./hooks/useSettings";
+import { useSwitching } from "./hooks/useSwitching";
+import { useConversations } from "./hooks/useConversations";
+import { useChat } from "./hooks/useChat";
+import { useEngine, PHASE } from "./hooks/useEngine";
+// useVoiceSession: reserved for future whisper.cpp backend integration (Amendment 03 Phase 3)
+// import { useVoiceSession } from "./hooks/useVoiceSession";
 import { VeraModule } from "./types/module";
 import ModuleDrawer from "./components/ModuleDrawer";
 import FeedbackBanner from "./components/FeedbackBanner";
@@ -124,7 +133,7 @@ interface ModelInfo {
   ollama_tag: string;
 }
 
-interface HardwareInfo {
+export interface HardwareInfo {
   platform: string;
   ram_gb: number;
   total_memory_bytes: number;
@@ -139,27 +148,27 @@ interface HardwareInfo {
   model_exists: boolean;
 }
 
-interface Message {
+export interface Message {
   id: number;
   role: "system" | "user" | "assistant";
   content: string;
 }
 
-interface Conversation {
+export interface Conversation {
   id: string;
   title: string;
   created_at: string;
   updated_at: string;
 }
 
-interface DownloadProgress {
+export interface DownloadProgress {
   status: string;
   percent: number;
   downloaded: number;
   total: number;
 }
 
-interface ModuleUpdateInfo {
+export interface ModuleUpdateInfo {
   module_id: string;
   installed_version: string | null;
   remote_version: string;
@@ -168,7 +177,7 @@ interface ModuleUpdateInfo {
   status: string;
 }
 
-interface UpdateCheckResult {
+export interface UpdateCheckResult {
   success: boolean;
   error: string | null;
   core_update_available: boolean;
@@ -313,70 +322,77 @@ const PRO_MODULES_PREVIEW = [
 ];
 
 // ─── States ──────────────────────────────────────────────────────────────────
-const PHASE = {
-  DETECTING:   "detecting",
-  ENGINE_SETUP: "engine_setup",
-  MODEL_SELECTION: "model_selection",
-  DOWNLOADING: "downloading",
-  BOOTING:     "booting",
-  BENCHMARKING: "benchmarking",
-  READY:       "ready",
-  ERROR:       "error",
-};
 
 export default function App() {
-  const [phase,            setPhase]            = useState<string>(PHASE.DETECTING);
-  const [localModels,      setLocalModels]      = useState<string[]>([]);
-  const [selectedOnboardingModelId, setSelectedOnboardingModelId] = useState<string>("");
-  const [hardware,         setHardware]         = useState<HardwareInfo | null>(null);
-  const [dlProgress,       setDlProgress]       = useState<DownloadProgress>({ status: "", percent: 0, downloaded: 0, total: 0 });
-  const [messages,         setMessages]         = useState<Message[]>([]);
-  const [conversations,    setConversations]    = useState<Conversation[]>([]);
-  const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
-  const [showHistory,      setShowHistory]      = useState<boolean>(true);
-  const [input,            setInput]            = useState<string>("");
-  const [streaming,        setStreaming]        = useState<boolean>(false);
+  const {
+    messages, setMessages,
+    input, setInput,
+    streaming, setStreaming,
+    bottomRef,
+    abortRef,
+    inputRef,
+    initialTextRef,
+    speakText,
+    autoSaveChat,
+  } = useChat();
+
+  const {
+    phase, setPhase,
+    localModels, setLocalModels,
+    selectedOnboardingModelId, setSelectedOnboardingModelId,
+    hardware, setHardware,
+    dlProgress, setDlProgress,
+    engineSetupStatus,
+    engineSetupProgress,
+    engineSetupAttempt,
+    engineSetupError,
+    handleStartEngineSetup,
+  } = useEngine(bootSequence);
+  const {
+    conversations,
+    activeConversationId, setActiveConversationId,
+    editingRenameId,
+    renameValue, setRenameValue,
+    renameInputRef,
+    showHistory, setShowHistory,
+    loadConversationsList,
+    handleRenameStart, handleRenameSubmit, handleRenameCancel,
+  } = useConversations();
   const [error,            setError]            = useState<string>("");
   const [serverPort,       setServerPort]       = useState<number>(11434);
   const [showSupport,      setShowSupport]      = useState<boolean>(false);
   const [activeModule,     setActiveModule]     = useState<string>("chat");
   const [showModulesDrawer, setShowModulesDrawer] = useState<boolean>(false);
   const [dynamicComponents, setDynamicComponents] = useState<Record<string, React.ComponentType<any>>>({});
+  const [searchLogs,        setSearchLogs]        = useState<string[]>([]);
+  const [isSearching,       setIsSearching]       = useState<boolean>(false);
+  const searchLogRef = useRef<string[]>([]);
 
   // Settings and Switcher States
-  const [showSettings, setShowSettings] = useState<boolean>(false);
-  const [ollamaStatus, setOllamaStatus] = useState<"checking" | "ready" | "not_running">("checking");
+  const {
+    showSettings, setShowSettings,
+    ollamaStatus, setOllamaStatus,
+    appVersion, setAppVersion,
+    settingsTab, setSettingsTab,
+    updateCheckResult, setUpdateCheckResult,
+    checkingForUpdates, setCheckingForUpdates,
+    updateStatus, setUpdateStatus,
+    updateDownloadStatus, setUpdateDownloadStatus,
+    downloadProgress, setDownloadProgress,
+    approvedVersion, setApprovedVersion,
+    showExitPrompt, setShowExitPrompt,
+    isRunningFromDmg, setIsRunningFromDmg,
+  } = useSettings();
+
   const [isPro, setIsPro] = useState<boolean>(() => localStorage.getItem("vera_is_pro") === "true");
-  const [switchingModelId, setSwitchingModelId] = useState<string | null>(null);
-  const [switchingPhase, setSwitchingPhase] = useState<string | null>(null);
-  const [switchingDlProgress, setSwitchingDlProgress] = useState<DownloadProgress>({ status: "", percent: 0, downloaded: 0, total: 0 });
-  const [lastBenchmarkTps, setLastBenchmarkTps] = useState<number | null>(null);
-  const [alternativeModelCached, setAlternativeModelCached] = useState<Record<string, boolean>>({});
-  const [runningManualBenchmark, setRunningManualBenchmark] = useState(false);
-
-  // Update check states
-  const [updateCheckResult, setUpdateCheckResult] = useState<UpdateCheckResult | null>(null);
-  const [appVersion, setAppVersion] = useState<string>("1.1.4");
-  const [checkingForUpdates, setCheckingForUpdates] = useState<boolean>(false);
-  const [settingsTab, setSettingsTab] = useState<"model" | "updates" | "pro">("model");
-  const [updateStatus, setUpdateStatus] = useState<UpdateStatus>({
-      phase: 'idle',
-      moduleId: null,
-      percent: 0,
-      message: '',
-      errorDetail: null,
-  });
-
-  const [updateDownloadStatus, setUpdateDownloadStatus] = useState<'idle' | 'downloading' | 'downloaded' | 'error'>('idle');
-  const [downloadProgress, setDownloadProgress] = useState<number>(0);
-  const [approvedVersion, setApprovedVersion] = useState<string | null>(null);
-  const [showExitPrompt, setShowExitPrompt] = useState<boolean>(false);
-  const [isRunningFromDmg, setIsRunningFromDmg] = useState<boolean>(false);
-
-  const [engineSetupStatus, setEngineSetupStatus] = useState<'idle' | 'downloading' | 'verifying' | 'extracting' | 'completed' | 'error'>('idle');
-  const [engineSetupProgress, setEngineSetupProgress] = useState<number>(0);
-  const [engineSetupAttempt, setEngineSetupAttempt] = useState<number>(1);
-  const [engineSetupError, setEngineSetupError] = useState<string | null>(null);
+  const {
+    switchingModelId, setSwitchingModelId,
+    switchingPhase, setSwitchingPhase,
+    switchingDlProgress, setSwitchingDlProgress,
+    lastBenchmarkTps, setLastBenchmarkTps,
+    alternativeModelCached, setAlternativeModelCached,
+    runningManualBenchmark, setRunningManualBenchmark,
+  } = useSwitching();
 
   const pendingUpdateRef = useRef<{ version: string; path: string } | null>(null);
   const allowCloseRef = useRef<boolean>(false);
@@ -385,26 +401,39 @@ export default function App() {
   const [fallbackReportText, setFallbackReportText] = useState('');
 
   // Voice Input (Speech to Text) Logic
-  const initialTextRef = useRef("");
   const speech = useSpeechRecognition({
     onResult: (transcript) => {
-      const base = initialTextRef.current;
-      const space = base && !base.endsWith(" ") ? " " : "";
-      setInput(base + space + transcript);
+      if (audioModeRef.current) {
+        // Audio mode: each new mic session starts fresh — just replace with live transcript
+        setInput(transcript);
+      } else {
+        // Text-hybrid mode: preserve any text the user typed before clicking mic
+        const base = initialTextRef.current;
+        const space = base && !base.endsWith(" ") ? " " : "";
+        setInput(base + space + transcript);
+      }
     },
     onError: (err) => {
       console.error("Speech Recognition Error in Main Chat:", err);
     }
   });
 
+  const { audioMode, setAudioMode, audioModeRef } = useAudio();
+
   const toggleSpeech = () => {
-    if (speech.isListening) {
+    if (audioModeRef.current) {
+      setAudioMode(false);
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
       speech.stop();
     } else {
+      setAudioMode(true);
       initialTextRef.current = input;
       speech.start();
     }
   };
+
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const val = e.target.value;
@@ -518,10 +547,6 @@ export default function App() {
       }
   }
 
-  const bottomRef     = useRef<HTMLDivElement | null>(null);
-  const abortRef      = useRef<AbortController | null>(null);
-  const inputRef      = useRef<HTMLTextAreaElement | null>(null);
-
   // ── Boot sequence ──────────────────────────────────────────────────────────
   const unlistenRef = useRef<(() => void) | null>(null);
 
@@ -541,11 +566,30 @@ export default function App() {
     window.registerVeraModule("quick-organizer", QuickOrganizer);
     window.registerVeraModule("team-lab", TeamLab);
 
+    // Listen for real-time search progress from ProMailer lead finder
+    let unlistenSearch: (() => void) | undefined;
+    (async () => {
+      unlistenSearch = await listen<string>("search_log", (event) => {
+        const msg = event.payload;
+        setIsSearching(true);
+        searchLogRef.current = [...searchLogRef.current.slice(-19), msg];
+        setSearchLogs([...searchLogRef.current]);
+        if (msg.includes("Complete") || msg.includes("found")) {
+          setTimeout(() => {
+            setIsSearching(false);
+            searchLogRef.current = [];
+            setSearchLogs([]);
+          }, 3000);
+        }
+      });
+    })();
+
     return () => {
       abortRef.current?.abort();
       if (unlistenRef.current) {
         unlistenRef.current();
       }
+      if (unlistenSearch) unlistenSearch();
     };
   }, []);
 
@@ -570,46 +614,6 @@ export default function App() {
         });
     }
   }, [activeModule, dynamicComponents]);
-
-  // Listen to local AI engine setup progress
-  useEffect(() => {
-    let unlisten: (() => void) | null = null;
-    
-    const setupListener = async () => {
-      try {
-        unlisten = await listen("engine_setup_progress", (event) => {
-          const payload = event.payload as any;
-          if (payload.status === "downloading") {
-            setEngineSetupStatus("downloading");
-            setEngineSetupProgress(payload.percent);
-            if (payload.attempt) setEngineSetupAttempt(payload.attempt);
-          } else if (payload.status === "verifying") {
-            setEngineSetupStatus("verifying");
-            setEngineSetupProgress(100);
-          } else if (payload.status === "extracting") {
-            setEngineSetupStatus("extracting");
-            setEngineSetupProgress(100);
-          } else if (payload.status === "completed") {
-            setEngineSetupStatus("completed");
-            setEngineSetupProgress(100);
-            setTimeout(() => {
-              bootSequence();
-            }, 1000);
-          } else if (payload.status === "error") {
-            setEngineSetupStatus("error");
-            setEngineSetupError(payload.error || "An unknown error occurred during engine setup.");
-          }
-        });
-      } catch (err) {
-        console.error("Failed to listen to engine_setup_progress:", err);
-      }
-    };
-
-    setupListener();
-    return () => {
-      if (unlisten) unlisten();
-    };
-  }, []);
 
   const handleConfirmOnboardingModel = async (modelId: string) => {
     try {
@@ -645,19 +649,6 @@ export default function App() {
       console.error("Failed to skip onboarding:", err);
       setError(String(err));
       setPhase(PHASE.ERROR);
-    }
-  };
-
-  const handleStartEngineSetup = async () => {
-    setEngineSetupStatus("downloading");
-    setEngineSetupProgress(0);
-    setEngineSetupAttempt(1);
-    setEngineSetupError(null);
-    try {
-      await invoke("setup_engine");
-    } catch (err: any) {
-      setEngineSetupStatus("error");
-      setEngineSetupError(err.toString());
     }
   };
 
@@ -782,25 +773,32 @@ export default function App() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  interface ModelInfo {
+    id: string; display_name: string; quantization: string; size_gb: number;
+    family: string | null; parameter_count: string | null;
+    context_length: number | null; template: string | null;
+  }
+
   // Check which models are cached in Ollama
   const checkAllModelsCache = async () => {
     try {
-      const installed = await invoke<string[]>("list_installed_models") as string[];
-      setLocalModels(installed);
+      const installed = await invoke<ModelInfo[]>("list_installed_models");
+      const modelIds = installed.map(m => typeof m === 'string' ? m : (m as any).id ?? '');
+      setLocalModels(modelIds);
       
       // Pre-select a local model matching hardware recommendation
-      if (installed.length > 0 && hardware) {
+      if (modelIds.length > 0 && hardware) {
         const hwPrefix = hardware.model.id.split(':')[0];
-        const match = installed.find(m => m.startsWith(hwPrefix));
+        const match = modelIds.find(m => m.startsWith(hwPrefix));
         // Use matching installed, first installed, or default hardware ID
-        const selected = match || installed[0] || hardware.model.id;
+        const selected = match || modelIds[0] || hardware.model.id;
         setSelectedOnboardingModelId(selected);
       }
 
       const cachedMap: Record<string, boolean> = {};
       for (const m of MODELS_LIST) {
-        const isLocal = installed.includes(m.id) ||
-          installed.some(local => local.startsWith(m.id + ":") || m.id.startsWith(local + ":"));
+        const isLocal = modelIds.includes(m.id) ||
+          modelIds.some(local => local.startsWith(m.id + ":") || m.id.startsWith(local + ":"));
         cachedMap[m.id] = isLocal;
       }
       setAlternativeModelCached(cachedMap);
@@ -889,10 +887,11 @@ export default function App() {
     const targetModel = MODELS_LIST.find(m => m.id === modelId);
     if (targetModel) {
       if (hardware && hardware.ram_gb < targetModel.minRam) {
-        const confirmWarning = window.confirm(
-          `⚠️ Warning: ${targetModel.name} requires at least ${targetModel.minRam} GB RAM. Your system has ${hardware.ram_gb} GB RAM.\n\nRunning this model may cause severe lag or Out of Memory (OOM) errors. Do you want to proceed anyway?`
+        const confirmed = await confirm(
+          `${targetModel.name} requires at least ${targetModel.minRam} GB RAM. Your system has ${hardware.ram_gb} GB RAM.\n\nRunning this model may cause severe lag or Out of Memory (OOM) errors. Do you want to proceed anyway?`,
+          { title: 'Warning', kind: 'warning' }
         );
-        if (!confirmWarning) return;
+        if (!confirmed) return;
       }
 
       if (hardware && hardware.free_storage_gb < targetModel.minStorage) {
@@ -963,8 +962,9 @@ export default function App() {
   };
 
   const handleFactoryReset = async () => {
-    const confirmed = window.confirm(
-      "⚠️ WARNING: This will permanently delete all your task lists, notes, and local app configuration. This action cannot be undone.\n\nAre you sure you want to perform a Factory Reset?"
+    const confirmed = await confirm(
+      "This will permanently delete all your task lists, notes, and local app configuration. This action cannot be undone.\n\nAre you sure you want to perform a Factory Reset?",
+      { title: 'Factory Reset', kind: 'warning' }
     );
     if (!confirmed) return;
 
@@ -1066,10 +1066,11 @@ export default function App() {
       // 3. Now that the engine is running, check whether the model is already cached.
       //    We deferred this from detect_hardware to avoid a Windows hang.
       try {
-        const installed = await invoke<string[]>("list_installed_models") as string[];
-        setLocalModels(installed);
-        const isLocal = installed.includes(overrideModelId) ||
-          installed.some(m => m.startsWith(overrideModelId + ":") || overrideModelId.startsWith(m + ":"));
+        const installed = await invoke<ModelInfo[]>("list_installed_models");
+        const modelIds = installed.map(m => typeof m === 'string' ? m : (m as any).id ?? '');
+        setLocalModels(modelIds);
+        const isLocal = modelIds.includes(overrideModelId) ||
+          modelIds.some(m => m.startsWith(overrideModelId + ":") || overrideModelId.startsWith(m + ":"));
         hw.model_exists = isLocal;
         // Push the update so the rest of the boot sequence uses the real value.
         setHardware({ ...hw });
@@ -1135,8 +1136,9 @@ export default function App() {
             }
 
             if (lighterModelId) {
-              const confirmSwap = window.confirm(
-                `VERA Speed Test: Recommended model runs at ${res.tokens_per_sec.toFixed(1)} tokens/sec (below target 3.0 threshold).\n\nWould you like VERA to automatically swap and download the lighter model (${lighterModelName}) for optimal performance?`
+              const confirmSwap = await confirm(
+                `Recommended model runs at ${res.tokens_per_sec.toFixed(1)} tokens/sec (below target 3.0 threshold).\n\nWould you like VERA to automatically swap and download the lighter model (${lighterModelName}) for optimal performance?`,
+                { title: 'Speed Test', kind: 'info' }
               );
               if (confirmSwap) {
                 localStorage.setItem("vera_model_override", lighterModelId);
@@ -1162,18 +1164,10 @@ export default function App() {
     }
   }
 
-  const loadConversationsList = async () => {
-    try {
-      const list = await invoke<Conversation[]>("get_conversations");
-      setConversations(list);
-    } catch (err) {
-      console.error("Failed to load conversations:", err);
-    }
-  };
-
   const selectConversation = async (id: string) => {
     if (streaming) abortRef.current?.abort();
     setStreaming(false);
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
     setActiveConversationId(id);
     try {
       const dbMessages = await invoke<Message[]>("load_messages", { conversationId: id });
@@ -1187,13 +1181,14 @@ export default function App() {
   const handleNewChat = () => {
     if (streaming) abortRef.current?.abort();
     setStreaming(false);
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
     setMessages([]);
     setActiveConversationId(null);
     inputRef.current?.focus();
   };
 
   const handleDeleteConversation = async (id: string) => {
-    const confirmed = window.confirm("Are you sure you want to delete this conversation?");
+    const confirmed = await confirm("Are you sure you want to delete this conversation?", { title: 'Delete', kind: 'warning' });
     if (!confirmed) return;
     try {
       await invoke("delete_conversation", { id });
@@ -1204,17 +1199,6 @@ export default function App() {
       }
     } catch (err) {
       console.error("Failed to delete conversation:", err);
-    }
-  };
-
-  const handleRenameConversation = async (id: string, currentTitle: string) => {
-    const newTitle = window.prompt("Rename conversation topic:", currentTitle);
-    if (newTitle === null || !newTitle.trim()) return;
-    try {
-      await invoke("rename_conversation", { id, title: newTitle.trim() });
-      await loadConversationsList();
-    } catch (err) {
-      console.error("Failed to rename conversation:", err);
     }
   };
 
@@ -1239,22 +1223,6 @@ export default function App() {
     }
   };
 
-  const autoSaveChat = async (convId: string | null, msgList: Message[], firstUserText: string) => {
-    try {
-      let id = convId;
-      if (!id) {
-        id = `conv_${Date.now()}`;
-        const autoTitle = firstUserText.slice(0, 30) || "New Conversation";
-        await invoke("create_conversation", { id, title: autoTitle });
-        setActiveConversationId(id);
-      }
-      await invoke("save_messages", { conversationId: id, messages: msgList });
-      await loadConversationsList();
-    } catch (err) {
-      console.error("Auto-save failed:", err);
-    }
-  };
-
   // ── Send message ───────────────────────────────────────────────────────────
   const sendMessage = useCallback(async (overrideText?: string) => {
     const text = (typeof overrideText === "string" ? overrideText : input).trim();
@@ -1265,6 +1233,7 @@ export default function App() {
     }
 
     setInput("");
+    initialTextRef.current = "";
     setStreaming(true);
 
     const userMsg: Message = { role: "user",      content: text,  id: Date.now() };
@@ -1366,7 +1335,20 @@ export default function App() {
 
       const finalAssistMsg: Message = { ...assistMsg, content: assistantResponse };
       const updatedMessages = [...messages, userMsg, finalAssistMsg];
-      await autoSaveChat(activeConversationId, updatedMessages, text);
+      await autoSaveChat(activeConversationId, updatedMessages, text, setActiveConversationId, loadConversationsList);
+
+      // If audio mode is on, speak the response then re-arm the mic
+      if (audioModeRef.current && assistantResponse) {
+        setStreaming(false);
+        speakText(assistantResponse, () => {
+          if (audioModeRef.current) {
+            initialTextRef.current = "";
+            speech.start();
+          }
+        });
+        inputRef.current?.focus();
+        return; // skip the finally setStreaming(false) duplicate — already done
+      }
 
     } catch (e: any) {
       if (e.name !== "AbortError") {
@@ -1385,13 +1367,13 @@ export default function App() {
         
         const finalAssistMsg: Message = { ...assistMsg, content: errorMsg };
         const updatedMessages = [...messages, userMsg, finalAssistMsg];
-        await autoSaveChat(activeConversationId, updatedMessages, text);
+        await autoSaveChat(activeConversationId, updatedMessages, text, setActiveConversationId, loadConversationsList);
       }
     } finally {
       setStreaming(false);
       inputRef.current?.focus();
     }
-  }, [input, messages, streaming, serverPort, hardware, activeModule, speech, activeConversationId]);
+  }, [input, messages, streaming, serverPort, hardware, activeModule, speech, activeConversationId, audioMode, speakText]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -1967,32 +1949,54 @@ export default function App() {
                       conversations.map((c) => (
                         <div
                           key={c.id}
-                          onClick={() => selectConversation(c.id)}
+                          onClick={() => editingRenameId !== c.id && selectConversation(c.id)}
                           className={`history-item ${activeConversationId === c.id ? "active" : ""}`}
                         >
-                          <span className="history-item-label">{c.title}</span>
-                          <div className="history-actions">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleRenameConversation(c.id, c.title);
-                              }}
-                              className="history-action-btn"
-                              title="Rename"
-                            >
-                              ✏️
-                            </button>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDeleteConversation(c.id);
-                              }}
-                              className="history-action-btn"
-                              title="Delete"
-                            >
-                              🗑️
-                            </button>
-                          </div>
+                          {editingRenameId === c.id ? (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', width: '100%' }}>
+                              <input
+                                ref={renameInputRef}
+                                className="chat-history-rename-input"
+                                value={renameValue}
+                                onChange={e => setRenameValue(e.target.value)}
+                                onKeyDown={e => {
+                                  if (e.key === 'Enter') handleRenameSubmit(c.id);
+                                  else if (e.key === 'Escape') handleRenameCancel();
+                                }}
+                                onBlur={() => handleRenameSubmit(c.id)}
+                                autoFocus
+                                style={{ flex: 1 }}
+                              />
+                              <button className="history-action-btn" onClick={() => handleRenameSubmit(c.id)} title="Save">💾</button>
+                              <button className="history-action-btn" onClick={handleRenameCancel} title="Cancel">✕</button>
+                            </div>
+                          ) : (
+                            <>
+                              <span className="history-item-label">{c.title}</span>
+                              <div className="history-actions">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleRenameStart(c.id, c.title);
+                                  }}
+                                  className="history-action-btn"
+                                  title="Rename"
+                                >
+                                  ✏️
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDeleteConversation(c.id);
+                                  }}
+                                  className="history-action-btn"
+                                  title="Delete"
+                                >
+                                  🗑️
+                                </button>
+                              </div>
+                            </>
+                          )}
                         </div>
                       ))
                     )}
@@ -2063,17 +2067,34 @@ export default function App() {
                 />
                 {speech.supported && (
                   <button
-                    className={`chat-mic-btn ${speech.isListening ? "active" : ""}`}
+                    id="vera-mic-btn"
+                    className={`chat-mic-btn${audioMode ? " active" : ""}`}
                     onClick={toggleSpeech}
-                    disabled={streaming}
-                    title={speech.isListening ? "Stop Voice Input" : "Start Voice Input"}
+                    disabled={streaming && !audioMode}
+                    title={audioMode ? "Turn off voice mode" : "Turn on voice mode"}
                     type="button"
+                    aria-label={audioMode ? "Turn off voice mode" : "Turn on voice mode"}
+                    aria-pressed={audioMode}
                   >
-                    {speech.isListening ? (
-                      <span className="mic-icon-active">🔴 🎤</span>
-                    ) : (
-                      <span className="mic-icon-inactive">🎤</span>
-                    )}
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      {audioMode ? (
+                        /* Filled mic = audio mode on */
+                        <>
+                          <path d="M12 2a3 3 0 0 1 3 3v7a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z" fill="currentColor" />
+                          <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                          <line x1="12" y1="19" x2="12" y2="23" />
+                          <line x1="8" y1="23" x2="16" y2="23" />
+                        </>
+                      ) : (
+                        /* Outline mic = off */
+                        <>
+                          <path d="M12 2a3 3 0 0 1 3 3v7a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z" />
+                          <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                          <line x1="12" y1="19" x2="12" y2="23" />
+                          <line x1="8" y1="23" x2="16" y2="23" />
+                        </>
+                      )}
+                    </svg>
                   </button>
                 )}
                 <button
@@ -2082,7 +2103,7 @@ export default function App() {
                   disabled={!input.trim() || streaming}
                   aria-label="Send"
                 >
-                  {streaming ? <StopIcon /> : <><SendIcon /><span style={{marginLeft:"6px",fontSize:"13px",fontWeight:600}}>Send</span></>}
+                  {streaming ? <StopIcon /> : <><SendIcon /><span className="send-btn-label">Send</span></>}
                 </button>
               </footer>
             </div>
@@ -2146,6 +2167,31 @@ export default function App() {
                   </div>
                 );
               })()}
+              {isSearching && searchLogs.length > 0 && (
+                <div style={{
+                  padding: "6px 16px",
+                  background: "var(--bg-surface)",
+                  borderBottom: "1px solid var(--border)",
+                  fontSize: "11px",
+                  color: "var(--text-muted)",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  overflow: "hidden"
+                }}>
+                  <span className="spinner" style={{
+                    width: "10px", height: "10px",
+                    border: "2px solid var(--border)",
+                    borderTopColor: "var(--accent)",
+                    borderRadius: "50%",
+                    animation: "spin 1s linear infinite",
+                    flexShrink: 0
+                  }} />
+                  <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    {searchLogs[searchLogs.length - 1]}
+                  </span>
+                </div>
+              )}
               <FeedbackBanner activeModule={activeModule} modulesList={MODULES_LIST} />
               <div style={{ flexGrow: 1, height: "100%", overflow: "hidden", position: "relative" }}>
                 <ModuleErrorBoundary moduleName={activeModule}>
