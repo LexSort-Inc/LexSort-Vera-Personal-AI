@@ -55,8 +55,8 @@ fn silent_cmd_sync(program: impl AsRef<std::ffi::OsStr>) -> Command {
     cmd
 }
 
-/// Recursively copy a directory tree (used to ship `ollama_runners/` alongside the
-/// extracted Ollama binary so the sidecar can locate its LLM backends).
+/// Recursively copy a directory tree (used to ship the `lib/ollama/` backend libs
+/// alongside the extracted Ollama binary so the sidecar can locate its LLM backends).
 fn copy_dir_recursive(src: &std::path::Path, dst: &std::path::Path) -> std::io::Result<()> {
     std::fs::create_dir_all(dst)?;
     for entry in std::fs::read_dir(src)? {
@@ -71,13 +71,6 @@ fn copy_dir_recursive(src: &std::path::Path, dst: &std::path::Path) -> std::io::
         }
     }
     Ok(())
-}
-
-/// Resolve the local `ollama_runners` directory that must sit next to the portable
-/// ollama binary. Returns None when no directory was installed yet.
-fn ollama_runners_dir() -> Option<PathBuf> {
-    let runners = lexsort_dir().join("bin").join("ollama_runners");
-    runners.is_dir().then_some(runners)
 }
 
 pub struct ServerProcess(pub Mutex<Option<Child>>);
@@ -758,11 +751,8 @@ pub mod commands {
         cmd.args(["serve"])
             .env("OLLAMA_HOST", format!("127.0.0.1:{}", port))
             .env("OLLAMA_ORIGINS", "http://localhost,http://localhost:1420,http://tauri.localhost,tauri://localhost,http://127.0.0.1:*");
-        if let Some(runners) = ollama_runners_dir() {
-            cmd.env("OLLAMA_RUNNERS_DIR", runners);
-        } else {
-            eprintln!("WARNING: OLLAMA_RUNNERS_DIR not found at {:?} — LLM inference may fail", lexsort_dir().join("bin").join("ollama_runners"));
-        }
+        // Note: v0.9.6 does NOT read OLLAMA_RUNNERS_DIR (0 refs in envconfig).
+        // Backends are auto-discovered via discover.LibOllamaPath = <exe_dir>/lib/ollama.
         let child = cmd.spawn()
             .map_err(|e| format!("Failed to start ollama: {}", e))?;
         *guard = Some(child);
@@ -1458,12 +1448,31 @@ pub mod commands {
                                     match set_executable_perms(&target_path) {
                                         Err(e) => Err(e),
                                         Ok(()) => {
-                                            // Ship the LLM runner backends next to the binary.
-                                            let source_runners = extracted_dir.join("Ollama.app").join("Contents").join("Resources").join("ollama_runners");
-                                            let target_runners = bin_dir.join("ollama_runners");
-                                            if source_runners.exists() {
-                                                copy_dir_recursive(&source_runners, &target_runners)
-                                                    .map_err(|e| format!("Failed to copy ollama_runners: {}", e))
+                                            // Ship the LLM backend libraries next to the binary.
+                                            // v0.9.6 stores them FLAT in Contents/Resources as
+                                            // libggml-*.so / libggml-base.dylib (not in an
+                                            // ollama_runners/ subdir — that was pre-v0.6).
+                                            let source_resources = extracted_dir.join("Ollama.app").join("Contents").join("Resources");
+                                            let mut copied = 0u32;
+                                            let mut failures = 0u32;
+                                            if let Ok(rd) = std::fs::read_dir(&source_resources) {
+                                                for entry in rd.flatten() {
+                                                    let path = entry.path();
+                                                    let name = entry.file_name();
+                                                    let name_str = name.to_string_lossy();
+                                                    if name_str.starts_with("libggml") {
+                                                        let target = bin_dir.join(&name);
+                                                        println!("[ollama_libs] source path: {:?} exists: {}", path, path.exists());
+                                                        match std::fs::copy(&path, &target) {
+                                                            Ok(_) => { copied += 1; }
+                                                            Err(e) => { failures += 1; println!("[ollama_libs] copy failed for {:?}: {}", name_str, e); }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            println!("[ollama_libs] copy result: copied {} libggml files to {:?} ({} failures)", copied, bin_dir, failures);
+                                            if copied == 0 {
+                                                Err("Extracted Ollama.app Resources contained no libggml-* backend libraries".to_string())
                                             } else {
                                                 Ok(())
                                             }
@@ -1500,17 +1509,38 @@ pub mod commands {
                                 if let Err(e) = std::fs::copy(&source_bin, &target_path) {
                                     Err(format!("Failed to copy binary: {}", e))
                                 } else {
-                                    // Ship the LLM runner backends next to the binary.
-                                    // Without these, Ollama can't launch any backend:
-                                    // "server cpu not listed in available servers map".
-                                    let source_runners = extracted_dir.join("ollama_runners");
-                                    let target_runners = bin_dir.join("ollama_runners");
-                                    if !source_runners.exists() {
-                                        eprintln!("WARNING: extraction did not include ollama_runners/ directory");
+                                    // Ship the LLM backend libraries next to the binary.
+                                    // v0.9.6 ships them under lib/ollama/ inside the zip
+                                    // (NOT an ollama_runners/ dir — that layout died
+                                    // before v0.6). Ollama discovers backends via
+                                    // discover.LibOllamaPath = <exe_dir>/lib/ollama, so
+                                    // the DLLs must land at bin/lib/ollama/*.dll.
+                                    let source_libs = extracted_dir.join("lib").join("ollama");
+                                    let target_libs = bin_dir.join("lib").join("ollama");
+                                    println!("[ollama_libs] source path: {:?} exists: {}", source_libs, source_libs.exists());
+                                    if !source_libs.exists() {
+                                        eprintln!("WARNING: extraction did not include lib/ollama/ directory");
                                         Ok(())
                                     } else {
-                                        copy_dir_recursive(&source_runners, &target_runners)
-                                            .map_err(|e| format!("Failed to copy ollama_runners: {}", e))
+                                        let result = copy_dir_recursive(&source_libs, &target_libs)
+                                            .map_err(|e| format!("Failed to copy lib/ollama: {}", e));
+                                        println!("[ollama_libs] copy result: {:?}", result);
+                                        // vc_redist.x64.exe is bundled for a reason: the
+                                        // ggml DLLs link against the MSVC runtime, which a
+                                        // clean Windows machine may not have.
+                                        let vc_redist = extracted_dir.join("vc_redist.x64.exe");
+                                        if vc_redist.exists() {
+                                            println!("[ollama_libs] installing {} ...", vc_redist.display());
+                                            let vc_status = std::process::Command::new(&vc_redist)
+                                                .args(&["/install", "/quiet", "/norestart"])
+                                                .status();
+                                            match vc_status {
+                                                Ok(s) if s.success() => println!("[ollama_libs] vc_redist install exited: {}", s),
+                                                Ok(s) => eprintln!("WARNING: vc_redist install exited with: {}", s),
+                                                Err(e) => eprintln!("WARNING: failed to run vc_redist: {}", e),
+                                            }
+                                        }
+                                        result
                                     }
                                 }
                             } else {
@@ -1867,9 +1897,6 @@ pub mod commands {
                     out.stdout
                 } else {
                     let mut serve_cmd = super::silent_cmd_sync(&path);
-                    if let Some(runners) = super::ollama_runners_dir() {
-                        serve_cmd.env("OLLAMA_RUNNERS_DIR", runners);
-                    }
                     let _serve = serve_cmd.args(["serve"]).spawn();
                     tokio::time::sleep(std::time::Duration::from_millis(1800)).await;
                     let mut retry_cmd = super::silent_cmd(&path);

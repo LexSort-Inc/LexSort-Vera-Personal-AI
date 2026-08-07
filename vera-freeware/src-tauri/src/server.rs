@@ -30,17 +30,12 @@ fn start_ollama() -> Result<Option<std::process::Child>, String> {
         return Ok(None);
     }
     eprintln!("[server] Starting Ollama...");
-    let runner_dir = ollama_path()
-        .parent()
-        .map(|p| p.join("ollama_runners"))
-        .filter(|p| p.is_dir());
     let mut cmd = Command::new(ollama_path());
     cmd.args(["serve"])
         .env("OLLAMA_HOST", "127.0.0.1:11434")
         .env("OLLAMA_ORIGINS", "http://localhost,http://localhost:1420,http://tauri.localhost,tauri://localhost,http://127.0.0.1:*");
-    if let Some(r) = runner_dir {
-        cmd.env("OLLAMA_RUNNERS_DIR", r);
-    }
+    // Note: v0.9.6 does NOT read OLLAMA_RUNNERS_DIR; backends are discovered
+    // via discover.LibOllamaPath = <exe_dir>/lib/ollama.
     let child = cmd
         .stdout(Stdio::null())
         .stderr(Stdio::null())
