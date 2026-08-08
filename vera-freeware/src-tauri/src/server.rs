@@ -18,29 +18,54 @@ fn ollama_path() -> std::path::PathBuf {
     "ollama".into()
 }
 
+fn lifecycle_log(line: &str) {
+    let dir = dirs::home_dir()
+        .unwrap_or_else(|| std::path::PathBuf::from("."))
+        .join(".lexsort/logs");
+    if std::fs::create_dir_all(&dir).is_err() {
+        return;
+    }
+    let ts = chrono::Local::now().format("%Y-%m-%d %H:%M:%S%.3f");
+    use std::io::Write;
+    if let Ok(mut f) = std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(dir.join("ollama-lifecycle.log"))
+    {
+        let _ = writeln!(f, "[{}] {}", ts, line);
+    }
+    eprintln!("[server][ollama-lifecycle] {}", line);
+}
+
 fn start_ollama() -> Result<Option<std::process::Child>, String> {
-    if Command::new(ollama_path())
+    // NOTE: status() returns Ok(()) even when the process exits non-zero,
+    // so inspecting .is_ok() alone would ALWAYS conclude "already running"
+    // even when no daemon is reachable. Only exit code 0 (daemon answers)
+    // means we can safely reuse an existing daemon.
+    let status = Command::new(ollama_path())
         .args(["list"])
         .stdout(Stdio::null())
         .stderr(Stdio::null())
-        .status()
-        .is_ok()
-    {
-        eprintln!("[server] Ollama already running");
+        .status();
+    if matches!(&status, Ok(s) if s.success()) {
+        lifecycle_log("vera-server: external daemon answers (ollama list exit 0) — reusing, NOT spawning");
         return Ok(None);
     }
-    eprintln!("[server] Starting Ollama...");
+    lifecycle_log("vera-server: no daemon reachable — spawning managed daemon");
     let mut cmd = Command::new(ollama_path());
     cmd.args(["serve"])
         .env("OLLAMA_HOST", "127.0.0.1:11434")
         .env("OLLAMA_ORIGINS", "http://localhost,http://localhost:1420,http://tauri.localhost,http://127.0.0.1:*");
     // Note: v0.9.6 does NOT read OLLAMA_RUNNERS_DIR; backends are discovered
     // via discover.LibOllamaPath = <exe_dir>/lib/ollama.
+    // OLLAMA_ORIGINS must never contain non-http(s) schemes: gin-contrib/cors
+    // v1.7.2 (bundled in v0.9.6) panics on them and kills Ollama at startup.
     let child = cmd
         .stdout(Stdio::null())
         .stderr(Stdio::null())
         .spawn()
         .map_err(|e| format!("Failed to start Ollama: {e}"))?;
+    lifecycle_log(&format!("vera-server: daemon spawned PID={}", child.id()));
     eprintln!("[server] Ollama started (PID {})", child.id());
     Ok(Some(child))
 }
@@ -89,6 +114,14 @@ async fn main() {
         _ = rest_handle => eprintln!("[server] REST API stopped (unexpected)"),
         _ = sched_handle => eprintln!("[server] Scheduler stopped (unexpected)"),
         _ = tokio::signal::ctrl_c() => eprintln!("[server] Shutting down..."),
+    }
+
+    if let Some(mut child) = _ollama_child {
+        let pid = child.id();
+        lifecycle_log(&format!("vera-server: shutdown — killing managed daemon PID={}", pid));
+        let _ = child.kill();
+        let _ = child.wait();
+        lifecycle_log("vera-server: daemon exited, port released");
     }
 
     eprintln!("[server] Goodbye.");

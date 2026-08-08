@@ -3,9 +3,9 @@
   "generated_at": "2026-08-07T00:00:00Z",
   "core": {
     "freeware": {
-      "version": "1.1.10",
+      "version": "1.1.11",
       "min_os": { "macos": "12.0", "windows": "10" },
-      "release_notes": "v1.1.10: fixed OLLAMA_ORIGINS containing invalid tauri:// scheme that crashed Ollama at spawn (gin-contrib/cors panic) and caused webview CORS 403 -> 'Failed to fetch' on Windows. Origins now http-only (http://tauri.localhost kept); chat-debug.log records webview origin per send."
+      "release_notes": "v1.1.11: fixed duplicate/orphaned Ollama daemons. Root cause: (1) 'ollama list .is_ok()' treated any exit (incl. 'could not connect') as daemon-up, so VERA bailed into 'already running' and never spawned; (2) list_installed_models fallback spawned a bare unmanaged 'ollama serve' (no env, no owner, never killed) whenever the daemon was down - producing 2 daemons and dropped-connection gaps. Now: proper exit-code check, single spawn site (start_inference_server), kill+wait on stop/reset/exit (port released before respawn), and every spawn/reuse/kill is timestamped with PID and reason in ~/.lexsort/logs/ollama-lifecycle.log."
     },
     "pro": {
       "version": "1.0.12",

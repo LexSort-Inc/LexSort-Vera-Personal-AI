@@ -209,6 +209,27 @@ pub fn chat_debug_log_path() -> PathBuf {
     log_dir().join("chat-debug.log")
 }
 
+/// Append a structured line to ~/.lexsort/logs/ollama-lifecycle.log.
+/// Central audit trail for every spawn / reuse / kill decision of the
+/// Ollama sidecar, so field builds can be diagnosed from the file alone.
+pub fn ollama_lifecycle_log(line: &str) {
+    let dir = log_dir();
+    if std::fs::create_dir_all(&dir).is_err() {
+        return;
+    }
+    let path = dir.join("ollama-lifecycle.log");
+    let ts = chrono::Local::now().format("%Y-%m-%d %H:%M:%S%.3f");
+    use std::io::Write;
+    if let Ok(mut f) = std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(path)
+    {
+        let _ = writeln!(f, "[{}] {}", ts, line);
+    }
+    eprintln!("[ollama-lifecycle] {}", line);
+}
+
 fn is_newer_version(current: &str, remote: &str) -> bool {
     let current_parts: Vec<&str> = current.split('.').collect();
     let remote_parts: Vec<&str> = remote.split('.').collect();
@@ -744,18 +765,44 @@ pub mod commands {
     ) -> Result<String, String> {
         let resolved = resolve_model_id(&model_id).await;
         let port: u16 = 11434;
+
         let mut guard = server.0.lock().map_err(|e| e.to_string())?;
+
+        // 1) Already managed this session (single point of lifecycle ownership).
         if guard.is_some() {
+            super::ollama_lifecycle_log(
+                "start_server: VERA-managed daemon already running — reusing, not spawning",
+            );
             return Ok("Server already running".to_string());
         }
-        // Check if ollama is already running on port 11434
+
+        // 2) Reuse an EXTERNAL daemon only when it truly answers.
+        //    CRITICAL: .output() returns Ok() even when the process exits
+        //    with a non-zero code, so .is_ok() is true even if `ollama list`
+        //    reports "could not connect" (exit != 0). We must inspect the
+        //    exit status: .success() is false when no daemon is reachable.
         let check = silent_cmd_sync(ollama_path())
-            .args(["list"])
+            .arg("list")
             .output();
-        if check.is_ok() {
-            *guard = None; // ollama already running externally, don't manage it
+        let external_ok = matches!(&check, Ok(out) if out.status.success());
+        if external_ok {
+            super::ollama_lifecycle_log(
+                "start_server: external daemon answers (ollama list exit 0) — reusing, NOT spawning",
+            );
             return Ok(format!("Ollama already running, using model {}", resolved));
         }
+
+        // 3) No daemon reachable — VERA owns the lifecycle from here on.
+        let reason = if check.is_err() {
+            "ollama binary not launchable"
+        } else {
+            "ollama list exit != 0 (no daemon on 11434)"
+        };
+        super::ollama_lifecycle_log(&format!(
+            "start_server: SPAWNING new daemon ({}), model={}",
+            reason, resolved
+        ));
+
         let origins = "http://localhost,http://localhost:1420,http://tauri.localhost,http://127.0.0.1:*";
         let mut cmd = silent_cmd_sync(ollama_path());
         cmd.args(["serve"])
@@ -768,6 +815,7 @@ pub mod commands {
         // '*' or an http(s)/extension scheme, crashing Ollama at startup.
         let child = cmd.spawn()
             .map_err(|e| format!("Failed to start ollama: {}", e))?;
+        super::ollama_lifecycle_log(&format!("start_server: daemon spawned PID={}", child.id()));
         *guard = Some(child);
         Ok(format!("Inference server started with model {}", resolved))
     }
@@ -776,7 +824,14 @@ pub mod commands {
     pub fn stop_inference_server(server: State<'_, ServerProcess>) -> Result<String, String> {
         let mut guard = server.0.lock().map_err(|e| e.to_string())?;
         if let Some(mut child) = guard.take() {
+            let pid = child.id();
+            super::ollama_lifecycle_log(&format!("stop_server: killing managed daemon PID={}", pid));
             child.kill().map_err(|e| e.to_string())?;
+            // Wait for the OS to fully release the port before anyone spawns
+            // again — otherwise a restart hits "address in use" and we end up
+            // with a window where nothing is listening.
+            let _ = child.wait();
+            super::ollama_lifecycle_log("stop_server: daemon exited, port released");
             Ok("Inference server stopped".to_string())
         } else {
             Ok("No server running".to_string())
@@ -1925,15 +1980,18 @@ pub mod commands {
                 let raw_output = if let Some(out) = first_try {
                     out.stdout
                 } else {
-                    let mut serve_cmd = super::silent_cmd_sync(&path);
-                    let _serve = serve_cmd.args(["serve"]).spawn();
-                    tokio::time::sleep(std::time::Duration::from_millis(1800)).await;
-                    let mut retry_cmd = super::silent_cmd(&path);
-                    retry_cmd.arg("list");
-                    match super::run_command_with_timeout(retry_cmd, 6).await {
-                        Some(out) => out.stdout,
-                        None => return Ok(Vec::new()),
-                    }
+                    // IMPORTANT: Never self-heal here by spawning a bare
+                    // `ollama serve`. That created orphaned daemons (no env
+                    // vars, no lifecycle owner, never killed on exit) which
+                    // duplicated the managed one and caused intermittent
+                    // "Failed to fetch" during handoffs. The only spawn site
+                    // is start_inference_server, which owns the child and the
+                    // port. If the daemon is down, report no models and let
+                    // the boot/model-switch flow start it.
+                    super::ollama_lifecycle_log(
+                        "list_models: daemon unreachable — NOT self-serving; lifecycle owned by start_inference_server",
+                    );
+                    return Ok(Vec::new());
                 };
 
                 let stdout_str = String::from_utf8_lossy(&raw_output);
@@ -2821,7 +2879,10 @@ pub mod commands {
     pub fn factory_reset(server: State<'_, super::ServerProcess>) -> Result<(), String> {
         if let Ok(mut guard) = server.0.lock() {
             if let Some(mut child) = guard.take() {
+                let pid = child.id();
+                super::ollama_lifecycle_log(&format!("factory_reset: killing managed daemon PID={}", pid));
                 let _ = child.kill();
+                let _ = child.wait();
             }
         }
         let base = super::lexsort_dir();
@@ -2836,7 +2897,10 @@ pub mod commands {
     pub fn exit_app(server: State<'_, super::ServerProcess>) {
         if let Ok(mut guard) = server.0.lock() {
             if let Some(mut child) = guard.take() {
+                let pid = child.id();
+                super::ollama_lifecycle_log(&format!("exit_app: killing managed daemon PID={}", pid));
                 let _ = child.kill();
+                let _ = child.wait();
             }
         }
         std::process::exit(0);
