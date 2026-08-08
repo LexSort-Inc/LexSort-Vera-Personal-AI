@@ -756,12 +756,16 @@ pub mod commands {
             *guard = None; // ollama already running externally, don't manage it
             return Ok(format!("Ollama already running, using model {}", resolved));
         }
+        let origins = "http://localhost,http://localhost:1420,http://tauri.localhost,http://127.0.0.1:*";
         let mut cmd = silent_cmd_sync(ollama_path());
         cmd.args(["serve"])
             .env("OLLAMA_HOST", format!("127.0.0.1:{}", port))
-            .env("OLLAMA_ORIGINS", "http://localhost,http://localhost:1420,http://tauri.localhost,tauri://localhost,http://127.0.0.1:*");
+            .env("OLLAMA_ORIGINS", origins);
         // Note: v0.9.6 does NOT read OLLAMA_RUNNERS_DIR (0 refs in envconfig).
         // Backends are auto-discovered via discover.LibOllamaPath = <exe_dir>/lib/ollama.
+        // Note: OLLAMA_ORIGINS must NOT contain "tauri://*"-style custom schemes —
+        // gin-contrib/cors v1.7.2 (bundled in v0.9.6) panics on origins without
+        // '*' or an http(s)/extension scheme, crashing Ollama at startup.
         let child = cmd.spawn()
             .map_err(|e| format!("Failed to start ollama: {}", e))?;
         *guard = Some(child);

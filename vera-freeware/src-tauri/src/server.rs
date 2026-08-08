@@ -33,7 +33,7 @@ fn start_ollama() -> Result<Option<std::process::Child>, String> {
     let mut cmd = Command::new(ollama_path());
     cmd.args(["serve"])
         .env("OLLAMA_HOST", "127.0.0.1:11434")
-        .env("OLLAMA_ORIGINS", "http://localhost,http://localhost:1420,http://tauri.localhost,tauri://localhost,http://127.0.0.1:*");
+        .env("OLLAMA_ORIGINS", "http://localhost,http://localhost:1420,http://tauri.localhost,http://127.0.0.1:*");
     // Note: v0.9.6 does NOT read OLLAMA_RUNNERS_DIR; backends are discovered
     // via discover.LibOllamaPath = <exe_dir>/lib/ollama.
     let child = cmd

@@ -1299,7 +1299,7 @@ export default function App() {
         temperature: 0.7,
         max_tokens:  2048,
       };
-      logChat(`sending to ${chatUrl} model=${modelId}`);
+      logChat(`sending to ${chatUrl} model=${modelId} origin=${window.location.origin}`);
 
       // Retry up to 3 times with backoff on connection-level failures, so a
       // single transient refusal (e.g. daemon still starting) isn't fatal.
