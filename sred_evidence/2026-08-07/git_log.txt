@@ -1,0 +1,149 @@
+commit 5a7296567193ed950e39e63ff22fb5063cfd025f
+Author:     William Commu — LexSort Inc. <support@lexsort.com>
+AuthorDate: Fri Aug 7 21:31:49 2026 -0400
+Commit:     William Commu — LexSort Inc. <support@lexsort.com>
+CommitDate: Fri Aug 7 21:31:49 2026 -0400
+
+    fix: single Ollama daemon lifecycle - no more duplicates or connection gaps
+    
+    Two defects produced duplicate/orphaned ollama.exe processes and
+    intermittent 'Failed to fetch':
+    
+    1) start_inference_server checked 'ollama list' with .output().is_ok(),
+       but is_ok() is true for ANY exit code - including exit != 0 when no
+       daemon is reachable. So VERA always concluded a daemon was running,
+       returned early without setting the guard, and NEVER spawned or ever
+       killed anything (guard stayed None). The real reachability check is
+       exit status .success() (0 means the daemon answered).
+    
+    2) list_installed_models fallback spawned a bare 'ollama serve' with no
+       OLLAMA_HOST/OLLAMA_ORIGINS and no stored child handle whenever the
+       daemon was unreachable. That orphan outlived the app (no kill on
+       exit, no wait) and duplicated the managed daemon, creating windows
+       with nothing listening on 11434 mid-handoff.
+    
+    Fixes:
+    - start_inference_server: reuse VERA-managed child if any; reuse
+      external daemon only if 'ollama list' exits 0; otherwise spawn with
+      the CORS-correct origins and take ownership.
+    - list_installed_models: never self-heal; return empty and let
+      start_inference_server (the single spawn site) own the lifecycle.
+    - stop_inference_server / factory_reset / exit_app: kill + wait() so
+      the port is fully released before any respawn.
+    - vera-server binary: same exit-code fix, and kills its daemon on
+      shutdown instead of leaking it.
+    - New ~/.lexsort/logs/ollama-lifecycle.log: every spawn/reuse/kill
+      decision timestamped with PID and reason.
+    
+    Bump to v1.1.11 for clean-machine verification.
+
+commit 834980d93870263e80730253c0d07bcdb0ad7b36
+Author:     William Commu — LexSort Inc. <support@lexsort.com>
+AuthorDate: Fri Aug 7 20:44:28 2026 -0400
+Commit:     William Commu — LexSort Inc. <support@lexsort.com>
+CommitDate: Fri Aug 7 20:44:28 2026 -0400
+
+    fix: remove invalid tauri:// origin that crashes Ollama (CORS root cause)
+    
+    OLLAMA_ORIGINS contained 'tauri://localhost', which gin-contrib/cors
+    v1.7.2 (bundled in Ollama v0.9.6) rejects at startup - Validate() panics
+    with 'bad origin' because only http(s)/extension schemes are allowed. So
+    VERA-spawned Ollama crashed immediately after spawn.
+    
+    When Ollama was instead already running externally (ollama list succeeds),
+    start_inference_server returned early and left the default origins
+    (tauri://* but NOT http://tauri.localhost) - the Windows WebView2 origin.
+    Preflight OPTIONS returned 403 which the webview collapses into
+    'Failed to fetch'. Confirmed experimentally: sanitized origin list allows
+    http://tauri.localhost preflight (204 + correct Allow-Origin header).
+    
+    Fix: drop the tauri:// scheme from OLLAMA_ORIGINS at both spawn sites
+    (lib.rs start_inference_server, server.rs start_ollama), keeping
+    http://tauri.localhost + http defaults. Also log window.location.origin
+    in chat-debug.log on each send for field verification.
+    
+    Bump to v1.1.10 (CORS release for clean-machine Windows re-test).
+
+commit a27368382827c442516bc116e73390c1f4110c4b
+Author:     William Commu — LexSort Inc. <support@lexsort.com>
+AuthorDate: Fri Aug 7 19:54:09 2026 -0400
+Commit:     William Commu — LexSort Inc. <support@lexsort.com>
+CommitDate: Fri Aug 7 19:54:09 2026 -0400
+
+    feat: write chat diagnostics to ~/.lexsort/logs/chat-debug.log for field debugging
+    
+    Release builds have no webview DevTools, so the [chat] console diagnostics
+    added in v1.1.8 were unreachable on tester machines. Redirect them (plus
+    new append_chat_log Tauri command) to a file testers can send us.
+    
+    - New append_chat_log command: timestamps each line via chrono and appends
+      to ~/.lexsort/logs/chat-debug.log (logs dir added to ensure_lexsort_dirs)
+    - Frontend logChat() helper mirrors [chat] lines to console AND the log
+      file, fire-and-forget so chat is never blocked by disk I/O
+    - Bump to v1.1.9 (diagnostics-worthy build)
+
+commit 1d5d6c81ae310599cfd070da115c228939d172a8
+Author:     William Commu — LexSort Inc. <support@lexsort.com>
+AuthorDate: Fri Aug 7 13:24:44 2026 -0400
+Commit:     William Commu — LexSort Inc. <support@lexsort.com>
+CommitDate: Fri Aug 7 13:24:44 2026 -0400
+
+    ci: fix race where parallel builds create the same release and lose assets
+    
+    Windows v1.1.8 build created the release but uploaded zero installers —
+    only auto-generated source archives were attached. Root cause: tag push
+    (3x mac/linux matrix jobs) + manual Windows dispatch all raced to call
+    createRelease on the same brand-new tag. tauri-action#1270: after
+    createRelease, GitHub's releases API can return 404 on the upload path,
+    and with retryAttempts defaulting to 0 the step fails and assets are lost.
+    
+    - New prepare-release job creates (or finds) the release once on ubuntu
+      before any build starts and passes release_id to every platform job
+    - Platform jobs upload via releaseId instead of tagName; uploads retried
+      retryAttempts: 3
+    - concurrency group keyed on the tag ref (push) or tag_name input
+      (dispatch) serializes runs targeting the same release; a Windows build
+      in flight is never cancelled (cancel-in-progress: false)
+
+commit a67a74bce15f6026ba0305797b0430039ba50960
+Author:     William Commu — LexSort Inc. <support@lexsort.com>
+AuthorDate: Fri Aug 7 08:21:29 2026 -0400
+Commit:     William Commu — LexSort Inc. <support@lexsort.com>
+CommitDate: Fri Aug 7 08:21:29 2026 -0400
+
+    fix: surface real chat failures with retry/backoff, request logging, and model-vs-installed diagnostics
+    
+    - Chat fetch now retries 3x on connection-level failures (750ms*(attempt+1) backoff)
+    - Logs exact URL + model id sent to Ollama on every chat request
+    - Captures Ollama HTTP error body (e.g. 404 model not found) instead of bare status
+    - Catch-all no longer hides real failures: connection errors keep the generic
+      'server lost' message, everything else surfaces the actual error text
+    - On failure, queries list_installed_models and logs requested model vs installed
+      models + match status to answer the llama3.1:8b missing-from-list question
+    - Fix bootSequence model override to also set per-model description from
+      MODELS_LIST catalog instead of Rust recommended-default description
+    - Bump to v1.1.8 (diagnostics build)
+
+commit 424f1a9b7550a110c9cb952aaab7ce8944f20167
+Author:     William Commu — LexSort Inc. <support@lexsort.com>
+AuthorDate: Thu Aug 6 22:14:59 2026 -0400
+Commit:     William Commu — LexSort Inc. <support@lexsort.com>
+CommitDate: Thu Aug 6 22:14:59 2026 -0400
+
+    fix: use v0.9.6 lib/ollama DLL layout instead of legacy ollama_runners dir; remove dead OLLAMA_RUNNERS_DIR env
+
+commit 19bfbb874e786fff01cf21a4ea3a551c13f9f4c9
+Author:     William Commu — LexSort Inc. <support@lexsort.com>
+AuthorDate: Thu Aug 6 20:24:24 2026 -0400
+Commit:     William Commu — LexSort Inc. <support@lexsort.com>
+CommitDate: Thu Aug 6 20:24:24 2026 -0400
+
+    feat: schema module, audio/chat/engine hooks refactor, rest_api Result handling
+
+commit 5d2b97f47271e6344315470384bfdca118055640
+Author:     William Commu — LexSort Inc. <support@lexsort.com>
+AuthorDate: Thu Aug 6 19:56:31 2026 -0400
+Commit:     William Commu — LexSort Inc. <support@lexsort.com>
+CommitDate: Thu Aug 6 19:56:31 2026 -0400
+
+    fix: bundle ollama_runners on Windows/macOS, set OLLAMA_RUNNERS_DIR on sidecar spawn

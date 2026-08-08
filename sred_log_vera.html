@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>VERA SR&ED Log — LexSort Inc.</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 1000px; margin: 2em auto; padding: 0 1em; background: #fafafa; color: #222; }
+  h1 { border-bottom: 2px solid #333; padding-bottom: 0.3em; }
+  table { border-collapse: collapse; width: 100%; margin: 1em 0; }
+  th, td { border: 1px solid #ccc; padding: 8px 12px; text-align: left; vertical-align: top; }
+  th { background: #eee; font-weight: 600; white-space: nowrap; }
+  tr:nth-child(even) { background: #f5f5f5; }
+  .entry-id { font-family: monospace; font-size: 0.9em; color: #666; }
+  .time-col { white-space: nowrap; font-family: monospace; font-size: 0.85em; }
+  .hours-col { text-align: center; font-weight: 600; }
+</style>
+</head>
+<body>
+<h1>VERA SR&amp;ED Log</h1>
+<p><strong>Company:</strong> LexSort Inc. (Corp #1799606-3, BN 774849178)<br>
+<strong>Program:</strong> Canadian SR&amp;ED Tax Incentive Program (35% refundable credit)<br>
+<strong>Agent:</strong> OpenCode<br>
+<strong>Last Updated:</strong> August 7, 2026</p>
+
+<table>
+<thead>
+<tr>
+  <th>Date</th>
+  <th>Start</th>
+  <th>End</th>
+  <th>Hours</th>
+  <th>Area</th>
+  <th>Outcome</th>
+  <th>Problem</th>
+  <th>Uncertainty</th>
+  <th>Work</th>
+</tr>
+</thead>
+<tbody id="entries">
+<!-- Newest entries prepended here by script -->
+</tbody>
+</table>
+
+<script>
+const SEED_ENTRIES = [
+  {
+    id: 1786241456000,
+    date: '2026-08-07',
+    start_time: '08:00',
+    end_time: '22:10',
+    hours: 8.5,
+    area: 'Ollama Sidecar / CORS / Process Lifecycle / CI Release Pipeline',
+    outcome: 'Windows chat connection RESOLVED + VERIFIED live on clean ThinkCentre (v1.1.11, 2026-08-07 22:10:56 EDT) — first real chat response ("Hello! How can I assist you today?"); four distinct root causes fixed across v1.1.8–v1.1.11',
+    agent: 'OpenCode',
+    problem: 'On a clean Windows 11 machine VERA Freeware could not complete a single chat exchange even though /api/tags responded, models downloaded, and direct PowerShell POSTs to 127.0.0.1:11434 succeeded — four independent technical gaps contributed: (1) the bundled Ollama assumed the pre-v0.6 ollama_runners/ directory layout, but the actual v0.9.6 release zip ships lib/ollama/*.dll on Windows and flat libggml-*.so on macOS, and OLLAMA_RUNNERS_DIR is not referenced anywhere in v0.9.6 source — so the original runner-copy fix was incomplete; (2) concurrent GitHub Actions runs (v-tag push macOS/Linux + manual Windows dispatch) both called createRelease for the same tag and hit the releases-API eventual-consistency 404 (upstream tauri-action#1270), creating a release with zero assets attached; (3) OLLAMA_ORIGINS contained the invalid scheme tauri://localhost, which gin-contrib/cors v1.7.2 (bundled in Ollama v0.9.6) rejects at startup — a VERA-spawned daemon panicked and died instantly, while an externally-detected daemon kept default origins lacking the real Windows WebView2 origin http://tauri.localhost, producing a CORS preflight 403 that the webview collapsed into a generic "Failed to fetch"; (4) the daemon-alive check used .output().is_ok()/.status().is_ok(), which evaluate true even when the command exits non-zero ("could not connect"), so VERA falsely concluded a daemon was running, never spawned one, never stored a child handle (hence could never kill anything on shutdown), and a self-healing second spawn in list_installed_models started bare ollama serve processes with no env vars and no ownership — leaving orphaned/duplicate ollama.exe across sessions and windows where nothing was bound to 11434.',
+    uncertainty: 'It was not known in advance whether: (a) a range-request of the real GitHub-hosted v0.9.6 zip would prove the runner libraries were relocated (lib/ollama/ on win32, flat libggml-*.so on darwin) and that OLLAMA_RUNNERS_DIR was dead in v0.9.6 source; (b) the createRelease 404s on simultaneous same-tag workflow runs were GitHub-side eventual consistency (not a permissions problem) and whether a single prepare-release job creating the release before all platform upload jobs could deterministically eliminate zero-asset releases; (c) gin-contrib/cors v1.7.2 validates origin schemes at startup such that tauri://localhost panics, and whether the sanitized set (http://tauri.localhost + http defaults) yields a 204 preflight with Access-Control-Allow-Origin for the actual Windows WebView2 origin; (d) whether std::process semantics (output()/status() return Ok on non-zero exits) were the core of the never-spawn/never-kill lifecycle defect, and whether consolidating to a single spawn site plus kill+wait() on every shutdown path guarantees exactly one bound daemon on a clean machine.',
+    work: 'Confirmed v0.9.6 layout via range-request of the official release artifact and removed the dead OLLAMA_RUNNERS_DIR env var, retargeting copy_dir_recursive() to lib/ollama (commit 424f1a9, v1.1.8). Fixed the CI race with a prepare-release job creating the release once, platform uploads via releaseId with retryAttempts:3, and a same-tag concurrency group (1d5d6c8). Added chat diagnostics sending the real request to ~/.lexsort/logs/chat-debug.log via a new append_chat_log command (a67a74b retry/backoff + model-vs-installed logging, v1.1.8; file redirect a273683, v1.1.9). Sanitized OLLAMA_ORIGINS at both spawn sites — lib.rs start_inference_server and server.rs start_ollama — keeping http://tauri.localhost and removing tauri://localhost, plus per-send webview origin logging in App.tsx (834980d, v1.1.10). Fixed the lifecycle: exit-code checks now use status.success() (5a72965), removed the blind self-heal spawn in list_installed_models, kill+wait() added to stop_inference_server/factory_reset/exit_app and the vera-server shutdown path, and a new ~/.lexsort/logs/ollama-lifecycle.log timestamps every spawn/reuse/kill with PID and reason. Verified live on the clean ThinkCentre (v1.1.11): ollama-lifecycle.log shows a single SPAWNING line PID=21144 at 22:05:50; chat-debug.log shows origin=http://tauri.localhost at 22:10:56 with no subsequent "Failed to fetch"; first real chat response received. cargo check + npx tsc --noEmit clean before every tag push. Evidence snapshot in sred_evidence/2026-08-07/.',
+  },
+  {
+    id: 1786059521000,
+    date: '2026-08-06',
+    start_time: '16:00',
+    end_time: '19:38',
+    hours: 3.6,
+    area: 'Ollama Sidecar / Windows Runtime',
+    outcome: 'Windows inference blocker fixed (missing ollama_runners dir + CORS); macOS latent bug caught',
+    agent: 'OpenCode',
+    problem: 'On Windows the Ollama sidecar presented a non-obvious failure mode: the server started, /api/tags responded, and the app booted normally, but the first /api/generate call returned HTTP 500 with "Dynamic LLM libraries []" and "server cpu not listed in available servers map". Device has 21.6 GiB RAM so memory pressure was not the cause. In parallel the Tauri webview received 403 on OPTIONS /v1/chat/completions. The separate inference paths made the true gap non-obvious: the extraction step hosted the server fine, only the model-load path failed. Additionally, an installer-filename artifact (LexSort.Personal.AI_1.1.6) needed confirmation against the rebranded tauri.conf productName (LexSort VERA).',
+    uncertainty: 'It was not known in advance whether: (a) setup_engine preserved the ollama_runners/ directory from the extracted Ollama bundle — only ollama.exe was copied to ~/.lexsort/bin then the extraction dir was destroyed, so runner binaries never reached the persistent location; (b) Windows Ollama honors OLLAMA_RUNNERS_DIR when set on the spawned serve child process rather than needing a global environment variable; (c) the macOS extraction path (Ollama.app/Contents/Resources) had the same runner-persistence gap, which would surface as an ARM inference failure later; (d) Ollama 0.9.6 CORS enforcement blocks the Tauri custom protocol origin (tauri://localhost) for /v1/chat/completions when OLLAMA_ORIGINS only lists 127.0.0.1:<port>.',
+    work: 'Added copy_dir_recursive() helper and ollama_runners_dir() resolver in lib.rs:58-88. Windows extraction branch now copies ollama_runners/ from the extracted zip into the persistent bin dir after ollama.exe (destructive delete of extracted dir happens only after the runner copy finishes), with a warning log if the zip lacks the folder; macOS extraction now copies Ollama.app/Contents/Resources/ollama_runners identically. Set OLLAMA_RUNNERS_DIR on the serve child in start_inference_server (lib.rs:733-742), on the list_installed_models retry-serve spawn (lib.rs:1860-1862), and on server.rs start_ollama headless path (server.rs:33-48). Expanded OLLAMA_ORIGINS from http://127.0.0.1:<port> only, to http://localhost, http://localhost:1420, http://tauri.localhost, tauri://localhost, http://127.0.0.1:* for both dev and production origins. Verified cargo check yields zero warnings, npx tsc --noEmit clean; confirmed tauri.conf.json productName is already LexSort VERA so the next Windows MSI will be LexSort.VERA_1.1.7_x64_en-US.msi (stale Personal.AI filename was a pre-rebrand artifact). Pending: clean Windows 11 clean-install validation — pass condition is OLLAMA_RUNNERS_DIR and Dynamic LLM libraries [cpu ...] both non-empty in the startup log.',
+  },
+  {
+    id: Date.now(),
+    date: '2026-07-02',
+    start_time: '',
+    end_time: '',
+    hours: 2.0,
+    area: 'Module Compatibility/Search Infrastructure',
+    outcome: 'Research Lab crash fixed; ProMailer API key passthrough; connectivity check; expanded directory filtering',
+    agent: 'OpenCode',
+    problem: 'Two additional module-system technical gaps surfaced after initial Guardian Watch fix: (1) The Research Lab module bundle called list_installed_models() and iterated results expecting objects with `.size_gb`, `.id`, `.display_name`, `.quantization` fields (reduce accumulator r += t.size_gb), but the Rust backend returned Vec<String> (bare model name strings) — accessing t.size_gb on a string yielded undefined, and the reducer crashed with TypeError: undefined.toFixed is not a function. (2) The ProMailer lead_finder.py supported Google Places API via a GOOGLE_API_KEY env var, but the Rust emailer_search_leads command never read the user\'s saved google_places_api_key from the SMTP config file and never passed it to the Python subprocess — meaning the API key field in Settings was decorative only; DuckDuckGo HTML fallback was always used regardless of key presence. Additionally, the DuckDuckGo fallback returned mostly directory/aggregator sites (MapQuest, YellowPages, Manta) that have no business contact emails, and there was no internet connectivity check before running the Python subprocess.',
+    uncertainty: 'It was not known in advance whether: (a) the list_installed_models endpoint could be migrated from Vec<String> to Vec<ModelDetails> without breaking the two frontend call sites in App.tsx (checkAllModelsCache and bootSequence) that use the result for .includes() and .startsWith() model ID matching; (b) the Ollama API /api/tags endpoint returns the model size in bytes, parameter_size, and quantization_level across all running Ollama versions; (c) a socket-based connectivity check (gethostbyname google.com) would be fast enough (<4s) to not degrade UX; (d) the expanded DuckDuckGo skip list (12→70+ domains) would eliminate enough noise to meaningfully improve result quality without over-filtering legitimate business sites.',
+    work: 'Fixed Research Lab: changed list_installed_models() return type from Vec<String> to Vec<ModelDetails> in lib.rs:1763-1835 — tries Ollama JSON API /api/tags first (real size, family, quantization, parameter count), falls back to parsing ollama list CLI output with size/unit column parsing (MB→GB conversion). Updated both App.tsx call sites (lines 779, 1062) to map .id from model objects with type guard (typeof m === "string" ? m : m.id) to handle mixed old/new backend responses. Fixed ProMailer API key: added --json-api-key argument parsing in lead_finder.py:530-532 that reassigns the GOOGLE_API_KEY global at module scope; updated Rust emailer_search_leads to read data_dir().join("promailer/config.json") and pass the google_places_api_key value via --json-api-key when present. Added check_internet_connection() in lead_finder.py:73-81 using socket.gethostbyname("google.com") with 4s timeout; called at the start of search_places() and before the CLI json-query path. Expanded DuckDuckGo skip list from 12 to 70+ directory/aggregator domains. Fixed Max Results input contrast: app.css #em-max-results overrides with explicit color:#e2e8f0, background:#1e293b, visible spin buttons, wider form-group. All verified: cargo check 0 warnings, npx tsc --noEmit passes, Python py_compile passes.',
+  },
+  {
+    id: Date.now(),
+    date: '2026-07-02',
+    start_time: '',
+    end_time: '',
+    hours: 3.5,
+    area: 'Module Compatibility/Performance',
+    outcome: 'Guardian Watch crash fixed; ProMailer lead finder 7s→3s with live events',
+    agent: 'OpenCode',
+    problem: 'Two independent technical gaps existed in the VERA Freeware module system: (1) the Guardian Watch module bundle.js expected SystemStats JSON keys cpu_usage, total_memory_bytes, used_memory_bytes, total_disk_bytes, and available_disk_bytes but the Rust backend serialized cpu_usage_percent, total_memory_gb, used_memory_gb, free_memory_gb, and disk_usage_percent — the missing disk fields caused a TypeError when the bundle accessed a.total_disk_bytes (undefined), crashing the React component tree inside ModuleErrorBoundary on every load with no fallback. (2) The ProMailer lead_finder.py scraped websites sequentially (0.3s delay per site) with a fixed 1.5s DuckDuckGo page delay and crawled all search result pages before checking if the target result count was reached, making a 10-lead search take ~7s of silent processing time with no progress feedback.',
+    uncertainty: 'It was not known in advance whether: (a) the Guardian Watch bundle field names were intentionally different from the Rust SystemStats struct (hypothesis: bundle was compiled against an earlier version of the struct), and whether serde rename attributes could bridge the mismatch without rebuilding the bundle; (b) sysinfo::Disks::new_with_refreshed_list() produces consistent total/available space across macOS and Linux without blocking; (c) ThreadPoolExecutor(max_workers=5) would speed up email scraping without rate-limiting or connection errors from target websites; (d) Tauri app.emit() called inside a spawned tokio::process::Command handler would deliver events to the frontend listener before the command returned.',
+    work: 'Fixed Guardian Watch: renamed SystemStats fields with #[serde(rename = "cpu_usage")], #[serde(rename = "total_memory_bytes")], etc. in lib.rs:2182-2242; added total_disk_bytes and available_disk_bytes computed from sysinfo::Disks iteration (largest non-removable volume); updated get_ai_system_report to use new field layout with real disk GB computation. Fixed ProMailer: added ThreadPoolExecutor(max_workers=5) to find_and_enrich in lead_finder.py for parallel _scrape_site calls; reduced DuckDuckGo page delay from 1.5s to 0.5s; added log_step() function writing [STEP] prefixed messages to stderr. Updated emailer_search_leads in lib.rs:2141-2178 to use tokio::process::Command with piped stdout/stderr, spawning a background stdout read task while streaming stderr lines line-by-line via app.emit("search_log", msg). Added searchLogs state + search_log listener in App.tsx:555-570 showing a compact spinner + latest log line in the module header bar during searches, auto-clearing 3s after completion. All verified: cargo check zero warnings, Python py_compile passes.',
+  },
+  {
+    id: 1782691200000,
+    date: '2026-07-02',
+    start_time: '',
+    end_time: '',
+    hours: 1.5,
+    area: 'Security/CI Infrastructure',
+    outcome: 'Windows CI builds unblocked; 8 unwraps eliminated; SHA256 auth gap closed',
+    agent: 'OpenCode',
+    problem: 'The Tauri v2 freeware project had two systemic technical gaps: (1) the Windows CI pipeline (release.yml) failed on manual dispatch because dtolnay/rust-toolchain@stable omitted the required `toolchain: stable` input, and tokio::process::windows::CommandExt used a private module path that does not resolve on Windows runners; (2) the Rust backend contained 32 production unwrap() calls (identified during codebase review) that would panic on unexpected states such as I/O failures, path encoding errors, and serialization failures — critically, the SHA256 download verification path used an unconditional equality check against an empty string `""`, causing every download to fail retry 3 times before giving up.',
+    uncertainty: 'It was not known in advance whether: (a) dtolnay/rust-toolchain requires different input parameters across runner OS families (macOS/Linux vs Windows), (b) tokio\'s re-export of std::os::windows::process::CommandExt is accessible via the tokio::process::windows module on Windows targets (compiler error: module is private), (c) all 32 unwrap() calls could be replaced with idiomatic Result propagation without introducing logic changes or breaking existing test coverage, (d) the empty-SHA256 edge case could be handled by restoring the download path with a log warning rather than requiring real hash values from upstream.',
+    work: 'Identified 16 issues across 7 priority tiers via systematic codebase review of lib.rs (2804 lines), App.tsx (2822 lines), release.yml, contracts.yml, and docs. Fixed 8 unwrap() calls: rest_api.rs bind/serve/addr (3x unwrap → map_err + Result<(),String> return), lib.rs benchmark_model serialization (unwrap → if let Ok), lib.rs setup_engine path conversions (4x to_str().unwrap → to_string_lossy()), lib.rs setup_engine metadata/perms (2x .metadata().unwrap → extract set_executable_perms helper with map_err), lib.rs apply_update path printing (to_str().unwrap → ok_or_else). Applied conditional compile fix: lib.rs:39 tokio::process::windows::CommandExt → std::os::windows::process::CommandExt under #[cfg(target_os = "windows")]. Split release.yml into build-macos-linux (auto on tag push, matrix: 3×) + build-windows (manual-only, separate job) to avoid matrix context parse failure at workflow_dispatch time. Moved contracts.yml from macos-latest to ubuntu-latest ($0/min). All 20 unit tests pass with LEXSORT_DIR_OVERRIDE; cargo check yields zero warnings across macOS target.'
+  }
+];
+
+const tbody = document.getElementById('entries');
+for (const e of SEED_ENTRIES) {
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td>${e.date}</td>
+    <td class="time-col">${e.start_time || '—'}</td>
+    <td class="time-col">${e.end_time || '—'}</td>
+    <td class="hours-col">${e.hours.toFixed(1)}</td>
+    <td>${e.area}</td>
+    <td>${e.outcome}</td>
+    <td class="entry-id">${e.problem}</td>
+    <td>${e.uncertainty}</td>
+    <td>${e.work}</td>
+  `;
+  tbody.appendChild(tr);
+}
+</script>
+</body>
+</html>
