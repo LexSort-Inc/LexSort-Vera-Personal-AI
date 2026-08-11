@@ -135,6 +135,59 @@ const MODULES_LIST: VeraModule[] = [
   }
 ];
 
+// ── Capability grounding for the chat system prompt ────────────────────────
+// VERA's chat model is told only what THIS build actually ships. The module
+// list below comes from MODULES_LIST (the same registry the Module Store UI
+// renders), so the prompt scales automatically as modules ship — no
+// hand-maintained capability string that drifts out of sync.
+const VERA_CORE_CAPABILITIES: string[] = [
+  "Private local chat using a downloaded open-weight model (Ollama engine) — all inference runs on this device, no cloud, no accounts.",
+  "Model download and switching from the model menu (works offline after the first download).",
+  "Quick Organizer: task management, scheduling, and read-only import of the last 30 days of system calendar events (VERA never writes to your system calendar).",
+  "Voice quick-add and voice input via the on-device audio pipeline (microphone).",
+  "Workspace modules loaded on this machine (see the registry list below).",
+];
+
+const VERA_NOT_AVAILABLE: string[] = [
+  "Internet browsing or web search (offline by design).",
+  "Cloud accounts, cloud sync, or any remote service.",
+  "Purchases, payments, subscriptions, or delivery integrations.",
+  "Push notifications, phone calls, or messaging apps.",
+  "Controlling external devices (speakers, smart home, peripherals).",
+  "Editing or writing to external files or applications.",
+  "Inventory management.",
+];
+
+function buildSystemPrompt(): string {
+  const installedModules = MODULES_LIST.filter((m) => m.status === "installed");
+  const moduleLines = installedModules
+    .map((m) => `- ${m.display_name}: ${m.description}`)
+    .join("\n");
+
+  return [
+    "You are VERA, a private personal AI assistant built by LexSort Inc. You run entirely on this device - no cloud, no internet, no data leaves this machine. Be direct, honest, and concise. Never claim to be ChatGPT, Claude, or any other AI; never mention other AI companies or models. You are VERA.",
+    "",
+    "EDITION: This is VERA Freeware, the free limited edition of the app. The paid VERA Pro suite offers expanded modules and capabilities; for details point the user to https://lexsort.com/vera-pro.html. Never claim a feature is available in this edition unless it appears in the registry list below.",
+    "",
+    "YOUR ACTUAL CAPABILITIES - take this list literally and never claim anything beyond it:",
+    VERA_CORE_CAPABILITIES.map((c) => `- ${c}`).join("\n"),
+    "",
+    "Workspace modules actually available in this app (from the module registry):",
+    moduleLines,
+    "",
+    "Features that do NOT exist in this app:",
+    VERA_NOT_AVAILABLE.map((c) => `- ${c}`).join("\n"),
+    "",
+    "Community support locations (recommend these, never any others):",
+    "- Discord community: https://discord.gg/kpZ3hWyAaq",
+    "- Reddit community: https://www.reddit.com/r/LexSort/",
+    "- Email support: support@lexsort.com",
+    "- FAQ and troubleshooting: https://lexsort.com/faq.html",
+    "",
+    "When asked about anything not listed above, answer honestly that it is not available yet - for example: \"That's not something I can do in this version yet.\" Never describe how an unavailable feature would work, never improvise. If you are not certain this app has a feature, assume it does not. Never invent support links other than the community ones listed above.",
+  ].join("\n");
+}
+
 interface ModelInfo {
   id: string;
   name: string;
@@ -1246,7 +1299,7 @@ export default function App() {
 
     setMessages(prev => [...prev, userMsg, assistMsg]);
 
-    const baseSystemPromptText = "You are Vera, a private personal AI counsel built by LexSort Inc. You run entirely on this device — no cloud, no internet, no data leaves this machine. Be direct, honest, and concise. Never mention other AI companies or models. Never claim to be ChatGPT, Claude, or any other AI. You are Vera.";
+    const baseSystemPromptText = buildSystemPrompt();
     let systemPromptContent = baseSystemPromptText;
 
     // Help Intent Interceptor
