@@ -3,8 +3,21 @@
 **Project:** LexSort VERA — Local-First Private AI Desktop App
 **Parent:** LexSort Inc. (Corp #1799606-3, BN 774849178, DUNS 243369420, Federal CBCA)
 **Stack:** React 19 (TypeScript) + Rust (Tauri v2) + Ollama v0.9.6
-**Freeware v1.1.7** · **Pro v1.0.12** · **Engine v1.0.0** · **iOS Go (Phase 3b)**
-**Last Updated:** June 30, 2026
+**Freeware v1.1.11** · **Pro v1.0.12** · **Engine v1.0.0** · **iOS Go (Phase 3b)**
+**Last Updated:** August 11, 2026
+
+---
+
+## CI Cost Policy — Mandatory
+
+**GitHub spending cap is at $0.** Every CI minute on `windows-latest` costs ~$0.08. A full Windows build takes ~75-90 min = **~$6-8 per run**.
+
+Rules:
+- **Windows builds are manual-only** in `release.yml` — never triggered by auto tag pushes
+- Tag pushes (`git push origin v*`) auto-build **macOS ARM + Intel + Linux** only
+- To build Windows: use **Actions → "Build & Release VERA Freeware" → Run workflow → `windows-only`**
+- `contracts.yml` runs on **ubuntu-latest** (free) — never change back to `macos-latest` or `windows-latest`
+- Before pushing a `v*` tag, run `cargo check` + `npx tsc --noEmit` locally first — avoid wasting CI on fix iterations
 
 ---
 
@@ -84,7 +97,8 @@ VERA/                             ← This repo (Freeware + Engine + iOS + websi
 | Stripe Webhook | ⚠️ Needs env vars in Netlify | `netlify/functions/stripe-webhook.js` |
 | Freeware CI | ✅ Active — auto-builds on `v*` tag | `Lexsort-Core/LexSort-Vera-Personal-AI` |
 | Pro CI | ✅ Active — auto-builds on `v*` tag | `Lexsort-Core/Lexsort-Vera-Pro` |
-| GitHub Actions Secrets (Pro) | ✅ All 6 Apple secrets set | Set 2 weeks ago — APPLE_ID, CERT, TEAM_ID etc. |
+| GitHub Actions Secrets (Pro) | ✅ All 6 Apple secrets set | Set Jun 17, 2026 — APPLE_ID, CERT, TEAM_ID etc. |
+| Apple Developer Org Account | ✅ **LIVE — LexSort Inc.** | Activated Jul 3, 2026 — developer.apple.com |
 | License Signing Keypair | ✅ Rotated Jun 30 | Private key in `.env.local`, public key in Pro `lexsort_public_key.bin` |
 | Module Signing Keypair | ✅ Active Jun 17 | Private key in `.env.local` (`MODULE_SIGNING_PRIVATE_KEY`) |
 | Netlify deploy | ✅ CLI only — NEVER connect GitHub | `netlify deploy --prod --dir=website` |
@@ -151,9 +165,13 @@ node scripts/generate-test-keys.js 5
 
 ---
 
-## Current Blockers (as of Jun 30, 2026)
+## Current Blockers (as of Jul 3, 2026)
 
-- **Pro v1.0.12 CI build** — In progress. Check: https://github.com/Lexsort-Core/Lexsort-Vera-Pro/actions
+- **Apple Developer Org** — ✅ LIVE as of Jul 3, 2026 — `developer.apple.com` (LexSort Inc.)
+- **Bundle ID registration** — ⏳ Register `com.lexsort.vera` in Certificates, IDs & Profiles
+- **App Store Connect listing** — ⏳ Create VERA Pro app listing
+- **Distribution Certificate** — ⏳ Generate Mac App Distribution Certificate
+- **Pro v1.0.12 CI build** — Check: https://github.com/Lexsort-Core/Lexsort-Vera-Pro/actions
 - **TAURI_PRIVATE_KEY** — May need adding to Pro repo GitHub secrets if CI fails on update signing step
 - **Stripe env vars** — Not yet set in Netlify dashboard (free beta bypasses Stripe for now)
 - **Module ZIPs** — `.vera-module` signed ZIPs not yet uploaded to CDN (`modules.lexsort.com`)

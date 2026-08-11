@@ -88,7 +88,7 @@
 | Business Organizer | Pro | 🏗 Design | Receipts, ledger, CCA schedules |
 | Wealth & Tax Intel | Pro | 📅 Soon | CRA tax prep + credit discovery |
 | Share Sheet Processing | Pro | 🏗 Design | Phone shares audio/PDF/photo → desktop transcribes/summarizes/extracts tasks. Private AI inbox. |
-| Voice Input (STT) | Both | ⏸ Blocked | Subsumed by Share Sheet Processing — needs native Rust audio layer |
+| Voice Input (STT/TTS) | Both | 🏗 Design | Session-based local STT/TTS audio pipeline (whisper.cpp + Piper) — see Amendment 03 |
 
 ### Pricing
 - **VERA Freeware:** Free forever

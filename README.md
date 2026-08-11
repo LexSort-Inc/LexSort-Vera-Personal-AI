@@ -64,11 +64,12 @@ We built VERA because we believe that AI tools for legal, financial, and persona
 On first launch, VERA reads your available system RAM and automatically selects and downloads the highest-quality open-source AI model your hardware can run:
 
 | Available RAM | Model Selected |
-|---|---|
-| 17 GB+ | Qwen 2.5 32B — Maximum fidelity |
-| 9.5 GB+ | Gemma 4 E4B — High performance |
-| 5.5 GB+ | Llama 3.2 3B — Standard |
-| 3.5 GB+ | Qwen 2.5 1.5B — Efficient |
+|---|---|---|
+| 32 GB+ | Qwen 2.5 Coder 14B — Best quality |
+| 16 GB+ | Qwen 2.5 Coder 7B — High quality / balanced |
+| 8 GB+ | Mistral 7B — Fast, balanced |
+| 4 GB+ | Llama 3.2 3B — Ultra-fast |
+| Any | Phi-3 Mini — Maximum compatibility |
 
 Zero configuration required. VERA handles it automatically.
 
@@ -84,8 +85,8 @@ Go to **[lexsort.com](https://lexsort.com)** and download the installer for your
 |---|---|
 | ✅ macOS Apple Silicon (arm64) | Available now |
 | ✅ macOS Intel (x86_64) | Available now |
-| 🔄 Windows (x64) | CI/CD build in progress — check [Releases](https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/releases) |
-| 🔄 Linux (deb / AppImage) | CI/CD build in progress — check [Releases](https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/releases) |
+| ✅ Windows (x64) | Available now — built & tested on real hardware |
+| 🔄 Linux (deb / AppImage) | CI build — check [Releases](https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/releases) |
 
 ### Option 2 — Build from Source
 
@@ -136,8 +137,12 @@ npm run tauri build
 - [x] GitHub Actions CI/CD release pipeline (macOS Apple Silicon + Intel, Windows, Linux)
 - [x] VERA product page live at [lexsort.com](https://lexsort.com)
 
+### ✅ v1.1.x — Stability & Field Verification (Released Aug 2026)
+- [x] Windows chat-connection arc fixed (CORS, Ollama lifecycle, CI race) — v1.1.11 verified on real Windows hardware
+- [x] In-app update system live via [lexsort.com/api/manifest.json](https://lexsort.com/api/manifest.json)
+
 ### 🔄 In Progress
-- [ ] Windows & Linux installers published on GitHub Releases *(building now)*
+- [ ] Linux installer published on GitHub Releases
 - [ ] macOS Notarization & App Store submission
 
 ### 🗓 Upcoming — VERA Pro (Q4 2026)
@@ -191,5 +196,5 @@ Licensed under the [Apache License 2.0](LICENSE). Free to use, modify, and distr
 
 <div align="center">
   <sub>Built by <a href="https://lexsort.com">LexSort Inc.</a> — The future of local-first intelligence.</sub><br>
-  <sub><em>Last updated: June 29, 2026 — v1.1.7. Repo restructured: vera-freeware, vera-engine, vera-go-ios.</em></sub>
+  <sub><em>Last updated: August 11, 2026 — v1.1.11. Repo restructured: vera-freeware, vera-engine, vera-go-ios.</em></sub>
 </div>
