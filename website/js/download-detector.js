@@ -6,23 +6,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ── GitHub Release Base URL ──────────────────────────────────────────────
   // Update version string here when a new release ships
-  const VERSION_LATEST = "v1.1.6";
-  const VERSION_FALLBACK = "v1.1.6";
+  const VERSION_LATEST = "v1.1.11";
+  const VERSION_FALLBACK = "v1.1.11";
+  // NOTE: Intel Mac builds stopped at v1.1.6 (v1.1.7+ ships Apple Silicon only).
+  // Intel users get the last compatible release.
+  const VERSION_INTEL = "v1.1.6";
 
-  const GITHUB_BASE_LATEST = `https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/releases/download/${VERSION_LATEST}`;
-  const GITHUB_BASE_FALLBACK = `https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/releases/download/${VERSION_FALLBACK}`;
-  const RELEASES_PAGE = "https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/releases/latest";
+  const GITHUB_BASE_LATEST = `https://github.com/LexSort-Inc/LexSort-Vera-Personal-AI/releases/download/${VERSION_LATEST}`;
+  const GITHUB_BASE_FALLBACK = `https://github.com/LexSort-Inc/LexSort-Vera-Personal-AI/releases/download/${VERSION_FALLBACK}`;
+  const GITHUB_BASE_INTEL = `https://github.com/LexSort-Inc/LexSort-Vera-Personal-AI/releases/download/${VERSION_INTEL}`;
+  const RELEASES_PAGE = "https://github.com/LexSort-Inc/LexSort-Vera-Personal-AI/releases/latest";
 
   // ── Tauri-generated filenames (must match exactly what GitHub Actions produces)
   const ASSETS_LATEST = {
-    mac_arm:   `LexSort.Personal.AI_${VERSION_LATEST.slice(1)}_aarch64.dmg`,
-    mac_intel: `LexSort.Personal.AI_${VERSION_LATEST.slice(1)}_x64.dmg`,
-    linux_deb: `LexSort.Personal.AI_${VERSION_LATEST.slice(1)}_amd64.deb`,
-    linux_app: `LexSort.Personal.AI_${VERSION_LATEST.slice(1)}_amd64.AppImage`,
+    mac_arm:   `LexSort.VERA_${VERSION_LATEST.slice(1)}_aarch64.dmg`,
+    mac_intel: `LexSort.Personal.AI_${VERSION_INTEL.slice(1)}_x64.dmg`,
+    linux_deb: `LexSort.VERA_${VERSION_LATEST.slice(1)}_amd64.deb`,
+    linux_app: `LexSort.VERA_${VERSION_LATEST.slice(1)}_amd64.AppImage`,
   };
 
   const ASSETS_FALLBACK = {
-    windows:   `LexSort.Personal.AI_${VERSION_FALLBACK.slice(1)}_x64_en-US.msi`,
+    windows:   `LexSort.VERA_${VERSION_FALLBACK.slice(1)}_x64_en-US.msi`,
   };
 
   // ── Platform Detection ───────────────────────────────────────────────────
@@ -91,9 +95,9 @@ document.addEventListener("DOMContentLoaded", () => {
     if (isAppleSilicon) {
       primaryUrl = `${GITHUB_BASE_LATEST}/${ASSETS_LATEST.mac_arm}`;
       osLabel    = "macOS (Apple Silicon)";
-      altHtml    = `Not Apple Silicon? <a href="${GITHUB_BASE_LATEST}/${ASSETS_LATEST.mac_intel}">Download macOS Intel build</a>`;
+      altHtml    = `Not Apple Silicon? <a href="${GITHUB_BASE_INTEL}/${ASSETS_LATEST.mac_intel}">Download macOS Intel build (v1.1.6)</a>`;
     } else {
-      primaryUrl = `${GITHUB_BASE_LATEST}/${ASSETS_LATEST.mac_intel}`;
+      primaryUrl = `${GITHUB_BASE_INTEL}/${ASSETS_LATEST.mac_intel}`;
       osLabel    = "macOS (Intel)";
       altHtml    = `On an M1/M2/M3 Mac? <a href="${GITHUB_BASE_LATEST}/${ASSETS_LATEST.mac_arm}">Download Apple Silicon build</a>`;
     }

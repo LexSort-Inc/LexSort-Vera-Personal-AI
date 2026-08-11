@@ -6,8 +6,8 @@
   <p><strong>Your AI. Your Computer. Your Data. Free Forever.</strong></p>
 
   <p>
-    <a href="https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/releases"><img src="https://img.shields.io/github/v/release/Lexsort-Core/LexSort-Vera-Personal-AI?color=2E5FA3&label=release&style=flat-square" alt="Release"></a>
-    <a href="https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/actions/workflows/release.yml"><img src="https://img.shields.io/github/actions/workflow/status/Lexsort-Core/LexSort-Vera-Personal-AI/release.yml?label=CI%2FCD%20Build&style=flat-square" alt="CI/CD Status"></a>
+    <a href="https://github.com/LexSort-Inc/LexSort-Vera-Personal-AI/releases"><img src="https://img.shields.io/github/v/release/LexSort-Inc/LexSort-Vera-Personal-AI?color=2E5FA3&label=release&style=flat-square" alt="Release"></a>
+    <a href="https://github.com/LexSort-Inc/LexSort-Vera-Personal-AI/actions/workflows/release.yml"><img src="https://img.shields.io/github/actions/workflow/status/LexSort-Inc/LexSort-Vera-Personal-AI/release.yml?label=CI%2FCD%20Build&style=flat-square" alt="CI/CD Status"></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache%202.0-gold?style=flat-square" alt="License"></a>
     <img src="https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux-lightgrey?style=flat-square" alt="Platform">
     <img src="https://img.shields.io/badge/cloud-none-brightgreen?style=flat-square" alt="No Cloud">
@@ -17,8 +17,8 @@
   <p>
     <a href="https://lexsort.com">Website</a> ·
     <a href="https://discord.gg/kpZ3hWyAaq">Discord</a> ·
-    <a href="https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/issues">Report a Bug</a> ·
-    <a href="https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/releases">Download</a>
+    <a href="https://github.com/LexSort-Inc/LexSort-Vera-Personal-AI/issues">Report a Bug</a> ·
+    <a href="https://github.com/LexSort-Inc/LexSort-Vera-Personal-AI/releases">Download</a>
   </p>
 </div>
 
@@ -86,7 +86,7 @@ Go to **[lexsort.com](https://lexsort.com)** and download the installer for your
 | ✅ macOS Apple Silicon (arm64) | Available now |
 | ✅ macOS Intel (x86_64) | Available now |
 | ✅ Windows (x64) | Available now — built & tested on real hardware |
-| 🔄 Linux (deb / AppImage) | CI build — check [Releases](https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/releases) |
+| 🔄 Linux (deb / AppImage) | CI build — check [Releases](https://github.com/LexSort-Inc/LexSort-Vera-Personal-AI/releases) |
 
 ### Option 2 — Build from Source
 
@@ -98,7 +98,7 @@ Go to **[lexsort.com](https://lexsort.com)** and download the installer for your
 
 ```bash
 # Clone the repository
-git clone https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI.git
+git clone https://github.com/LexSort-Inc/LexSort-Vera-Personal-AI.git
 cd LexSort-Vera-Personal-AI/vera-freeware
 
 # Install dependencies

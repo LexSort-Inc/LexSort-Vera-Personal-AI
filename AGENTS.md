@@ -95,8 +95,8 @@ VERA/                             ← This repo (Freeware + Engine + iOS + websi
 |---|---|---|
 | Discord Bot | ✅ **LIVE** on Railway | `/register`, `/mykey`, `/mystatus`, `/help` all working |
 | Stripe Webhook | ⚠️ Needs env vars in Netlify | `netlify/functions/stripe-webhook.js` |
-| Freeware CI | ✅ Active — auto-builds on `v*` tag | `Lexsort-Core/LexSort-Vera-Personal-AI` |
-| Pro CI | ✅ Active — auto-builds on `v*` tag | `Lexsort-Core/Lexsort-Vera-Pro` |
+| Freeware CI | ✅ Active — auto-builds on `v*` tag | `LexSort-Inc/LexSort-Vera-Personal-AI` |
+| Pro CI | ✅ Active — auto-builds on `v*` tag | `LexSort-Inc/Lexsort-Vera-Pro` |
 | GitHub Actions Secrets (Pro) | ✅ All 6 Apple secrets set | Set Jun 17, 2026 — APPLE_ID, CERT, TEAM_ID etc. |
 | Apple Developer Org Account | ✅ **LIVE — LexSort Inc.** | Activated Jul 3, 2026 — developer.apple.com |
 | License Signing Keypair | ✅ Rotated Jun 30 | Private key in `.env.local`, public key in Pro `lexsort_public_key.bin` |
@@ -171,7 +171,7 @@ node scripts/generate-test-keys.js 5
 - **Bundle ID registration** — ⏳ Register `com.lexsort.vera` in Certificates, IDs & Profiles
 - **App Store Connect listing** — ⏳ Create VERA Pro app listing
 - **Distribution Certificate** — ⏳ Generate Mac App Distribution Certificate
-- **Pro v1.0.12 CI build** — Check: https://github.com/Lexsort-Core/Lexsort-Vera-Pro/actions
+- **Pro v1.0.12 CI build** — Check: https://github.com/LexSort-Inc/Lexsort-Vera-Pro/actions
 - **TAURI_PRIVATE_KEY** — May need adding to Pro repo GitHub secrets if CI fails on update signing step
 - **Stripe env vars** — Not yet set in Netlify dashboard (free beta bypasses Stripe for now)
 - **Module ZIPs** — `.vera-module` signed ZIPs not yet uploaded to CDN (`modules.lexsort.com`)

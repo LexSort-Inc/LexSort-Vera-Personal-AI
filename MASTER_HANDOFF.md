@@ -192,7 +192,7 @@ CDN (modules.lexsort.com):
 ## ⚠️ Outstanding Items (as of Jun 30, 2026)
 
 ### 1. Watch Pro v1.0.12 CI Build
-Check: https://github.com/Lexsort-Core/Lexsort-Vera-Pro/actions
+Check: https://github.com/LexSort-Inc/Lexsort-Vera-Pro/actions
 
 Expected artifacts when CI passes:
 - `LexSort.VERA.Pro_1.0.12_aarch64.dmg` (macOS Apple Silicon)
@@ -200,7 +200,7 @@ Expected artifacts when CI passes:
 - `LexSort.VERA.Pro_1.0.12_x64-setup.exe` (Windows)
 
 ### 2. Add TAURI_PRIVATE_KEY to GitHub Secrets (if CI fails on signing step)
-If the CI fails with a signing error on the update bundle step, add these to `Lexsort-Core/Lexsort-Vera-Pro` → Settings → Secrets → Actions:
+If the CI fails with a signing error on the update bundle step, add these to `LexSort-Inc/Lexsort-Vera-Pro` → Settings → Secrets → Actions:
 ```
 TAURI_PRIVATE_KEY      = -----BEGIN PRIVATE KEY-----
                          MC4CAQAwBQYDK2VwBCIEIDj+7tU4KsifCVO6TD74aKfGtnbI9H1zb5xzGtDrIxIG
