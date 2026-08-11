@@ -3,7 +3,7 @@
 **Project:** LexSort VERA — Local-First Private AI Desktop App
 **Parent:** LexSort Inc. (Corp #1799606-3, BN 774849178, DUNS 243369420, Federal CBCA)
 **Stack:** React 19 (TypeScript) + Rust (Tauri v2) + Ollama v0.9.6
-**Freeware v1.1.11** · **Pro v1.0.12** · **Engine v1.0.0** · **iOS Go (Phase 3b)**
+**Freeware v1.1.11** (v1.1.12 pending — Intel `.dmg` fix + grounding prompt) · **Pro v1.0.12** (v1.0.13 committed, untagged) · **Engine v1.0.0** · **iOS Go (Phase 3b)**
 **Last Updated:** August 11, 2026
 
 ---
@@ -154,6 +154,7 @@ node scripts/generate-test-keys.js 5
 | v1.0.5 | Base Pro features |
 | v1.0.6–v1.0.11 | CI/workflow fixes only (Windows runner, signing, node-gyp) |
 | **v1.0.12** | **OnboardingWizard, Ollama v0.9.6 engine URLs, new license keypair** |
+| **v1.0.13** (committed, untagged) | **Guardian Watch sidecar supervision + Smart Inbox** (`9ce5392`) — Job Objects, VRAM gating, /api/show metadata, purge cmd, lifecycle logging, port-collision UI |
 
 ---
 
@@ -173,6 +174,7 @@ node scripts/generate-test-keys.js 5
 - **Distribution Certificate** — ⏳ Generate Mac App Distribution Certificate
 - **Intel Mac builds** — ✅ FIXED (v1.1.7–v1.1.11 shipped no `.dmg` for Intel: `git2` → `openssl-sys` fails on x86_64. `vendored-openssl` feature added Aug 11; verify Intel `.dmg` in next tag's release)
 - **Pro binaries (v1.0.1–v1.0.12)** — ⚠️ Orphaned on old repo (force-moved tags); v1.0.12 partially recovered (5/9 assets from local Downloads). Never force-move release tags.
+- **Pro v1.0.13 tag** — ⏳ Scope (Guardian Watch + Smart Inbox) committed + pushed (`9ce5392`); bump versions + tag when user approves. Business-organizer backend WIP intentionally uncommitted.
 - **Pro CI build** — Check: https://github.com/LexSort-Inc/Lexsort-Vera-Pro/actions
 - **TAURI_PRIVATE_KEY** — May need adding to Pro repo GitHub secrets if CI fails on update signing step
 - **Stripe env vars** — Not yet set in Netlify dashboard (free beta bypasses Stripe for now)

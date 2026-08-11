@@ -2,9 +2,9 @@
 
 **Project:** LexSort VERA — Local-First Private AI Desktop App
 **Parent Brand:** LexSort Inc. (DUNS 243369420)
-**Current Versions:** VERA Freeware v1.1.11 ✅ (Windows chat verified) · VERA Pro v1.0.12 (CI building) · VERA Engine v1.0.0 ✅
+**Current Versions:** VERA Freeware v1.1.11 ✅ (Windows chat verified; v1.1.12 pending — Intel `.dmg` fix + grounding prompt) · VERA Pro v1.0.12 (binaries recovered; **v1.0.13 scope committed** — Guardian Watch + Smart Inbox, tag pending) · VERA Engine v1.0.0 ✅
 **Stack:** React 19 (TypeScript) + Rust (Tauri v2) + Ollama v0.9.6
-**Last Updated:** August 7, 2026
+**Last Updated:** August 11, 2026
 
 > [!IMPORTANT]
 > **ALWAYS read this file and `AGENTS.md` at the start of every session before touching any code.**
@@ -85,7 +85,7 @@ netlify deploy --prod --dir=website
 ### Release a new Pro version
 ```bash
 # Pro repo: 02_ACTIVE_PROJECTS/Lexsort-Vera-Pro/lexsort-vera-pro/
-# Current version: v1.0.12 (in CI as of Jun 30 2026)
+# Current version: v1.0.13 scope COMMITTED (Guardian Watch + Smart Inbox, Aug 11 2026)
 # 1. Bump version in: src-tauri/tauri.conf.json, package.json, Cargo.toml
 # 2. Commit & push, then tag:
 git tag v1.0.13 && git push origin v1.0.13
@@ -113,21 +113,23 @@ netlify deploy --prod --dir=website
 
 ---
 
-## 🏛 Current Architecture State (Jun 30, 2026)
+## 🏛 Current Architecture State (Aug 11, 2026)
 
 ### Infrastructure Status
 
 | Component | State | Notes |
 |---|---|---|
 | Freeware v1.1.11 | ✅ Live at lexsort.com/download | **Windows chat VERIFIED** on clean ThinkCentre Aug 7, 2026 (22:10:56 EDT) |
-| Pro v1.0.12 | 🔄 CI building | Triggered Jun 30 — check Actions tab |
+| Pro v1.0.12 | ⚠️ Binaries recovered 5/9 (org release) | v1.0.1–v1.0.5 + v1.0.12 orphaned by force-moved tags; rpm/setup.exe/tar.gz unrecoverable |
+| Pro v1.0.13 (Guardian + Smart Inbox) | ✅ Committed `9ce5392` — **tag NOT yet pushed** | Scope = Guardian Watch + Smart Inbox; business-organizer backend intentionally left uncommitted |
 | VERA Engine v1.0.0 | ✅ Stable | Standalone Rust LLM proxy |
 | Discord Bot | ✅ Deployed on Railway | `/register` `/mykey` `/mystatus` `/help` |
-| Website (lexsort.com) | ✅ Live | Netlify — CLI deploy only |
+| Website (lexsort.com) | ✅ Live — serves org release links | Netlify — CLI deploy only (site `charming-zuccutto-05cf6a`) |
 | Module CDN | ✅ `modules.lexsort.com/index.json` live | `.vera-module` ZIPs not yet uploaded |
 | Stripe Webhook | ⚠️ Wired, needs Netlify env vars | Free beta bypasses Stripe for now |
 | GitHub Actions Secrets | ✅ Set (Apple certs + Team ID) | Set Jun 17 2026 — all 6 secrets present |
 | Apple Developer Account | ✅ **Organization account LIVE** | LexSort Inc. — developer.apple.com (Jul 3 2026) |
+| Intel Mac `.dmg` | ⚠️ v1.1.7–v1.1.11 HAD NONE — fix committed | `vendored-openssl` on git2 (`40fd72f`) → resumes at v1.1.12 tag; website routes Intel → v1.1.6 meanwhile |
 
 ### VERA Pro — Onboarding Flow (NEW as of v1.0.12)
 
@@ -150,6 +152,8 @@ Core (always bundled in binary):
   ✅ Module Store UI + Loader
   ✅ OnboardingWizard (v1.0.12+)
   ✅ LicenseGate
+  ✅ Guardian Watch (native, v1.0.13 scope — committed `9ce5392`)
+  ✅ Smart Inbox (native, v1.0.13 scope — committed `9ce5392`)
 
 Standalone downloadable modules (~/.lexsort/modules/<name>/bundle.js):
   ✅ promailer       v1.0.0   IIFE + CSS
@@ -165,13 +169,15 @@ CDN (modules.lexsort.com):
 ### VERA Freeware
 
 ```
-✅ v1.1.7 live at lexsort.com/download
+✅ v1.1.11 live at lexsort.com/download
 ✅ In-app update flow working (v1.1.4 → v1.1.6 → v1.1.7 verified)
 ✅ Ollama engine auto-install updated to v0.9.6 (Jun 30 2026)
 ✅ Quick Organizer: full calendar UX (month grid, week strip, day view)
 ✅ ProMailer bridge: calls lead_finder.py --json-query --json-limit (live progress events + parallel scraping 7s→3s)
 ✅ Guardian Watch: system stats fetching, real disk metrics, live progress streaming, AI diagnostics
+✅ Capability-grounded chat system prompt (buildSystemPrompt, c25b592 — v1.1.12)
 ⚠️ Calendar import hang fix committed but not yet verified on device
+⚠️ Intel `.dmg` missing v1.1.7–v1.1.11 — `vendored-openssl` fix committed (40fd72f); verify in v1.1.12 release
 ```
 
 ---
@@ -189,21 +195,25 @@ CDN (modules.lexsort.com):
 
 ---
 
-## ⚠️ Outstanding Items (as of Jun 30, 2026)
+## ⚠️ Outstanding Items (as of Aug 11, 2026)
 
-### 1. Watch Pro v1.0.12 CI Build
-Check: https://github.com/LexSort-Inc/Lexsort-Vera-Pro/actions
+### 1. Tag & Release Pro v1.0.13 (Guardian Watch + Smart Inbox)
+Scope **committed** on `main` (`9ce5392`) and pushed to `LexSort-Inc/Lexsort-Vera-Pro`. Tag NOT yet pushed — waiting for your go:
+```bash
+# In 02_ACTIVE_PROJECTS/Lexsort-Vera-Pro/lexsort-vera-pro/
+# 1. Bump tauri.conf.json, package.json, Cargo.toml → 1.0.13
+# 2. cargo check + npx tsc --noEmit (mandatory pre-tag gate)
+# 3. git tag v1.0.13 && git push origin v1.0.13
+# 4. Verify all 5+ artifacts incl. Intel .dmg land in the Draft Release
+```
+Expected artifacts:
+- `LexSort.VERA.Pro_1.0.13_aarch64.dmg` (macOS Apple Silicon)
+- `LexSort.VERA.Pro_1.0.13_x64.dmg` (macOS Intel)
+- `LexSort.VERA.Pro_1.0.13_x64-setup.exe` (Windows)
 
-Expected artifacts when CI passes:
-- `LexSort.VERA.Pro_1.0.12_aarch64.dmg` (macOS Apple Silicon)
-- `LexSort.VERA.Pro_1.0.12_x64.dmg` (macOS Intel)
-- `LexSort.VERA.Pro_1.0.12_x64-setup.exe` (Windows)
-
-> ⚠️ **Status Aug 11:** v1.0.12 binaries are orphaned on the old repo (force-moved tag).
-> 5/9 recovered from `~/Downloads` and re-uploaded to `LexSort-Inc/Lexsort-Vera-Pro`
-> release. The Pro repo also has **12 uncommitted WIP files** (guardian_watch.rs,
-> smart_inbox.rs + frontend, business-organizer backend, ChatModule.tsx, Sidebar).
-> Next Pro release (v1.0.13) should scope + commit that WIP.
+> ⚠️ **History:** v1.0.12 binaries were orphaned on the old repo (force-moved tag);
+> 5/9 recovered from `~/Downloads` and re-uploaded to the org release. **Never force-move a release tag.**
+> Business-organizer backend changes (`modules/business-organizer/backend/*`) remain uncommitted — intentionally deferred to a later release.
 
 ### 2. Add TAURI_PRIVATE_KEY to GitHub Secrets (if CI fails on signing step)
 If the CI fails with a signing error on the update bundle step, add these to `LexSort-Inc/Lexsort-Vera-Pro` → Settings → Secrets → Actions:
@@ -311,7 +321,8 @@ VERA/                             # This repo — Freeware + Engine + iOS + webs
 
 ## 🔑 Key Facts for Any New Session
 
-- **Pro CI has been running since v1.0.2.** Tags v1.0.6–v1.0.11 were CI fix iterations. The first real feature release is **v1.0.12**.
+- **Pro CI has been running since v1.0.2.** Tags v1.0.6–v1.0.11 were CI fix iterations. The first real feature release is **v1.0.12**; **v1.0.13** (Guardian + Smart Inbox) is committed (`9ce5392`) but not yet tagged.
+- **VERA-01..05 features are REAL and live in the Pro repo** (committed `9ce5392`): Job Objects sidecar binding, VRAM-aware model gating, `/api/show` dynamic model metadata, `purge_local_user_data`, lifecycle logging. An early Aug 11 draft mis-attributed them to Freeware; they exist in Pro.
 - **Discord bot is live.** `/register`, `/mykey`, `/mystatus`, `/help` all working on LexSort server.
 - **License signing key was rotated Jun 30, 2026.** New public key is in `lexsort_public_key.bin` (Pro repo). Private key is in `.env.local`. Old key in git history is for module signing — not license signing.
 - **GitHub Actions secrets (Apple certs) already set** in Pro repo — set Jun 17 2026.
@@ -324,6 +335,20 @@ VERA/                             # This repo — Freeware + Engine + iOS + webs
 
 ---
 
+## 📋 Session Log — August 11, 2026 (Pro v1.0.13 Scope + Full Doc Sweep)
+
+> Pro Guardian + Smart Inbox committed & pushed (`9ce5392`); VERA-01..05 confirmed real (Pro repo WIP, not phantom); SR&ED evidence corrected; full doc sweep across VERA, Pro, and studio-core docs.
+
+| Item | Status |
+|---|---|
+| Pro WIP scoped per user decision | ✅ Guardian + Smart Inbox only; business-organizer backend excluded (left uncommitted for later release) |
+| Pro scope committed + pushed | ✅ `9ce5392` — 11 files, +1283: guardian_watch.rs, smart_inbox.rs, GuardianModule/SmartInboxModule, ChatModule port-collision UI, lib.rs (VERA-01..05: Job Objects `KILL_ON_JOB_CLOSE`, VRAM gating <6GB→qwen2.5:3b, `/api/show` metadata, purge_local_user_data, lifecycle logging). `cargo check` + `npx tsc --noEmit` clean |
+| **VERA-01..05 phantom → real** | ✅ All five features found in **Pro repo** (uncommitted WIP), not Freeware — the phantom draft mis-attributed repo. Now committed + pushed. SR&ED evidence + MASTER_HANDOFF corrected (`8a62139`) |
+| Compile gates | ✅ `cargo check` (Pro) + `npx tsc --noEmit` (Pro) clean |
+| Business-organizer WIP | 📋 `modules/business-organizer/backend/{alembic/env.py, app/routers/ingest.py, requirements.txt}` — intentionally uncommitted, deferred |
+| Full doc sweep | ✅ AGENTS.md, MASTER_HANDOFF.md, KEY_MANIFEST (verified), SR&ED log + evidence, studio-core docs (LEXSORT_WEBSITE_MANAGEMENT, STUDIO_INFRASTRUCTURE), Pro README/todo-marketing — see commits this session |
+| SR&ED | ✅ Entry id 1786582000000 updated with corrected outcome + full-session work; evidence snapshot updated (git_log.txt, session_summary.md) |
+
 ## 📋 Session Log — August 11, 2026 (Capability Grounding + Accuracy Audit)
 
 > Chat system prompt grounded to actual installed capabilities; repo docs/versions/evidence audited to v1.1.11 reality. Commits on `main`, **not pushed, no tag** (testing continues on Mac + Windows + EV before v1.1.12).
@@ -334,7 +359,7 @@ VERA/                             # This repo — Freeware + Engine + iOS + webs
 | Docs refresh to v1.1.11 reality | ✅ README (Windows verified), AGENTS.md version line, ARCHITECTURE rewrite, MARKETING roadmap, download.html, Cargo.lock, Amendment 03 doc, session-log.sh — commit `7e79c6c` |
 | Compile gates | ✅ `npx tsc --noEmit` + `cargo check` clean |
 | Version consistency audit | ✅ tauri.conf.json / package.json / Cargo.toml / Cargo.lock / website manifest all at 1.1.11 |
-| **Phantom SR&ED draft (2026-08-11)** | ⚠️→✅ An 8-min agent session (10:07–10:15 EDT, "Antigravity") claimed VERA-01..05 work (Job Objects, purge cmd, VRAM gating, dynamic model info) — full-repo grep proved **none exists**. Draft replaced with real entry (id 1786582000000); evidence snapshot rewritten |
+| **Phantom SR&ED draft (2026-08-11)** | ⚠️→✅ An 8-min agent session (10:07–10:15 EDT, "Antigravity") claimed VERA-01..05 work (Job Objects, purge cmd, VRAM gating, dynamic model info) — Freeware-tree grep proved none exists there. **Later corrected:** the work WAS real — it lived as uncommitted WIP in the **Pro repo** and is now committed (`9ce5392`). Draft replaced with real entry (id 1786582000000); evidence snapshot rewritten |
 | Evidence folders committed | ✅ `2026-07-02/` + `2026-08-06/` snapshots (previously untracked, match logged entries) |
 | SR&ED entry | ✅ `sred_log_vera.html` + `sred_evidence/2026-08-11/` (id 1786582000000, hours provisional — finalize at session close) |
 | **GitHub org consolidation verification** | ✅ Migration confirmed complete (Aug 8, `git push --mirror`): LexSort-Inc 3 + Just-Me-Media 18 repos; all 8 local remotes verified; canonical `LexSort-Inc/LexSort-Vera-Personal-AI` at `57b738d` (see `01_STUDIO_CORE/GITHUB_REPO_MIGRATION.md`) |
