@@ -1,6 +1,6 @@
 # VERA — Marketing & Roadmap
 
-*Last updated: June 29, 2026 — v1.1.7 Freeware / Phase 3b scoped*
+*Last updated: August 11, 2026 — v1.1.11 Freeware / Phase 3b scoped*
 
 ---
 
@@ -13,7 +13,7 @@
 | Freeware Foundation page live at lexsort.com/freeware.html | ✅ Done |
 | Download page live at lexsort.com/download.html | ✅ Done |
 | VERA card on corporate LexSort homepage | ✅ Done |
-| GitHub repository public: Lexsort-Core/LexSort-Vera-Personal-AI | ✅ Done |
+| GitHub repository public: LexSort-Inc/LexSort-Vera-Personal-AI | ✅ Done |
 | CI/CD pipeline active (macOS ARM + x86, Windows, Linux) | ✅ Active |
 | Discord, Reddit, X, YouTube, LinkedIn, TikTok, Instagram, Product Hunt linked | ✅ Done |
 | Stripe + Discord license bot integrated | ✅ Done |

@@ -1,6 +1,6 @@
 # ARCHITECTURE.md — VERA Personal AI
 
-**Repository:** Lexsort-Core/LexSort-Vera-Personal-AI  
+**Repository:** LexSort-Inc/LexSort-Vera-Personal-AI  
 **Last updated:** July 2, 2026  
 **Stack:** React 19 (TypeScript) + Rust (Tauri v2) + Ollama
 

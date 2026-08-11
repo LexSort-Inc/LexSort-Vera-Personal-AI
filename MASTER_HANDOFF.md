@@ -199,6 +199,12 @@ Expected artifacts when CI passes:
 - `LexSort.VERA.Pro_1.0.12_x64.dmg` (macOS Intel)
 - `LexSort.VERA.Pro_1.0.12_x64-setup.exe` (Windows)
 
+> ⚠️ **Status Aug 11:** v1.0.12 binaries are orphaned on the old repo (force-moved tag).
+> 5/9 recovered from `~/Downloads` and re-uploaded to `LexSort-Inc/Lexsort-Vera-Pro`
+> release. The Pro repo also has **12 uncommitted WIP files** (guardian_watch.rs,
+> smart_inbox.rs + frontend, business-organizer backend, ChatModule.tsx, Sidebar).
+> Next Pro release (v1.0.13) should scope + commit that WIP.
+
 ### 2. Add TAURI_PRIVATE_KEY to GitHub Secrets (if CI fails on signing step)
 If the CI fails with a signing error on the update bundle step, add these to `LexSort-Inc/Lexsort-Vera-Pro` → Settings → Secrets → Actions:
 ```
@@ -312,6 +318,9 @@ VERA/                             # This repo — Freeware + Engine + iOS + webs
 - **Netlify and GitHub are intentionally not connected.** Deploy via CLI only.
 - **module signing key** (`MODULE_SIGNING_PRIVATE_KEY`) and **license signing key** (`LICENSE_SIGNING_PRIVATE_KEY`) are **two different keys with different formats.**
 - **Website security headers** are intentionally relaxed on `website/*` so AI tools (Meta AI, ChatGPT, Perplexity) can index them. Do NOT restore strict headers on the marketing site.
+- **Canonical repos live in orgs** (post Aug 8 migration): Freeware = `LexSort-Inc/LexSort-Vera-Personal-AI` (public), Pro = `LexSort-Inc/Lexsort-Vera-Pro` (private), legal = `LexSort-Inc/lexsort-legal`. Old `Lexsort-Core/…` copies are stale duplicates pending UI deletion. Full report: `01_STUDIO_CORE/GITHUB_REPO_MIGRATION.md`.
+- **Releases were re-migrated to org repos Aug 11** — `git push --mirror` does NOT copy GitHub Releases. All download links in the website now point to org URLs. Pro v1.0.12 has 5/9 assets (rest unrecoverable).
+- **Intel Mac `.dmg` resumes at the next tag** — `vendored-openssl` fix committed Aug 11 (v1.1.7–v1.1.11 had no Intel builds; website routes Intel → v1.1.6 meanwhile).
 
 ---
 
@@ -328,6 +337,22 @@ VERA/                             # This repo — Freeware + Engine + iOS + webs
 | **Phantom SR&ED draft (2026-08-11)** | ⚠️→✅ An 8-min agent session (10:07–10:15 EDT, "Antigravity") claimed VERA-01..05 work (Job Objects, purge cmd, VRAM gating, dynamic model info) — full-repo grep proved **none exists**. Draft replaced with real entry (id 1786582000000); evidence snapshot rewritten |
 | Evidence folders committed | ✅ `2026-07-02/` + `2026-08-06/` snapshots (previously untracked, match logged entries) |
 | SR&ED entry | ✅ `sred_log_vera.html` + `sred_evidence/2026-08-11/` (id 1786582000000, hours provisional — finalize at session close) |
+| **GitHub org consolidation verification** | ✅ Migration confirmed complete (Aug 8, `git push --mirror`): LexSort-Inc 3 + Just-Me-Media 18 repos; all 8 local remotes verified; canonical `LexSort-Inc/LexSort-Vera-Personal-AI` at `57b738d` (see `01_STUDIO_CORE/GITHUB_REPO_MIGRATION.md`) |
+| **Live-site health checks** | ✅ justmemedia.ca / promailer.ca / sportsprophecyapp.com / tripsync.ca / lexsort.com / modules.lexsort.com / saaspricedb.com + Render backends all HTTP 200 |
+
+## 📋 Session Log — August 11, 2026 (Release Migration — CRITICAL FINDINGS)
+
+> Health-check follow-up uncovered that `git push --mirror` does **not** copy GitHub Releases, and the mirror created the Freeware org repo **private** — all public downloads 404'd since Aug 8. 23 releases migrated via API script; repo made public; website links bumped v1.1.6→v1.1.11. See `01_STUDIO_CORE/GITHUB_REPO_MIGRATION.md` §6.
+
+| Item | Status |
+|---|---|
+| Releases missing on org repos (0 vs 18+5 on old) | ⚠️→✅ Discovered via API; 18 Freeware + 5 Pro releases migrated (notes + assets streamed to `uploads.github.com`), `201` on all live assets |
+| **Freeware repo PRIVATE (mirror default)** | 🚨→✅ `PATCH /repos` → public. All v1.1.11 installers verified **HTTP 200 anonymously** (dmg/msi/deb/AppImage) |
+| **Pro v1.0.1–v1.0.12 binaries dead on old repo too** | 🚨 Force-moved release tags orphan downloads permanently (CI-fix era). v1.0.12 recovered 5/9 from `~/Downloads` (aarch64/x64 dmg, msi, deb, AppImage — exactly the website-linked set); rpm/setup.exe/tar.gz unrecoverable |
+| Website links | ✅ download.html / download-detector.js / freeware.html / vera.html / faq.html → org URLs + v1.1.11; **Intel Macs routed to v1.1.6** (last Intel build); README + AGENTS.md paths fixed |
+| Netlify deploy | ✅ `netlify deploy --prod --dir=website` — live site serving org links (verified) |
+| **Intel Mac builds missing v1.1.7+** | 🚨 `git2` → `openssl-sys` fails on `x86_64-apple-darwin` ("Could not find directory of OpenSSL"). **Fix committed**: `vendored-openssl` feature on git2; `cargo check` + `cargo test` + `tsc` clean |
+| Website/doc commits | ✅ `82fcd74` (org links + v1.1.11), pushed to canonical |
 
 ---
 

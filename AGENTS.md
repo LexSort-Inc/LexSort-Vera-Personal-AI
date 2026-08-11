@@ -165,17 +165,20 @@ node scripts/generate-test-keys.js 5
 
 ---
 
-## Current Blockers (as of Jul 3, 2026)
+## Current Blockers (as of Aug 11, 2026)
 
-- **Apple Developer Org** — ✅ LIVE as of Jul 3, 2026 — `developer.apple.com` (LexSort Inc.)
+- **Apple Developer Org** — ✅ LIVE — `developer.apple.com` (LexSort Inc.)
 - **Bundle ID registration** — ⏳ Register `com.lexsort.vera` in Certificates, IDs & Profiles
 - **App Store Connect listing** — ⏳ Create VERA Pro app listing
 - **Distribution Certificate** — ⏳ Generate Mac App Distribution Certificate
-- **Pro v1.0.12 CI build** — Check: https://github.com/LexSort-Inc/Lexsort-Vera-Pro/actions
+- **Intel Mac builds** — ✅ FIXED (v1.1.7–v1.1.11 shipped no `.dmg` for Intel: `git2` → `openssl-sys` fails on x86_64. `vendored-openssl` feature added Aug 11; verify Intel `.dmg` in next tag's release)
+- **Pro binaries (v1.0.1–v1.0.12)** — ⚠️ Orphaned on old repo (force-moved tags); v1.0.12 partially recovered (5/9 assets from local Downloads). Never force-move release tags.
+- **Pro CI build** — Check: https://github.com/LexSort-Inc/Lexsort-Vera-Pro/actions
 - **TAURI_PRIVATE_KEY** — May need adding to Pro repo GitHub secrets if CI fails on update signing step
 - **Stripe env vars** — Not yet set in Netlify dashboard (free beta bypasses Stripe for now)
 - **Module ZIPs** — `.vera-module` signed ZIPs not yet uploaded to CDN (`modules.lexsort.com`)
-- **Freeware public launch** — Held until Windows CI confirmed on real device
+- **Freeware public launch** — ✅ Windows chat verified (Aug 7, v1.1.11) — launch unblocked; v1.1.12 tag pending (grounding prompt + Intel fix), awaiting EV/Mac/Windows smoke tests
+- **4 stale duplicate repos** (`Lexsort-Core/…`) — safe to delete now that releases are migrated to orgs; API deletion blocked (token lacks `delete_repo`) → delete via GitHub UI
 
 ---
 
@@ -187,3 +190,5 @@ node scripts/generate-test-keys.js 5
 > - **Never** assume Pro tag history = version number (tags v1.0.6–v1.0.11 were CI fixes)
 > - **Never** edit the standalone ProMailer (`JustMeMedia/ProMailer-Mac`) as if it's the VERA module
 > - **Never** commit the `.env.local` file (contains private signing keys)
+> - **Never** delete/re-push (force-move) a tag that a GitHub Release is attached to — it orphans every download URL permanently (destroyed the v1.0.12 Pro binaries)
+> - **Never** create a mirror of a public repo as private (broke all Freeware downloads Aug 8–11) — verify visibility after any repo creation

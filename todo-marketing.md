@@ -14,7 +14,7 @@ To market the LexSort Personal AI (VERA) and build a sovereign community, our st
 | Freeware Foundation page live at lexsort.com/freeware.html | ✅ Done |
 | Download page live at lexsort.com/download.html (all platforms listed) | ✅ Done |
 | VERA card added to corporate LexSort homepage | ✅ Done |
-| GitHub repository public: Lexsort-Core/LexSort-Vera-Personal-AI | ✅ Done |
+| GitHub repository public: LexSort-Inc/LexSort-Vera-Personal-AI | ✅ Done |
 | CI/CD pipeline active: macOS (arm64 + x86_64), Windows, Linux | ✅ Active & Tested |
 | Discord, Reddit, X, YouTube, LinkedIn, TikTok, Instagram, Product Hunt linked | ✅ Done |
 
@@ -27,7 +27,7 @@ To market the LexSort Personal AI (VERA) and build a sovereign community, our st
   - Create blog posts/social graphics demonstrating how LexSort is built "out of corporate greedy hands."
   - Compare VERA's local-first architecture to mainstream services that harvest data for model training.
 - [ ] **Technical Sovereignty**
-  - Promote the public GitHub repository ([LexSort-Vera-Personal-AI](https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI)) as a badge of honor.
+  - Promote the public GitHub repository ([LexSort-Vera-Personal-AI](https://github.com/LexSort-Inc/LexSort-Vera-Personal-AI)) as a badge of honor.
   - Encourage security-conscious users to audit the code, proving we have nothing to hide regarding data privacy.
 - [ ] **The "Vibe Coder" Perspective**
   - Draft authentic logs/articles about the development journey of a "vibe coder" building a premium, local, privacy-focused desktop application.
@@ -59,7 +59,7 @@ The freeware sub-page ([website/freeware.html](freeware.html)) is already deploy
 - [ ] **Cross-Promotion Setup**
   - Update the bio and links on the official X profile [@LexSortAI](https://x.com/LexSortAI) to point to the Freeware Foundation landing page.
 - [x] **GitHub-First Growth Funnel** *(CI/CD active — binaries available once build completes)*
-  - [x] Confirm Windows and Linux binaries appear on [GitHub Releases](https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/releases).
+  - [x] Confirm Windows and Linux binaries appear on [GitHub Releases](https://github.com/LexSort-Inc/LexSort-Vera-Personal-AI/releases).
   - [x] Update download.html platform links when all binaries are confirmed.
 - [ ] **Product Hunt Launch Post**
   - Schedule a proper Product Hunt launch for VERA (aim for a Tuesday/Wednesday for max exposure).

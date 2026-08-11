@@ -18,7 +18,7 @@
   - `.dmg` (Intel)
   - `.AppImage` / `.deb` (Linux)
   - `.msi` (Windows)
-- [ ] Update `website/api/manifest.json` with v1.1.5 download URLs → deploy to Netlify
+- [ ] Update `website/api/manifest.json` with current-version download URLs → deploy to Netlify
 - [ ] Update `website/download.html` and `website/js/download-detector.js` with new URLs
 - [ ] Update `netlify/functions/uptime-monitor.js` with new binary URLs
 

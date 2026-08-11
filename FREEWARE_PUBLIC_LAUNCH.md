@@ -1,23 +1,26 @@
 # LexSort Vera Freeware — Full Public Launch Plan
 
 > **Launch Gate:** Windows version 100% tested and working → then go loud.  
-> macOS is already stable (v1.1.6). This plan activates the moment Windows is confirmed.
+> ✅ Windows chat VERIFIED on clean ThinkCentre (v1.1.11, Aug 7 2026) — launch unblocked.
+> Pending before tag: v1.1.12 (grounding prompt + Intel `.dmg` fix via `vendored-openssl`)
+> + EV/Mac/Windows smoke tests on real artifacts.
 
 ---
 
 ## 🚦 Launch Gate Checklist (Must all be ✅ before going public)
 
 - [ ] Windows CI build passes (GitHub spending limit unblocked — see MASTER_HANDOFF.md §4)
-- [ ] Windows installer downloaded and installed on a real Windows machine
-- [ ] Ollama auto-detected on Windows on first launch
-- [ ] Hardware detection runs correctly — correct model selected
-- [ ] Model downloads successfully on Windows
-- [ ] First conversation works end-to-end on Windows (no hang, no crash)
-- [ ] Windows app closes cleanly — no orphan processes
+- [x] Windows installer downloaded and installed on a real Windows machine (ThinkCentre, v1.1.11, Aug 7 2026)
+- [x] Ollama auto-detected on Windows on first launch (v1.1.11)
+- [x] Hardware detection runs correctly — correct model selected
+- [x] Model downloads successfully on Windows
+- [x] First conversation works end-to-end on Windows (no hang, no crash)
+- [x] Windows app closes cleanly — no orphan processes
 - [ ] Calendar import hang fix verified on device (macOS) — see MASTER_HANDOFF.md §3
 - [ ] Linux AppImage tested (if available — not blocking if not ready)
 - [ ] Download page updated: all platform badges show ✅ (remove "building" status)
 - [ ] `website/download.html` download links updated with correct Windows `.msi` / `.exe` URL
+- [ ] **Verify Intel `.dmg` present in v1.1.12 release** (v1.1.7–v1.1.11 had none — `git2`/openssl failure; fixed via `vendored-openssl`)
 
 ---
 
@@ -68,7 +71,7 @@ lexsort.com/vera
 ```
 Title: LexSort Vera — Apache 2.0 local AI assistant, auto hardware detection, free forever
 
-lexsort.com/vera | GitHub: Lexsort-Core/LexSort-Vera-Personal-AI
+lexsort.com/vera | GitHub: LexSort-Inc/LexSort-Vera-Personal-AI
 ```
 
 **Hacker News — Show HN:**
@@ -88,7 +91,7 @@ After months of building, testing, and refining — Vera is ready for everyone.
 **What it does with your data:** Nothing. It can't. It never connects out.
 
 → Download: lexsort.com/vera
-→ GitHub: github.com/Lexsort-Core/LexSort-Vera-Personal-AI
+→ GitHub: github.com/LexSort-Inc/LexSort-Vera-Personal-AI
 
 If you've been waiting — this is the moment. Drop your platform in the chat ⬇
 ```

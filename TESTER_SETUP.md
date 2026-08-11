@@ -79,7 +79,7 @@ Keys expire 30 days from generation. DM each key privately — never post in pub
 |---|---|
 | macOS Apple Silicon | [lexsort.com/download](https://lexsort.com/download) → auto-detected |
 | macOS Intel | [lexsort.com/download](https://lexsort.com/download) → auto-detected |
-| Windows | GitHub releases: github.com/Lexsort-Core/Lexsort-Vera-Pro/releases |
+| Windows | GitHub releases: github.com/LexSort-Inc/Lexsort-Vera-Pro/releases |
 
 ---
 
@@ -126,7 +126,7 @@ Ask testers to post in **#pro-bug-reports** on Discord with:
 | Discord Bot | ✅ Live on Railway | `/register`, `/mykey`, `/mystatus`, `/help` |
 | License key validation | ✅ Offline Ed25519 | No internet needed after first setup |
 | Stripe | ⏳ Not active for beta | Bypassed — free keys for all beta testers |
-| GitHub CI | ✅ v1.0.12 building | check: github.com/Lexsort-Core/Lexsort-Vera-Pro/actions |
+| GitHub CI | ✅ v1.0.12 building | check: github.com/LexSort-Inc/Lexsort-Vera-Pro/actions |
 
 ---
 
