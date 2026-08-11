@@ -315,6 +315,22 @@ VERA/                             # This repo — Freeware + Engine + iOS + webs
 
 ---
 
+## 📋 Session Log — August 11, 2026 (Capability Grounding + Accuracy Audit)
+
+> Chat system prompt grounded to actual installed capabilities; repo docs/versions/evidence audited to v1.1.11 reality. Commits on `main`, **not pushed, no tag** (testing continues on Mac + Windows + EV before v1.1.12).
+
+| Item | Status |
+|---|---|
+| Capability-grounding system prompt | ✅ `buildSystemPrompt()` in `App.tsx` — module list from `MODULES_LIST` registry (installed only), explicit capability + not-available lists, edition framing, canonical community links, "assume it does not" rule — commit `c25b592` |
+| Docs refresh to v1.1.11 reality | ✅ README (Windows verified), AGENTS.md version line, ARCHITECTURE rewrite, MARKETING roadmap, download.html, Cargo.lock, Amendment 03 doc, session-log.sh — commit `7e79c6c` |
+| Compile gates | ✅ `npx tsc --noEmit` + `cargo check` clean |
+| Version consistency audit | ✅ tauri.conf.json / package.json / Cargo.toml / Cargo.lock / website manifest all at 1.1.11 |
+| **Phantom SR&ED draft (2026-08-11)** | ⚠️→✅ An 8-min agent session (10:07–10:15 EDT, "Antigravity") claimed VERA-01..05 work (Job Objects, purge cmd, VRAM gating, dynamic model info) — full-repo grep proved **none exists**. Draft replaced with real entry (id 1786582000000); evidence snapshot rewritten |
+| Evidence folders committed | ✅ `2026-07-02/` + `2026-08-06/` snapshots (previously untracked, match logged entries) |
+| SR&ED entry | ✅ `sred_log_vera.html` + `sred_evidence/2026-08-11/` (id 1786582000000, hours provisional — finalize at session close) |
+
+---
+
 ## 📋 Session Log — August 6–7, 2026 (Windows Chat-Connection Arc)
 
 > **RESOLVED + VERIFIED end-to-end.** VERA Freeware completed its first real chat exchange on a clean Windows 11 machine (ThinkCentre, no dev tools) at **2026-08-07 22:10:56 EDT** under v1.1.11.

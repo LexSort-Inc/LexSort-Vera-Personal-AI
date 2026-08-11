@@ -1,0 +1,20 @@
+02848dc fix: replace tokio::process::windows::CommandExt with std::os::windows::process::CommandExt
+cf3aba8 fix: add explicit toolchain: stable to dtolnay/rust-toolchain for Windows job
+5b9e994 fix: split Windows into separate job (manual-only) to avoid matrix context in if: parsing
+c23b7b5 fix: use matrix.platform instead of matrix.label in CI job filter
+214b7c7 chore: restrict Windows CI to manual dispatch only; run contract tests on ubuntu
+739bc94 fix(website): point freeware download links and manifest versions to the actual latest successful release (v1.1.6)
+5f4a937 chore(website): remove simulated scan console, show true hardware detection panel instantly
+d580a9b chore(website): update download page to support dynamic tiers and add updated signed modules
+f5cb4fa docs: add full registered company address to website pages for Apple Developer org migration verification
+2f75db7 docs: update TESTER_SETUP.md for real beta flow (Discord bot + OnboardingWizard); remove vera-pro junk file
+a6700bf docs: comprehensive rewrite — AGENTS.md, MASTER_HANDOFF.md, KEY_MANIFEST.md (Jun 30 2026 state)
+17dbb34 chore: update Ollama engine download URLs to v0.9.6 (latest stable)
+b544124 docs: clarify standalone promailer vs VERA promailer module layout
+696a300 chore: update promailer aarch64 module archive with lead_finder.py and bump metadata
+2fdc846 feat: implement and register emailer_search_leads command
+e862fd5 fix: prevent cargo test from nuking host .lexsort directory
+78cf1d6 chore: add corporate identifier details in briefing docs
+5c252fc chore: bump version to v1.1.7 and finalize calendar permission flow
+491e7f6 chore: bump freeware download links on website to v1.1.7
+c973cbf fix: resolve broken pipe panic on closed stdout during calendar import

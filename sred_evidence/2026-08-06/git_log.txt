@@ -1,0 +1,15 @@
+# Git Log — 2026-08-06
+
+No commits made this session. Working tree contains uncommitted changes from earlier
+fix iterations (most recent commits):
+
+```
+02848dc fix: replace tokio::process::windows::CommandExt with std::os::windows::process::CommandExt
+cf3aba8 fix: add explicit toolchain: stable to dtolnay/rust-toolchain for Windows job
+5b9e994 fix: split Windows into separate job (manual-only) to avoid matrix context in if: parsing
+c23b7b5 fix: use matrix.platform instead of matrix.label in CI job filter
+214b7c7 chore: restrict Windows CI to manual dispatch only; run contract tests on ubuntu
+```
+
+Note: The 2026-08-06 Ollama sidecar fix (lib.rs, server.rs) is present in the working tree
+but not yet committed.

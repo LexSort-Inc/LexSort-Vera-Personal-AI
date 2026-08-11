@@ -20,7 +20,7 @@
 <p><strong>Company:</strong> LexSort Inc. (Corp #1799606-3, BN 774849178)<br>
 <strong>Program:</strong> Canadian SR&amp;ED Tax Incentive Program (35% refundable credit)<br>
 <strong>Agent:</strong> OpenCode<br>
-<strong>Last Updated:</strong> August 7, 2026</p>
+<strong>Last Updated:</strong> August 11, 2026</p>
 
 <table>
 <thead>
@@ -43,6 +43,19 @@
 
 <script>
 const SEED_ENTRIES = [
+  {
+    id: 1786582000000,
+    date: '2026-08-11',
+    start_time: '10:30',
+    end_time: '',
+    hours: 1.0,
+    area: 'Chat System Prompt Capability Grounding / Repo Accuracy Audit',
+    outcome: 'VERA chat system prompt rebuilt from capability-grounding source of truth (commit c25b592); full repo accuracy audit + docs refresh to v1.1.11 reality (commit 7e79c6c); phantom SR&ED draft (claimed VERA-01..05 work, verified nonexistent) replaced with real record',
+    agent: 'OpenCode',
+    problem: 'Two technical gaps surfaced: (1) the chat system prompt was a single hard-coded identity line with zero grounding in what the installed build actually ships — the model improvises feature claims (web search, cloud sync, purchases, external device control) and invents support links, a correctness/trust problem for a privacy product where users ask "can it do X?"; (2) repository documentation and SR&ED evidence drifted from reality — README/AGENTS.md still claimed v1.1.7 and "Windows CI in progress" after the v1.1.11 Windows chat verification, docs/ARCHITECTURE.md described a dual-binary feature-flag layout that no longer exists, and a stray 8-minute agent session (10:07-10:15 EDT, "Antigravity") wrote a SR&ED evidence folder (2026-08-11) claiming five implemented features (Job Object process binding, legacy-path cleanup, VRAM gating, dynamic model metadata, purge command) that a full-repo grep proved never existed.',
+    uncertainty: 'It was not known in advance whether: (a) a single module registry (MODULES_LIST, the same array the Module Store UI renders) could serve as the source of truth for the chat system prompt such that the prompt scales automatically as modules ship, without a hand-maintained capability string drifting out of sync; (b) the Windows Ollama lifecycle fixes from the Aug 6-7 arc (exit-code checks, single spawn site, CORS origin sanitization) were the complete set, or whether a repo-wide version/evidence audit would surface further drift — it did, in the form of a phantom SR&ED entry describing nonexistent work.',
+    work: 'Replaced the hard-coded one-line system prompt with buildSystemPrompt() in vera-freeware/src/App.tsx (~line 155-200): filters MODULES_LIST to status === "installed" (same registry the Module Store UI renders), emits explicit VERA_CORE_CAPABILITIES and VERA_NOT_AVAILABLE lists (no web search, no cloud, no purchases, no external device control, no file/app writes, no inventory), edition framing ("This is VERA Freeware..."), canonical community links only (discord.gg/kpZ3hWyAaq, r/LexSort, support@lexsort.com, lexsort.com/faq.html), and closing rule "If you are not certain this app has a feature, assume it does not." Verified npx tsc --noEmit clean (c25b592). Docs audit + refresh (7e79c6c): README.md -> v1.1.11 with Windows "built & tested on real hardware", v1.1.x stability section; AGENTS.md version line -> v1.1.11 (Aug 11, 2026); ARCHITECTURE.md rewritten to single-binary layout (no feature flags); MARKETING_AND_ROADMAP.md Voice Input -> Design (Amendment 03); download.html macOS wording; Cargo.lock -> 1.1.11; added AMENDMENT_03_AUDIO_PIPELINE.md + scripts/session-log.sh. Confirmed cargo check (dev profile) clean post-commit. Replaced the phantom 2026-08-11 draft (verified absent via rg for bind_process_to_job_object|purge_local_user_data|detect_vram_gb_windows|get_dynamic_model_info across Freeware + Pro trees) with this record; committed real untracked snapshots 2026-07-02/ and 2026-08-06/. Hours provisional - finalize at session close.',
+  },
   {
     id: 1786241456000,
     date: '2026-08-07',
