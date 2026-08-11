@@ -11,9 +11,18 @@
 > [!NOTE]
 > This entry REPLACES a draft from an earlier 8-minute agent session (10:07–10:15 EDT,
 > agent "Antigravity") that claimed VERA-01..05 changes (Windows Job Objects, purge
-> command, VRAM gating, dynamic model metadata). A full-repo grep confirmed **none of that
-> work exists in the codebase** — the draft described work that was never implemented and
-> was therefore replaced with this record of the work actually performed today.
+> command, VRAM gating, dynamic model metadata). A grep of the **Freeware** tree
+> confirmed none of that work exists in Freeware — the draft was therefore replaced with
+> this record of the work actually performed today.
+>
+> **UPDATE (Aug 11, 17:45 EDT):** VERA-01..05 was subsequently located **in the Pro repo**
+> (`Lexsort-Vera-Pro`) as uncommitted WIP — Job Objects + VRAM gating + lifecycle logging
+> in `lib.rs`, `purge_local_user_data`, `/api/show` dynamic model metadata — and committed
+> with the Guardian Watch + Smart Inbox scope as `9ce5392` (pushed to
+> `LexSort-Inc/Lexsort-Vera-Pro`). The original draft mis-attributed repo and state; the
+> engineering work itself was real. The draft date (Aug 11, 10:07) predates this session's
+> work; the Pro features were authored in prior sessions and are logged under their own
+> entries where applicable.
 
 ## Problem
 
@@ -62,8 +71,14 @@ Two technical gaps were identified:
   wording; `src-tauri/Cargo.lock` synced to 1.1.11; added `docs/AMENDMENT_03_AUDIO_PIPELINE.md`
   and `scripts/session-log.sh`.
 - Confirmed `cargo check` (dev profile) passes cleanly post-commit.
-- Replaced the phantom 2026-08-11 SR&ED draft (work verified nonexistent via
-  `rg bind_process_to_job_object|purge_local_user_data|detect_vram_gb_windows|get_dynamic_model_info`
-  across both Freeware and Pro trees) with this record; prepared real evidence snapshot in
-  `sred_evidence/2026-08-11/` and committed the previously-untracked real snapshots
-  `2026-07-02/` and `2026-08-06/`.
+- Replaced the phantom 2026-08-11 SR&ED draft with this record; prepared real evidence
+  snapshot in `sred_evidence/2026-08-11/` and committed the previously-untracked real
+  snapshots `2026-07-02/` and `2026-08-06/`.
+- **Pro repo scope resolution (same session):** committed the Guardian Watch + Smart
+  Inbox v1.0.13 scope (`9ce5392`) — `guardian_watch.rs` process supervision, Windows Job
+  Object binding (`KILL_ON_JOB_CLOSE`) so `ollama.exe` dies with the app, VRAM-aware
+  model gating (<6 GB → `qwen2.5:3b`), dynamic model metadata via `/api/show`,
+  `purge_local_user_data`, `ollama-lifecycle` logging, port-11434 collision UI,
+  `smart_inbox.rs` (rusqlite-backed calendar-events queue + VERA Engine extraction).
+  Verified `cargo check` + `npx tsc --noEmit` clean. Business-organizer backend WIP
+  (ingest.py/alembic) intentionally left uncommitted for a later release.
