@@ -402,6 +402,22 @@ VERA/                             # This repo — Freeware + Engine + iOS + webs
 
 ---
 
+## 📋 Session Log — August 12, 2026
+
+| Item | Status |
+|---|---|
+| Host machine optimization (speed) | ✅ sccache + lazy-nvm + daemon cleanup (see SR&ED entry 1786571520000) |
+| Chat system tool layer | ✅ `toolLayer.ts` — 8 tools, 2-turn orchestration; chat now answers "how's my system?" with real data (SR&ED 1786580400000) |
+| Freeware module unlock (Option A) | ✅ `isFree: true` on ProMailer, Research Lab, Guardian Watch, Team Lab — no more Pro alert-gate |
+| Home dashboard landing screen | ✅ `HomeDashboard.tsx` — Today strip (calendar/tasks/storage), quick-ask chips, launchpad grid, status footer; app boots to Home, chat demoted to tab |
+| Vera Go / Business Organizer | ✅ Re-scoped to "soon" (Vera Go excluded per decision; Business Organizer backend still WIP) |
+| Greeting + chips repointed | ✅ Chat greeting now leads with system-health asks |
+| Verify compile | ✅ `cargo check` 0 warnings; `npx tsc --noEmit` clean |
+| SR&ED entries logged | ✅ `sred_log_vera.html` + `sred_evidence/2026-08-12/` |
+| **Uncommitted** | ⏳ toolLayer + dashboard + module unlock awaiting user review |
+
+---
+
 ## 📋 Session Log — August 6, 2026
 
 | Item | Status |

@@ -2548,6 +2548,84 @@ pub mod commands {
         }
     }
 
+    // ─── System Tool Layer — read-only disk analysis for the chat assistant ───
+
+    #[derive(Debug, Serialize, Deserialize, Clone)]
+    pub struct CleanupCandidate {
+        pub label: String,
+        pub path: String,
+        pub size_bytes: u64,
+    }
+
+    #[tauri::command]
+    pub fn get_cleanup_candidates() -> Vec<CleanupCandidate> {
+        let mut dirs: Vec<(String, std::path::PathBuf)> = Vec::new();
+        #[cfg(target_os = "macos")]
+        {
+            if let Some(home) = std::env::var_os("HOME") {
+                let home = std::path::PathBuf::from(home);
+                dirs.push(("App caches".to_string(), home.join("Library/Caches")));
+                dirs.push(("System logs".to_string(), home.join("Library/Logs")));
+                dirs.push(("npm cache".to_string(), home.join(".npm")));
+                dirs.push(("Trash".to_string(), home.join(".Trash")));
+            }
+        }
+        #[cfg(target_os = "windows")]
+        {
+            if let Some(local) = std::env::var_os("LOCALAPPDATA") {
+                let local = std::path::PathBuf::from(local);
+                dirs.push(("Temp files".to_string(), local.join("Temp")));
+                dirs.push(("npm cache".to_string(), local.join("npm-cache")));
+            }
+            if let Some(tmp) = std::env::var_os("TEMP") {
+                dirs.push(("Temp".to_string(), std::path::PathBuf::from(tmp)));
+            }
+        }
+        let mut out: Vec<CleanupCandidate> = Vec::new();
+        for (label, path) in dirs {
+            if path.exists() {
+                out.push(CleanupCandidate {
+                    label,
+                    path: path.display().to_string(),
+                    size_bytes: dir_size(&path),
+                });
+            }
+        }
+        out.sort_by(|a, b| b.size_bytes.cmp(&a.size_bytes));
+        out
+    }
+
+    fn dir_size(dir: &std::path::Path) -> u64 {
+        let mut total: u64 = 0;
+        let mut visited: u64 = 0;
+        let mut stack: Vec<std::path::PathBuf> = vec![dir.to_path_buf()];
+        while let Some(cur) = stack.pop() {
+            let entries = match std::fs::read_dir(&cur) {
+                Ok(entries) => entries,
+                Err(_) => continue,
+            };
+            for entry in entries.flatten() {
+                visited += 1;
+                if visited > 200_000 {
+                    return total;
+                }
+                let path = entry.path();
+                let file_type = match entry.file_type() {
+                    Ok(ft) => ft,
+                    Err(_) => continue,
+                };
+                if file_type.is_dir() {
+                    stack.push(path);
+                } else if file_type.is_file() {
+                    if let Ok(meta) = std::fs::metadata(&path) {
+                        total += meta.len();
+                    }
+                }
+            }
+        }
+        total
+    }
+
     // ─── Research Lab Commands ───
 
     #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -3036,6 +3114,7 @@ pub fn run() {
             commands::emailer_send,
             commands::emailer_search_leads,
             commands::get_system_stats,
+            commands::get_cleanup_candidates,
             commands::get_ai_system_report,
             commands::run_quick_prompt,
             commands::run_workflow_benchmark,

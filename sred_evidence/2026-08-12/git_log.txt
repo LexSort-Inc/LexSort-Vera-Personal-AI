@@ -1,0 +1,15 @@
+ca1a5c6 2026-08-11 fix: merge diverged SR&ED log copies — both files now carry all 23 entries (Jun 10–Aug 11)
+05701cd 2026-08-11 docs: end-of-session state sweep — Pro v1.0.13 scope, VERA-01..05 correction, SR&ED finalized
+8a62139 2026-08-11 docs: correct SR&ED evidence — VERA-01..05 located in Pro repo WIP, committed as 9ce5392
+40fd72f 2026-08-11 fix: restore Intel Mac builds via vendored-openssl; docs: org URLs + v1.1.11 state everywhere
+82fcd74 2026-08-11 docs: repoint download links to LexSort-Inc org, bump website to v1.1.11, route Intel Macs to last Intel build (v1.1.6)
+57b738d 2026-08-11 docs: replace phantom 2026-08-11 SR&ED draft with real entry; commit evidence snapshots
+7e79c6c 2026-08-11 docs: refresh stale documentation to v1.1.11 reality
+c25b592 2026-08-11 feat: ground chat system prompt to actual VERA capabilities
+8bde061 2026-08-07 docs: log Windows chat-connection arc as RESOLVED + VERIFIED (SR&ED + handoff)
+5a72965 2026-08-07 fix: single Ollama daemon lifecycle - no more duplicates or connection gaps
+834980d 2026-08-07 fix: remove invalid tauri:// origin that crashes Ollama (CORS root cause)
+a273683 2026-08-07 feat: write chat diagnostics to ~/.lexsort/logs/chat-debug.log for field debugging
+1d5d6c8 2026-08-07 ci: fix race where parallel builds create the same release and lose assets
+a67a74b 2026-08-07 fix: surface real chat failures with retry/backoff, request logging, and model-vs-installed diagnostics
+424f1a9 2026-08-06 fix: use v0.9.6 lib/ollama DLL layout instead of legacy ollama_runners dir; remove dead OLLAMA_RUNNERS_DIR env

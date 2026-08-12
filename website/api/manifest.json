@@ -1,11 +1,11 @@
 {
   "manifest_version": "1",
-  "generated_at": "2026-08-07T00:00:00Z",
+  "generated_at": "2026-08-12T00:00:00Z",
   "core": {
     "freeware": {
-      "version": "1.1.11",
+      "version": "1.2.0",
       "min_os": { "macos": "12.0", "windows": "10" },
-      "release_notes": "v1.1.11: fixed duplicate/orphaned Ollama daemons. Root cause: (1) 'ollama list .is_ok()' treated any exit (incl. 'could not connect') as daemon-up, so VERA bailed into 'already running' and never spawned; (2) list_installed_models fallback spawned a bare unmanaged 'ollama serve' (no env, no owner, never killed) whenever the daemon was down - producing 2 daemons and dropped-connection gaps. Now: proper exit-code check, single spawn site (start_inference_server), kill+wait on stop/reset/exit (port released before respawn), and every spawn/reuse/kill is timestamped with PID and reason in ~/.lexsort/logs/ollama-lifecycle.log."
+      "release_notes": "v1.2.0: Freeware relaunch — new Home dashboard lands first (today's calendar, due tasks, storage health, module launchpad). VERA Chat can now act on your machine: ask about storage, disk cleanup, calendar, tasks, and updates and it answers with real data from your device, not guesses. All workspace modules are included free: Quick Organizer, Team Lab, Guardian Watch, ProMailer, Research Lab. Intel Mac .dmg restored via vendored-openssl build fix."
     },
     "pro": {
       "version": "1.0.12",

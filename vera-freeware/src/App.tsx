@@ -11,6 +11,7 @@ import SupportPanel, { openExternalUrl } from "./SupportPanel";
 import { UpdateStatusIndicator, UpdateStatus } from "./UpdateStatusIndicator";
 import { QuickOrganizer } from "./components/QuickOrganizer";
 import TeamLab from "./components/TeamLab";
+import HomeDashboard from "./components/HomeDashboard";
 import { useSpeechRecognition } from "./hooks/useSpeechRecognition";
 import { useAudio } from "./hooks/useAudio";
 import { useSettings } from "./hooks/useSettings";
@@ -18,6 +19,7 @@ import { useSwitching } from "./hooks/useSwitching";
 import { useConversations } from "./hooks/useConversations";
 import { useChat } from "./hooks/useChat";
 import { useEngine, PHASE } from "./hooks/useEngine";
+import { SYSTEM_TOOLS_PROMPT, parseToolAction, runTool } from "./toolLayer";
 // useVoiceSession: reserved for future whisper.cpp backend integration (Amendment 03 Phase 3)
 // import { useVoiceSession } from "./hooks/useVoiceSession";
 import { VeraModule } from "./types/module";
@@ -83,7 +85,8 @@ const MODULES_LIST: VeraModule[] = [
     display_name: "ProMailer",
     status: "installed",
     icon: "✉️",
-    description: "Automated cold email outreach campaigns and lead generation engine."
+    description: "Automated cold email outreach campaigns and lead generation engine. Included free.",
+    isFree: true
   },
   {
     id: "research-lab",
@@ -91,7 +94,8 @@ const MODULES_LIST: VeraModule[] = [
     display_name: "Research Lab",
     status: "installed",
     icon: "🧪",
-    description: "Local model benchmark, latency instrumentation, and semantic testbed."
+    description: "Local model benchmark, latency instrumentation, and semantic testbed. Included free.",
+    isFree: true
   },
   {
     id: "guardian-watch",
@@ -99,13 +103,14 @@ const MODULES_LIST: VeraModule[] = [
     display_name: "Guardian Watch",
     status: "installed",
     icon: "🛡️",
-    description: "Real-time system health monitor and AI diagnostic assistant."
+    description: "Real-time system health monitor and AI diagnostic assistant. Included free.",
+    isFree: true
   },
   {
     id: "lexsort-go",
     name: "lexsort-go",
     display_name: "LexSort-GO",
-    status: "design",
+    status: "soon",
     icon: "📱",
     description: "LAN Mobile Bridge. Scan QR code to chat with VERA from your mobile browser."
   },
@@ -113,7 +118,7 @@ const MODULES_LIST: VeraModule[] = [
     id: "business-organizer",
     name: "business-organizer",
     display_name: "Business Organizer",
-    status: "design",
+    status: "soon",
     icon: "💼",
     description: "Personal and business ledger, receipt scanning, and tax worksheets."
   },
@@ -131,7 +136,8 @@ const MODULES_LIST: VeraModule[] = [
     display_name: "Team Lab",
     status: "installed",
     icon: "🧬",
-    description: "Distributed AI coding swarm. Multi-machine, git-based code generation lab."
+    description: "Distributed AI coding swarm. Multi-machine, git-based code generation lab. Included free.",
+    isFree: true
   }
 ];
 
@@ -319,14 +325,14 @@ const FREEWARE_GREETING = {
         "No data leaving your machine. Ever.",
     capabilities: [
         { icon: "✉", label: "Draft emails, letters, and documents" },
-        { icon: "📄", label: "Summarize and explain complex text" },
+        { icon: "🛡", label: "Check your system health with real data" },
         { icon: "💡", label: "Answer questions and brainstorm ideas" },
-        { icon: "📋", label: "Organize your thoughts and plans" },
+        { icon: "📋", label: "Manage tasks, schedule, and your calendar" },
     ],
     chips: [
-        "Help me write a professional email",
-        "Summarize this for me: [paste text here]",
-        "Help me plan my week",
+        "How's my system health?",
+        "How much free storage do I have?",
+        "What's due this week?",
         "What can you help me with?",
     ],
     footer: "Type 'help' anytime · Community support at discord.gg/kpZ3hWyAaq",
@@ -423,7 +429,7 @@ export default function App() {
   const [error,            setError]            = useState<string>("");
   const [serverPort,       setServerPort]       = useState<number>(11434);
   const [showSupport,      setShowSupport]      = useState<boolean>(false);
-  const [activeModule,     setActiveModule]     = useState<string>("chat");
+const [activeModule, setActiveModule] = useState<string>("home");
   const [showModulesDrawer, setShowModulesDrawer] = useState<boolean>(false);
   const [dynamicComponents, setDynamicComponents] = useState<Record<string, React.ComponentType<any>>>({});
   const [searchLogs,        setSearchLogs]        = useState<string[]>([]);
@@ -461,6 +467,7 @@ export default function App() {
 
   const [showFallbackReport, setShowFallbackReport] = useState(false);
   const [fallbackReportText, setFallbackReportText] = useState('');
+  const [toolStatus, setToolStatus] = useState<string | null>(null);
 
   // Voice Input (Speech to Text) Logic
   const speech = useSpeechRecognition({
@@ -657,7 +664,7 @@ export default function App() {
 
   // Load module bundles dynamically from local files if needed
   useEffect(() => {
-    if (activeModule !== 'chat' && !dynamicComponents[activeModule]) {
+    if (activeModule !== 'chat' && activeModule !== 'home' && !dynamicComponents[activeModule]) {
       console.log(`[VERA] Attempting to dynamically load bundle for module: ${activeModule}`);
       invoke<string>("get_module_bundle", { moduleId: activeModule })
         .then((jsCode) => {
@@ -1329,6 +1336,10 @@ export default function App() {
       }
     }
 
+    // System tool layer — lets the local model request real machine data
+    // (storage, tasks, calendar, updates) instead of guessing at answers.
+    systemPromptContent += "\n\n" + SYSTEM_TOOLS_PROMPT;
+
     const systemPrompt: Message = {
       id: 0,
       role: "system",
@@ -1345,78 +1356,109 @@ export default function App() {
 
       const modelId = hardware?.model?.id ?? "llama3.2:3b";
       const chatUrl = `http://127.0.0.1:${serverPort}/v1/chat/completions`;
-      const requestBody = {
-        model:       modelId,
-        messages:    history,
-        stream:      true,
-        temperature: 0.7,
-        max_tokens:  2048,
-      };
-      logChat(`sending to ${chatUrl} model=${modelId} origin=${window.location.origin}`);
 
-      // Retry up to 3 times with backoff on connection-level failures, so a
-      // single transient refusal (e.g. daemon still starting) isn't fatal.
-      let response: Response | null = null;
-      let lastError: any = null;
-      for (let attempt = 0; attempt < 3 && response === null; attempt++) {
-        try {
-          response = await fetch(chatUrl, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            signal: ctrl.signal,
-            body: JSON.stringify(requestBody),
-          });
-        } catch (fetchErr: any) {
-          lastError = fetchErr;
-          if (fetchErr.name === "AbortError") throw fetchErr;
-          if (attempt < 2) {
-            const waitMs = 750 * (attempt + 1);
-            logChat(`request attempt ${attempt + 1} failed (${fetchErr.message}), retrying in ${waitMs}ms`);
-            await new Promise(r => setTimeout(r, waitMs));
+      const streamTurn = async (turnHistory: { role: string; content: string }[]) => {
+        const requestBody = {
+          model:       modelId,
+          messages:    turnHistory,
+          stream:      true,
+          temperature: 0.7,
+          max_tokens:  2048,
+        };
+        logChat(`sending to ${chatUrl} model=${modelId} origin=${window.location.origin}`);
+
+        // Retry up to 3 times with backoff on connection-level failures, so a
+        // single transient refusal (e.g. daemon still starting) isn't fatal.
+        let response: Response | null = null;
+        let lastError: any = null;
+        for (let attempt = 0; attempt < 3 && response === null; attempt++) {
+          try {
+            response = await fetch(chatUrl, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              signal: ctrl.signal,
+              body: JSON.stringify(requestBody),
+            });
+          } catch (fetchErr: any) {
+            lastError = fetchErr;
+            if (fetchErr.name === "AbortError") throw fetchErr;
+            if (attempt < 2) {
+              const waitMs = 750 * (attempt + 1);
+              logChat(`request attempt ${attempt + 1} failed (${fetchErr.message}), retrying in ${waitMs}ms`);
+              await new Promise(r => setTimeout(r, waitMs));
+            }
           }
         }
-      }
-      if (!response) throw lastError || new Error("Request failed");
+        if (!response) throw lastError || new Error("Request failed");
 
-      if (!response.ok) {
-        // Capture the real Ollama error body instead of a bare status.
-        let bodyDetail = "";
-        try { bodyDetail = (await response.text()).slice(0, 300); } catch { /* ignore */ }
-        logChat(`HTTP ${response.status} for model=${modelId}: ${bodyDetail}`);
-        throw new Error(`Server error: ${response.status} ${bodyDetail}`);
-      }
-
-      if (!response.body) throw new Error("Response body is null");
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-
-      let assistantResponse = "";
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        const lines = decoder.decode(value, { stream: true }).split("\n");
-        for (const line of lines) {
-          if (!line.startsWith("data: ")) continue;
-          const data = line.slice(6).trim();
-          if (data === "[DONE]") break;
-
-          try {
-            const json   = JSON.parse(data);
-            const token  = json.choices?.[0]?.delta?.content ?? "";
-            if (!token) continue;
-
-            assistantResponse += token;
-            setMessages(prev => {
-              const next = [...prev];
-              const last = next[next.length - 1];
-              if (last && last.role === "assistant") {
-                next[next.length - 1] = { ...last, content: last.content + token };
-              }
-              return next;
-            });
-          } catch { /* partial chunk — skip */ }
+        if (!response.ok) {
+          // Capture the real Ollama error body instead of a bare status.
+          let bodyDetail = "";
+          try { bodyDetail = (await response.text()).slice(0, 300); } catch { /* ignore */ }
+          logChat(`HTTP ${response.status} for model=${modelId}: ${bodyDetail}`);
+          throw new Error(`Server error: ${response.status} ${bodyDetail}`);
         }
+
+        if (!response.body) throw new Error("Response body is null");
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+
+        let turnText = "";
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const lines = decoder.decode(value, { stream: true }).split("\n");
+          for (const line of lines) {
+            if (!line.startsWith("data: ")) continue;
+            const data = line.slice(6).trim();
+            if (data === "[DONE]") break;
+
+            try {
+              const json   = JSON.parse(data);
+              const token  = json.choices?.[0]?.delta?.content ?? "";
+              if (!token) continue;
+
+              turnText += token;
+              setMessages(prev => {
+                const next = [...prev];
+                const last = next[next.length - 1];
+                if (last && last.role === "assistant") {
+                  next[next.length - 1] = { ...last, content: last.content + token };
+                }
+                return next;
+              });
+            } catch { /* partial chunk — skip */ }
+          }
+        }
+        return turnText;
+      };
+
+      let assistantResponse = await streamTurn(history);
+
+      // System tool layer: if the model requested real machine data, execute
+      // the tool and let a second turn compose the final answer from it.
+      const toolAction = parseToolAction(assistantResponse);
+      if (toolAction) {
+        setToolStatus(`🔧 Checking ${toolAction.name}…`);
+        const tool = await runTool(toolAction);
+        if (tool.ok) logChat(`tool ${toolAction.name} ok: ${tool.result.slice(0, 300)}`);
+        else logChat(`tool ${toolAction.name} failed: ${tool.result}`);
+        const toolTurn: { role: string; content: string }[] = [
+          ...history,
+          { role: "assistant", content: assistantResponse },
+          { role: "user", content: `[SYSTEM TOOL RESULT for "${toolAction.name}"]\n${tool.result}\nAnswer the user's original question in plain text using this real data. Do not emit JSON.` },
+        ];
+        setMessages(prev => {
+          const next = [...prev];
+          const last = next[next.length - 1];
+          if (last && last.role === "assistant") {
+            next[next.length - 1] = { ...last, content: "" };
+          }
+          return next;
+        });
+        assistantResponse = await streamTurn(toolTurn);
+        setToolStatus(null);
       }
 
       const finalAssistMsg: Message = { ...assistMsg, content: assistantResponse };
@@ -1490,6 +1532,19 @@ export default function App() {
       sendMessage();
     }
   };
+
+  const navigateToModule = useCallback((modId: string) => {
+    setShowModulesDrawer(false);
+    setShowHistory(false);
+    setActiveModule(modId);
+  }, []);
+
+  const handleQuickAsk = useCallback((text: string) => {
+    setShowHistory(false);
+    setShowModulesDrawer(false);
+    setActiveModule("chat");
+    sendMessage(text);
+  }, [sendMessage]);
 
 
 
@@ -1927,6 +1982,18 @@ export default function App() {
 
           <nav className="sidebar-nav">
             <button
+              className={`sidebar-item ${activeModule === 'home' ? 'sidebar-item--active' : ''}`}
+              onClick={() => {
+                setActiveModule('home');
+                setShowHistory(false);
+                setShowModulesDrawer(false);
+              }}
+            >
+              <span className="sidebar-icon">🏠</span>
+              <span className="sidebar-label">Home</span>
+            </button>
+
+            <button
               className={`sidebar-item ${activeModule === 'chat' && !showHistory ? 'sidebar-item--active' : ''}`}
               onClick={() => {
                 setActiveModule('chat');
@@ -2026,6 +2093,12 @@ export default function App() {
 
         {/* Viewport */}
         <div className="viewport" style={{ flex: 1, height: "100%", overflow: "hidden", display: "flex", flexDirection: "column" }}>
+          {activeModule === 'home' && (
+            <HomeDashboard
+              onNavigate={navigateToModule}
+              onQuickAsk={handleQuickAsk}
+            />
+          )}
           {activeModule === 'chat' && (
             <div style={{ display: "flex", flexDirection: "row", height: "100%", width: "100%", overflow: "hidden" }}>
               {showHistory && (
@@ -2164,6 +2237,11 @@ export default function App() {
               </main>
 
               <footer className="input-area">
+                {toolStatus && (
+                  <div style={{ padding: "4px 12px", fontSize: "12px", color: "var(--accent)", opacity: 0.85, textAlign: "center" }}>
+                    {toolStatus}
+                  </div>
+                )}
                 <textarea
                   ref={inputRef}
                   className="input-box"
@@ -2219,7 +2297,7 @@ export default function App() {
           </div>
         )}
 
-          {activeModule !== 'chat' && (
+          {activeModule !== 'chat' && activeModule !== 'home' && (
             <div style={{
               display: "flex",
               flexDirection: "column",
