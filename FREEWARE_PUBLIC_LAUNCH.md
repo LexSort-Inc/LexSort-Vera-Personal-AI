@@ -2,7 +2,7 @@
 
 > **Launch Gate:** Windows version 100% tested and working → then go loud.  
 > ✅ Windows chat VERIFIED on clean ThinkCentre (v1.1.11, Aug 7 2026) — launch unblocked.
-> Pending before tag: v1.1.12 (grounding prompt + Intel `.dmg` fix via `vendored-openssl`)
+> v1.2.0 TAGGED Aug 12 2026 (Home dashboard, machine-grounded chat tools, all modules free). Remaining before go-loud:
 > + EV/Mac/Windows smoke tests on real artifacts.
 
 ---
@@ -20,7 +20,7 @@
 - [ ] Linux AppImage tested (if available — not blocking if not ready)
 - [ ] Download page updated: all platform badges show ✅ (remove "building" status)
 - [ ] `website/download.html` download links updated with correct Windows `.msi` / `.exe` URL
-- [ ] **Verify Intel `.dmg` present in v1.1.12 release** (v1.1.7–v1.1.11 had none — `git2`/openssl failure; fixed via `vendored-openssl`)
+- [ ] **Verify Intel `.dmg` present in v1.2.0 release** (first x64 build since v1.1.6 — vendored-openssl)
 
 ---
 

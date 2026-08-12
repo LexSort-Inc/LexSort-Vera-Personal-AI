@@ -112,10 +112,10 @@ Bump the version number in **all 3 files per repo** — they must stay in sync:
 
 ```bash
 # Freeware
-git add -A && git commit -m "chore: bump to v1.1.12"
+git add -A && git commit -m "chore: bump to v1.2.0"
 git push
-git tag v1.1.12
-git push origin v1.1.12
+git tag v1.2.0
+git push origin v1.2.0
 
 # Pro (same pattern)
 git add -A && git commit -m "chore: bump to v1.0.13"
@@ -197,7 +197,7 @@ After binaries are live on GitHub Releases, update the CDN manifest so existing 
 ```json
 // website/api/manifest.json
 {
-  "version": "1.1.11",
+  "version": "1.2.0",
   "freeware_download": {
     "windows": "https://github.com/LexSort-Inc/LexSort-Vera-Personal-AI/releases/download/v1.1.11/LexSort.VERA_1.1.11_x64_en-US.msi",
     "macos_arm": "https://github.com/LexSort-Inc/LexSort-Vera-Personal-AI/releases/download/v1.1.11/LexSort.VERA_1.1.11_aarch64.dmg",
@@ -210,7 +210,7 @@ After binaries are live on GitHub Releases, update the CDN manifest so existing 
 
 > **Note:** the manifest mirrors the *intended* binary set. As of v1.1.11 the Intel
 > `.dmg` is missing (see Intel regression above) — the website routes Intel Macs to
-> v1.1.6. Once v1.1.12 ships with `vendored-openssl`, Intel `.dmg` resumes.
+> v1.1.6. v1.2.0 shipped with `vendored-openssl` — Intel `.dmg` resumed; committed to **verify the x64 artifact present in the v1.2.0 release** before removing the fallback note.
 
 After updating manifest.json, **deploy the website** (see above).
 

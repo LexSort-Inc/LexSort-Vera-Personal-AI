@@ -3,8 +3,8 @@
 **Project:** LexSort VERA — Local-First Private AI Desktop App
 **Parent:** LexSort Inc. (Corp #1799606-3, BN 774849178, DUNS 243369420, Federal CBCA)
 **Stack:** React 19 (TypeScript) + Rust (Tauri v2) + Ollama v0.9.6
-**Freeware v1.1.11** (v1.1.12 pending — Intel `.dmg` fix + grounding prompt) · **Pro v1.0.12** (v1.0.13 committed, untagged) · **Engine v1.0.0** · **iOS Go (Phase 3b)**
-**Last Updated:** August 11, 2026
+**Freeware v1.2.0 released** (Aug 12 2026 — Home dashboard, chat system tool layer, all modules free; smoke tests pending) · **Pro v1.0.12** (v1.0.13 committed, untagged) · **Engine v1.0.0** · **iOS Go (Phase 3b)**
+**Last Updated:** August 12, 2026
 
 ---
 
@@ -123,8 +123,8 @@ netlify deploy --prod --dir=website   # CLI ONLY — never connect GitHub to Net
 
 # ── Release a new Freeware version ───────────────────────────────────────────
 # 1. Bump: vera-freeware/src-tauri/tauri.conf.json, package.json, Cargo.toml
-# 2. Bump: website/api/manifest.json
-git tag v1.1.8 && git push origin v1.1.8
+# 2. Bump: website/api/manifest.json (+ website/download.html, freeware.html)
+git tag v1.2.0 && git push origin v1.2.0
 netlify deploy --prod --dir=website
 
 # ── Release a new Pro version ─────────────────────────────────────────────────
@@ -172,14 +172,14 @@ node scripts/generate-test-keys.js 5
 - **Bundle ID registration** — ⏳ Register `com.lexsort.vera` in Certificates, IDs & Profiles
 - **App Store Connect listing** — ⏳ Create VERA Pro app listing
 - **Distribution Certificate** — ⏳ Generate Mac App Distribution Certificate
-- **Intel Mac builds** — ✅ FIXED (v1.1.7–v1.1.11 shipped no `.dmg` for Intel: `git2` → `openssl-sys` fails on x86_64. `vendored-openssl` feature added Aug 11; verify Intel `.dmg` in next tag's release)
+- **Intel Mac builds** — ✅ RESUMED at v1.2.0 (`vendored-openssl` fix from Aug 11 ships the first x64 `.dmg` since v1.1.6; **verify the x64 artifact in the v1.2.0 release**)
 - **Pro binaries (v1.0.1–v1.0.12)** — ⚠️ Orphaned on old repo (force-moved tags); v1.0.12 partially recovered (5/9 assets from local Downloads). Never force-move release tags.
 - **Pro v1.0.13 tag** — ⏳ Scope (Guardian Watch + Smart Inbox) committed + pushed (`9ce5392`); bump versions + tag when user approves. Business-organizer backend WIP intentionally uncommitted.
 - **Pro CI build** — Check: https://github.com/LexSort-Inc/Lexsort-Vera-Pro/actions
 - **TAURI_PRIVATE_KEY** — May need adding to Pro repo GitHub secrets if CI fails on update signing step
 - **Stripe env vars** — Not yet set in Netlify dashboard (free beta bypasses Stripe for now)
 - **Module ZIPs** — `.vera-module` signed ZIPs not yet uploaded to CDN (`modules.lexsort.com`)
-- **Freeware public launch** — ✅ Windows chat verified (Aug 7, v1.1.11) — launch unblocked; v1.1.12 tag pending (grounding prompt + Intel fix), awaiting EV/Mac/Windows smoke tests
+- **Freeware public launch** — ✅ Windows chat verified (Aug 7, v1.1.11) — launch unblocked; **v1.2.0 released Aug 12** (Home dashboard, machine-grounded chat tools, all modules free) — awaiting v1.2.0 EV/Mac/Windows smoke tests before public blast
 - **4 stale duplicate repos** (`Lexsort-Core/…`) — safe to delete now that releases are migrated to orgs; API deletion blocked (token lacks `delete_repo`) → delete via GitHub UI
 
 ---

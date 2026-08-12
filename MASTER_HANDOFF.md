@@ -2,7 +2,7 @@
 
 **Project:** LexSort VERA — Local-First Private AI Desktop App
 **Parent Brand:** LexSort Inc. (DUNS 243369420)
-**Current Versions:** VERA Freeware v1.1.11 ✅ (Windows chat verified; v1.1.12 pending — Intel `.dmg` fix + grounding prompt) · VERA Pro v1.0.12 (binaries recovered; **v1.0.13 scope committed** — Guardian Watch + Smart Inbox, tag pending) · VERA Engine v1.0.0 ✅
+**Current Versions:** VERA Freeware **v1.2.0** 🚀 (relaunch tagged Aug 12 — Home dashboard, machine-grounded chat tools, all modules free; CI building, smoke tests pending) · VERA Pro v1.0.12 (binaries recovered; **v1.0.13 scope committed** — Guardian Watch + Smart Inbox, tag pending) · VERA Engine v1.0.0 ✅
 **Stack:** React 19 (TypeScript) + Rust (Tauri v2) + Ollama v0.9.6
 **Last Updated:** August 11, 2026
 
@@ -113,13 +113,13 @@ netlify deploy --prod --dir=website
 
 ---
 
-## 🏛 Current Architecture State (Aug 11, 2026)
+## 🏛 Current Architecture State (Aug 12, 2026)
 
 ### Infrastructure Status
 
 | Component | State | Notes |
 |---|---|---|
-| Freeware v1.1.11 | ✅ Live at lexsort.com/download | **Windows chat VERIFIED** on clean ThinkCentre Aug 7, 2026 (22:10:56 EDT) |
+| Freeware v1.2.0 | ✅ Live at lexsort.com/download | **v1.2.0 relaunch** tagged Aug 12 2026 — Home dashboard, chat system tool layer, all modules free; CI building ARM/Intel/Linux; manual Windows build in progress |
 | Pro v1.0.12 | ⚠️ Binaries recovered 5/9 (org release) | v1.0.1–v1.0.5 + v1.0.12 orphaned by force-moved tags; rpm/setup.exe/tar.gz unrecoverable |
 | Pro v1.0.13 (Guardian + Smart Inbox) | ✅ Committed `9ce5392` — **tag NOT yet pushed** | Scope = Guardian Watch + Smart Inbox; business-organizer backend intentionally left uncommitted |
 | VERA Engine v1.0.0 | ✅ Stable | Standalone Rust LLM proxy |
@@ -129,7 +129,7 @@ netlify deploy --prod --dir=website
 | Stripe Webhook | ⚠️ Wired, needs Netlify env vars | Free beta bypasses Stripe for now |
 | GitHub Actions Secrets | ✅ Set (Apple certs + Team ID) | Set Jun 17 2026 — all 6 secrets present |
 | Apple Developer Account | ✅ **Organization account LIVE** | LexSort Inc. — developer.apple.com (Jul 3 2026) |
-| Intel Mac `.dmg` | ⚠️ v1.1.7–v1.1.11 HAD NONE — fix committed | `vendored-openssl` on git2 (`40fd72f`) → resumes at v1.1.12 tag; website routes Intel → v1.1.6 meanwhile |
+| Intel Mac `.dmg` | ✅ RESUMED at v1.2.0 | `vendored-openssl` on git2 (`40fd72f`) → first Intel build since v1.1.6 ships in v1.2.0; **verify x64 artifact in the v1.2.0 release** |
 
 ### VERA Pro — Onboarding Flow (NEW as of v1.0.12)
 
@@ -169,15 +169,19 @@ CDN (modules.lexsort.com):
 ### VERA Freeware
 
 ```
-✅ v1.1.11 live at lexsort.com/download
+✅ v1.2.0 live at lexsort.com/download (tagged Aug 12 2026)
+✅ Home dashboard landing — Today strip (calendar/tasks/storage), launchpad, quick-ask chips
+✅ Chat system tool layer — model requests real machine data (toolLayer.ts, JSON action protocol)
+✅ All modules FREE: Quick Organizer, Team Lab, Guardian Watch, ProMailer, Research Lab
 ✅ In-app update flow working (v1.1.4 → v1.1.6 → v1.1.7 verified)
 ✅ Ollama engine auto-install updated to v0.9.6 (Jun 30 2026)
 ✅ Quick Organizer: full calendar UX (month grid, week strip, day view)
 ✅ ProMailer bridge: calls lead_finder.py --json-query --json-limit (live progress events + parallel scraping 7s→3s)
 ✅ Guardian Watch: system stats fetching, real disk metrics, live progress streaming, AI diagnostics
-✅ Capability-grounded chat system prompt (buildSystemPrompt, c25b592 — v1.1.12)
+✅ Capability-grounded chat system prompt (buildSystemPrompt, c25b592)
 ⚠️ Calendar import hang fix committed but not yet verified on device
-⚠️ Intel `.dmg` missing v1.1.7–v1.1.11 — `vendored-openssl` fix committed (40fd72f); verify in v1.1.12 release
+⚠️ Intel `.dmg` resumed at v1.2.0 — verify x64 artifact present in release
+⚠️ v1.2.0 smoke tests (EV/Mac/Windows) pending before public launch wires
 ```
 
 ---
@@ -414,7 +418,8 @@ VERA/                             # This repo — Freeware + Engine + iOS + webs
 | Greeting + chips repointed | ✅ Chat greeting now leads with system-health asks |
 | Verify compile | ✅ `cargo check` 0 warnings; `npx tsc --noEmit` clean |
 | SR&ED entries logged | ✅ `sred_log_vera.html` + `sred_evidence/2026-08-12/` |
-| **Uncommitted** | ⏳ toolLayer + dashboard + module unlock awaiting user review |
+| **v1.2.0 released** | ✅ `28cf5ed` committed + pushed; tag `v1.2.0` → CI (macOS ARM/Intel/Linux); lexsort.com deployed (manifest + download links verified live) |
+| **Windows build** | ⏳ Manual workflow run started by founder Aug 12 — PowerShell runner (~75-90 min, ~$6-8) |
 
 ---
 

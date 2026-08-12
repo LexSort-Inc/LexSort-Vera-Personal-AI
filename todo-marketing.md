@@ -1,5 +1,5 @@
 # LexSort Personal AI — Marketing & Community Checklist
-*Last Updated: August 11, 2026 — v1.1.11 Freeware live (Windows verified); v1.1.12 pending (Intel fix); Pro v1.0.13 (Guardian + Smart Inbox) committed, untagged.*
+*Last Updated: August 12, 2026 — v1.2.0 Freeware relaunch live; smoke tests pending before go-loud.*
 
 To market the LexSort Personal AI (VERA) and build a sovereign community, our strategy pivots from technical preparation to user acquisition. The goal is to position LexSort as the **"Sovereign Choice"** in an AI landscape currently dominated by data-hungry corporations.
 

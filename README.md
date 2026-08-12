@@ -196,5 +196,5 @@ Licensed under the [Apache License 2.0](LICENSE). Free to use, modify, and distr
 
 <div align="center">
   <sub>Built by <a href="https://lexsort.com">LexSort Inc.</a> — The future of local-first intelligence.</sub><br>
-  <sub><em>Last updated: August 11, 2026 — v1.1.11. Repo restructured: vera-freeware, vera-engine, vera-go-ios.</em></sub>
+  <sub><em>Last updated: August 12, 2026 — v1.2.0. Freeware relaunch: Home dashboard, machine-grounded chat tools, all workspace modules free.</em></sub>
 </div>
