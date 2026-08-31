@@ -10,6 +10,16 @@
   to = "/.netlify/functions/:splat"
   status = 200
 
+[[redirects]]
+  from = "/pilot"
+  to = "/pilot/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/pilot/*"
+  to = "/pilot/index.html"
+  status = 200
+
 [functions]
   directory = "netlify/functions"
   node_bundler = "esbuild"

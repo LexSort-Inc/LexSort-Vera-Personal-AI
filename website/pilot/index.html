@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LexSort Legal — Private Pilot Portal</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    :root {
+      --bg: #030712;
+      --surface: #0a1120;
+      --surface-hover: #101a30;
+      --border: rgba(201, 168, 76, 0.18);
+      --gold: #C9A84C;
+      --gold-hover: #dbb95e;
+      --text: #f3f4f6;
+      --text-muted: #8892a4;
+      --accent-blue: #38bdf8;
+      --green: #10b981;
+    }
+
+    html, body {
+      min-height: 100%;
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 32px 16px;
+    }
+
+    .container {
+      max-width: 680px;
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 40px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .shield {
+      width: 56px;
+      height: 56px;
+      margin: 0 auto 16px;
+      display: block;
+    }
+
+    h1 {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--gold);
+      margin-bottom: 8px;
+    }
+
+    .notice {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* Access Code Gate */
+    .gate {
+      max-width: 360px;
+      margin: 0 auto;
+    }
+
+    .gate label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+      text-align: left;
+    }
+
+    .gate input {
+      width: 100%;
+      padding: 12px 14px;
+      background: #020712;
+      border: 1px solid rgba(201, 168, 76, 0.3);
+      border-radius: 8px;
+      color: #fff;
+      font-size: 15px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .gate input:focus {
+      border-color: var(--gold);
+    }
+
+    .error {
+      font-size: 13px;
+      color: #ef4444;
+      margin-top: 8px;
+      min-height: 18px;
+      text-align: center;
+    }
+
+    .btn-gold {
+      display: block;
+      width: 100%;
+      margin-top: 14px;
+      padding: 12px 24px;
+      background: var(--gold);
+      color: #020712;
+      font-size: 14px;
+      font-weight: 700;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.15s;
+      text-decoration: none;
+      text-align: center;
+    }
+
+    .btn-gold:hover {
+      background: var(--gold-hover);
+    }
+
+    /* Unlocked Content Area */
+    .portal-content {
+      display: none;
+    }
+
+    .portal-content.visible {
+      display: block;
+    }
+
+    /* Platform Tabs */
+    .platform-tabs {
+      display: flex;
+      gap: 12px;
+      background: #020712;
+      padding: 6px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      margin-bottom: 24px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 10px 16px;
+      background: transparent;
+      border: none;
+      border-radius: 6px;
+      color: var(--text-muted);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+      background: rgba(201, 168, 76, 0.15);
+      color: var(--gold);
+      border: 1px solid rgba(201, 168, 76, 0.3);
+    }
+
+    /* Download Box */
+    .download-card {
+      background: #040914;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+
+    .download-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+
+    .badge-bar {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin: 10px 0 18px;
+    }
+
+    .badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-muted);
+    }
+
+    .badge.green {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--green);
+    }
+
+    /* Step Guide */
+    .steps-section {
+      text-align: left;
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .steps-heading {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--gold);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 16px;
+    }
+
+    .step-item {
+      display: flex;
+      gap: 14px;
+      margin-bottom: 16px;
+      font-size: 13px;
+      line-height: 1.5;
+      color: #cbd5e1;
+    }
+
+    .step-num {
+      width: 22px;
+      height: 22px;
+      background: rgba(201, 168, 76, 0.2);
+      color: var(--gold);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 11px;
+      flex-shrink: 0;
+    }
+
+    /* Credentials Box */
+    .creds-box {
+      background: #020712;
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      border-radius: 8px;
+      padding: 16px;
+      margin: 20px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .creds-info {
+      font-size: 13px;
+      color: #94a3b8;
+    }
+
+    .creds-code {
+      font-family: monospace;
+      font-weight: 700;
+      color: #fff;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin: 0 2px;
+    }
+
+    .btn-copy {
+      background: rgba(56, 189, 248, 0.1);
+      color: var(--accent-blue);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-copy:hover {
+      background: rgba(56, 189, 248, 0.2);
+    }
+
+    .confidential-footer {
+      margin-top: 28px;
+      font-size: 11px;
+      color: #475569;
+      text-align: center;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <svg class="shield" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M32 4L8 16v12c0 14.8 9.6 28.6 24 32 14.4-3.4 24-17.2 24-32V16L32 4z" fill="#020712" stroke="#C9A84C" stroke-width="1.5"/>
+        <path d="M32 12L16 20v8c0 11.1 6.8 21.5 16 24 9.2-2.5 16-12.9 16-24v-8l-16-8z" fill="none" stroke="#C9A84C" stroke-width="1.2" opacity="0.4"/>
+        <text x="32" y="39" text-anchor="middle" fill="#C9A84C" font-size="14" font-weight="700" font-family="Inter,sans-serif">L</text>
+      </svg>
+      <h1>LexSort Legal — Pilot Portal</h1>
+      <p class="notice">Private evaluation build for co-designers &amp; pilot law firms.</p>
+    </div>
+
+    <!-- Password Gate -->
+    <div class="gate" id="gate">
+      <label for="password">Pilot Access Code</label>
+      <input type="password" id="password" placeholder="Enter pilot access code" autocomplete="off" />
+      <div class="error" id="error"></div>
+      <button class="btn-gold" onclick="checkPassword()">Unlock Downloads</button>
+    </div>
+
+    <!-- Unlocked Portal -->
+    <div class="portal-content" id="portalContent">
+      <!-- Platform Switcher -->
+      <div class="platform-tabs">
+        <button class="tab-btn active" id="tabMac" onclick="switchPlatform('mac')">
+          🍏 macOS (Apple Silicon &amp; Intel)
+        </button>
+        <button class="tab-btn" id="tabWin" onclick="switchPlatform('win')">
+          🪟 Windows (ThinkCentre &amp; PC)
+        </button>
+      </div>
+
+      <!-- macOS Download Panel -->
+      <div id="macPanel">
+        <div class="download-card">
+          <div class="download-title">LexSort Legal for Mac</div>
+          <div class="badge-bar">
+            <span class="badge green">● Signed &amp; Notarized</span>
+            <span class="badge">macOS 10.13+</span>
+            <span class="badge">v1.0.12 Pilot</span>
+          </div>
+          <a class="btn-gold" href="LexSortLegalInstaller.pkg" download>Download macOS Installer (.pkg)</a>
+          <p style="font-size:12px;color:var(--text-muted);margin-top:10px;">38 MB · Native Apple Silicon (M1/M2/M3) &amp; Intel 64-bit</p>
+        </div>
+
+        <div class="steps-section">
+          <div class="steps-heading">Quick Setup Guide (macOS)</div>
+          <div class="step-item">
+            <div class="step-num">1</div>
+            <div><strong>Run Installer:</strong> Double-click <code>LexSortLegalInstaller.pkg</code>. <em>(If Gatekeeper prompts, click "Open Anyway" in System Settings > Privacy &amp; Security).</em></div>
+          </div>
+          <div class="step-item">
+            <div class="step-num">2</div>
+            <div><strong>Launch App:</strong> Open <strong>LexSort Legal</strong> from your Applications folder or Menu Bar.</div>
+          </div>
+          <div class="step-item">
+            <div class="step-num">3</div>
+            <div><strong>Sign In:</strong> Log into your dedicated co-designer demo partition.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Windows Download Panel -->
+      <div id="winPanel" style="display: none;">
+        <div class="download-card">
+          <div class="download-title">LexSort Legal for Windows</div>
+          <div class="badge-bar">
+            <span class="badge green">● 1-Click Setup Wizard</span>
+            <span class="badge">Windows 10 / 11 (x64)</span>
+            <span class="badge">ThinkCentre Ready</span>
+          </div>
+          <a class="btn-gold" href="https://github.com/LexSort-Inc/lexsort-legal/archive/refs/heads/main.zip" download>Download Windows Package (.zip)</a>
+          <p style="font-size:12px;color:var(--text-muted);margin-top:10px;">Full Enterprise Setup Wizard with Silent Launcher</p>
+        </div>
+
+        <div class="steps-section">
+          <div class="steps-heading">Quick Setup Guide (Windows)</div>
+          <div class="step-item">
+            <div class="step-num">1</div>
+            <div><strong>Extract Zip:</strong> Extract the downloaded folder to your preferred directory.</div>
+          </div>
+          <div class="step-item">
+            <div class="step-num">2</div>
+            <div><strong>Run Setup Wizard:</strong> Right-click <code>SETUP_LEXSORT.ps1</code> and select <em>"Run with PowerShell"</em> (or double-click <code>START_LEXSORT.bat</code>).</div>
+          </div>
+          <div class="step-item">
+            <div class="step-num">3</div>
+            <div><strong>Launch from Desktop:</strong> The wizard creates a <code>LexSort Legal</code> shortcut on your Windows Desktop for silent 1-click startup.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Universal Credentials Block -->
+      <div class="creds-box">
+        <div class="creds-info">
+          <div><strong>Tester Login:</strong> <span class="creds-code" id="credUser">jack</span></div>
+          <div style="margin-top:4px;"><strong>Passphrase:</strong> <span class="creds-code" id="credPass">JLuckDemo2026!</span></div>
+        </div>
+        <button class="btn-copy" onclick="copyCreds()">Copy Login</button>
+      </div>
+
+      <!-- Ottawa Law Firm Demo Invitation & Calendar Sync -->
+      <div style="background: rgba(201, 168, 76, 0.05); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin: 24px 0;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+          <div>
+            <span style="font-size: 11px; font-weight: 700; color: var(--gold); text-transform: uppercase; letter-spacing: 0.05em;">Exclusive Law Firm Preview</span>
+            <h3 style="font-size: 15px; font-weight: 600; color: #fff; margin-top: 2px;">Ottawa Criminal Defence Virtual Demonstration</h3>
+          </div>
+          <span style="font-size: 11px; padding: 2px 8px; border-radius: 4px; background: rgba(56, 189, 248, 0.15); color: var(--accent-blue); font-weight: 600;">45-Min Briefing</span>
+        </div>
+        <p style="font-size: 12px; color: var(--text-muted); line-height: 1.5; margin-bottom: 16px;">
+          Experience a real-time walkthrough on air-gapped hardware handling multi-channel triage, Crown disclosure, and morning Daily Briefings under LSO Rule 3.3.
+        </p>
+
+        <div style="background: #020712; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 14px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between;">
+          <div>
+            <div style="font-size: 13px; font-weight: 600; color: #fff;">📅 Monday, September 14, 2026</div>
+            <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">10:00 AM – 10:45 AM EDT · Virtual Conference Call</div>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button onclick="downloadDemoIcs()" style="background: rgba(201, 168, 76, 0.15); border: 1px solid rgba(201, 168, 76, 0.4); color: var(--gold); padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;">
+              🍏 Add to Apple / Outlook (.ics)
+            </button>
+            <a href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=LexSort+Legal+—+Exclusive+Ottawa+Law+Firm+Demonstration&dates=20260914T140000Z/20260914T144500Z&details=Private+live+demonstration+of+LexSort+Legal+air-gapped+criminal+defence+workstation+with+William+Commu+and+Andrew.+Zero-cloud,+LSO+Rule+3.3+compliance.&location=Virtual+Conference" target="_blank" rel="noopener noreferrer" style="background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3); color: var(--accent-blue); padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; text-decoration: none;">
+              📅 Google Calendar
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <p class="confidential-footer">
+        🔒 <strong>Confidential &amp; Proprietary:</strong> This software is strictly for authorized pilot testers under Law Society of Ontario confidentiality rules. Redistribution is prohibited.
+      </p>
+    </div>
+  </div>
+
+  <script>
+    function downloadDemoIcs() {
+      const icsData = [
+        'BEGIN:VCALENDAR',
+        'VERSION:2.0',
+        'PRODID:-//LexSort Inc.//Pilot Demo//EN',
+        'CALSCALE:GREGORIAN',
+        'METHOD:PUBLISH',
+        'BEGIN:VEVENT',
+        'UID:lexsort-ottawa-demo-20260914@lexsort.com',
+        'DTSTAMP:20260821T143000Z',
+        'DTSTART:20260914T140000Z',
+        'DTEND:20260914T144500Z',
+        'SUMMARY:LexSort Legal — Exclusive Ottawa Law Firm Demonstration',
+        'DESCRIPTION:Private live walkthrough of LexSort Legal sovereign workstation with William Commu and Andrew.\\n\\nDemonstrating local-first Crown disclosure triage, morning daily briefings, and LSO Rule 3.3 compliance.',
+        'LOCATION:Virtual Conference Call',
+        'STATUS:CONFIRMED',
+        'END:VEVENT',
+        'END:VCALENDAR'
+      ].join('\\r\\n');
+
+      const blob = new Blob([icsData], { type: 'text/calendar;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'LexSort_Legal_Ottawa_Demo.ics';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+    function checkPassword() {
+      const pw = document.getElementById('password').value;
+      const error = document.getElementById('error');
+      if (pw === 'LexSort-Pilot-2026') {
+        document.getElementById('gate').style.display = 'none';
+        document.getElementById('portalContent').classList.add('visible');
+        error.textContent = '';
+      } else {
+        error.textContent = 'Incorrect access code. Please check your invitation.';
+        document.getElementById('password').value = '';
+        document.getElementById('password').focus();
+      }
+    }
+
+    document.getElementById('password').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') checkPassword();
+    });
+
+    function switchPlatform(platform) {
+      const tabMac = document.getElementById('tabMac');
+      const tabWin = document.getElementById('tabWin');
+      const macPanel = document.getElementById('macPanel');
+      const winPanel = document.getElementById('winPanel');
+
+      if (platform === 'mac') {
+        tabMac.classList.add('active');
+        tabWin.classList.remove('active');
+        macPanel.style.display = 'block';
+        winPanel.style.display = 'none';
+      } else {
+        tabWin.classList.add('active');
+        tabMac.classList.remove('active');
+        macPanel.style.display = 'none';
+        winPanel.style.display = 'block';
+      }
+    }
+
+    function copyCreds() {
+      navigator.clipboard.writeText("Username: jack\nPassword: JLuckDemo2026!");
+      const btn = event.target;
+      btn.textContent = "Copied!";
+      setTimeout(() => { btn.textContent = "Copy Login"; }, 2000);
+    }
+  </script>
+</body>
+</html>
