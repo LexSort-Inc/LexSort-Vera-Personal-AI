@@ -3,12 +3,32 @@
 **Project:** LexSort VERA — Local-First Private AI Desktop App
 **Parent:** LexSort Inc. (Corp #1799606-3, BN 774849178, DUNS 243369420, Federal CBCA)
 **Stack:** React 19 (TypeScript) + Rust (Tauri v2) + Ollama v0.9.6
-**Freeware v1.2.0 released** (Aug 12 2026 — Home dashboard, chat system tool layer, all modules free; smoke tests pending) · **Pro v1.0.12** (v1.0.13 committed, untagged) · **Engine v1.0.0** · **iOS Go (Phase 3b)**
+**Freeware v1.3.0 in tree** (silent updater merged to main, release pending — internal Mac builds) · **Pro v1.0.13 in tree** (Guardian Watch + Smart Inbox + updater, release pending) · **Engine v1.0.0** · **iOS Go (Phase 3b)**
 **Last Updated:** August 12, 2026
 
 ---
 
-## CI Cost Policy — Mandatory
+## Build Policy — INTERNAL BUILDS ONLY (Sep 2026, founder directive)
+
+**No GitHub Actions builds for releases. Ever.** All release artifacts are
+built locally: **ThinkCentre = Windows** (`.msi`/`-setup.exe`), **M1 Pro =
+macOS** (`aarch64` + `x64` `.dmg`, signing + updater `.sig`). Linux currently
+has no builder — do not promise Linux updater payloads.
+
+Rules:
+- **NEVER push a `v*` tag to trigger CI** — tag pushes auto-build macOS/Linux
+  on paid runners for artifacts nobody uses. Tags are version markers only,
+  and only if the founder asks for them.
+- `release.yml` / `publish` workflows are **retired in practice** (kept in repo
+  for reference). Do not "fix" or rely on them.
+- `contracts.yml` (ubuntu free) may still run on pushes — harmless, ignore or
+  use as a smoke signal.
+- Release flow: local signed builds → upload artifacts to GitHub Releases →
+  update `website/api/*-latest.json` feeds (beta first, then stable) →
+  `netlify deploy --prod --dir=website`.
+- Before any release build: `cargo check` + `npx tsc --noEmit` locally.
+
+## CI Cost Policy (historical — superseded by internal-build policy above)
 
 **GitHub spending cap is at $0.** Every CI minute on `windows-latest` costs ~$0.08. A full Windows build takes ~75-90 min = **~$6-8 per run**.
 

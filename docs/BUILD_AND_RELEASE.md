@@ -1,5 +1,13 @@
 # VERA — Build & Release
 
+> [!CAUTION]
+> **INTERNAL BUILDS ONLY (Sep 2026, founder directive).** Do not use GitHub
+> Actions for releases. ThinkCentre builds Windows, M1 Pro builds macOS
+> (ARM + Intel, signed + updater `.sig`). No `v*` tag pushes to trigger CI.
+> Release flow: local builds → GitHub Releases upload → update
+> `website/api/*-latest.json` (beta first) → `netlify deploy --prod
+> --dir=website`. The CI sections below are historical reference.
+
 ---
 
 ## ⚠️ CI Budget Rules — Read Before Pushing Tags
