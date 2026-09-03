@@ -136,6 +136,7 @@ pub struct RemoteManifest {
     pub manifest_version: String,
     pub generated_at: String,
     pub core: RemoteCoreManifest,
+    #[serde(default)]
     pub modules: std::collections::HashMap<String, RemoteModuleEntry>,
 }
 
@@ -1671,27 +1672,32 @@ pub mod commands {
     fn get_installer_info(version: &str) -> Result<(String, String), String> {
         let os = std::env::consts::OS;
         let arch = std::env::consts::ARCH;
-        
+
+        // Filenames must match the bundle names tauri emits (verified from
+        // local signed builds — productName "LexSort VERA", arch "aarch64"/"x64").
         let (filename, _ext) = match os {
             "macos" => {
                 let suffix = if arch == "aarch64" { "aarch64" } else { "x64" };
-                (format!("LexSort.Personal.AI_{}_{}.dmg", version, suffix), "dmg")
+                (format!("LexSort VERA_{}_{}.dmg", version, suffix), "dmg")
             }
             "windows" => {
-                (format!("LexSort.Personal.AI_{}_x64_en-US.msi", version), "msi")
+                // ThinkCentre to confirm against the real MSI name after the
+                // Windows build (tauri naming convention shown).
+                (format!("LexSort VERA_{}_x64_en-US.msi", version), "msi")
             }
             "linux" => {
-                (format!("LexSort.Personal.AI_{}_amd64.AppImage", version), "AppImage")
+                (format!("LexSort VERA_{}_amd64.AppImage", version), "AppImage")
             }
             _ => return Err(format!("Unsupported operating system: {}", os)),
         };
-        
+
+        // Release asset names contain spaces — percent-encode for HTTP.
+        let encoded = filename.replace(' ', "%20");
         let url = format!(
-            "https://github.com/Lexsort-Core/LexSort-Vera-Personal-AI/releases/download/v{}/{}",
-            version,
-            filename
+            "https://github.com/LexSort-Inc/LexSort-Vera-Personal-AI/releases/download/v{}/{}",
+            version, encoded
         );
-        
+
         Ok((filename, url))
     }
 
