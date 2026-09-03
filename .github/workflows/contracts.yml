@@ -14,6 +14,14 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
       - name: Run contract tests
+        env:
+          # Sandbox: never touch a real ~/.lexsort even if a test forgets
+          # its own override (test_dir_creation self-sandboxes too).
+          LEXSORT_DIR_OVERRIDE: /tmp/lexsort-ci
         run: |
           cd vera-freeware/src-tauri
-          cargo test --test contracts -- --nocapture
+          # NOTE: --test contracts target never existed (failed every run).
+          # Run the hermetic unit tests by name; Ollama/network-dependent
+          # tests (e.g. test_list_models) are excluded by design — they
+          # need a live backend CI doesn't have.
+          cargo test -- test_version_compare test_dir_creation --nocapture
