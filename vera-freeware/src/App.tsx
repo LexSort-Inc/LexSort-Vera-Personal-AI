@@ -19,6 +19,7 @@ import { useSwitching } from "./hooks/useSwitching";
 import { useConversations } from "./hooks/useConversations";
 import { useChat } from "./hooks/useChat";
 import { useEngine, PHASE } from "./hooks/useEngine";
+import { useUpdater } from "./hooks/useUpdater";
 import { SYSTEM_TOOLS_PROMPT, parseToolAction, runTool } from "./toolLayer";
 // useVoiceSession: reserved for future whisper.cpp backend integration (Amendment 03 Phase 3)
 // import { useVoiceSession } from "./hooks/useVoiceSession";
@@ -435,6 +436,12 @@ const [activeModule, setActiveModule] = useState<string>("home");
   const [searchLogs,        setSearchLogs]        = useState<string[]>([]);
   const [isSearching,       setIsSearching]       = useState<boolean>(false);
   const searchLogRef = useRef<string[]>([]);
+  // Module bundle load failures (missing ~/.lexsort bundle.js) — rendered as
+  // an error panel with Retry instead of an infinite spinner.
+  const [moduleLoadError, setModuleLoadError] = useState<Record<string, string>>({});
+
+  // Silent restart-to-apply app updater (stable auto-check on launch).
+  const updater = useUpdater();
 
   // Settings and Switcher States
   const {
@@ -664,7 +671,7 @@ const [activeModule, setActiveModule] = useState<string>("home");
 
   // Load module bundles dynamically from local files if needed
   useEffect(() => {
-    if (activeModule !== 'chat' && activeModule !== 'home' && !dynamicComponents[activeModule]) {
+    if (activeModule !== 'chat' && activeModule !== 'home' && !dynamicComponents[activeModule] && !moduleLoadError[activeModule]) {
       console.log(`[VERA] Attempting to dynamically load bundle for module: ${activeModule}`);
       invoke<string>("get_module_bundle", { moduleId: activeModule })
         .then((jsCode) => {
@@ -676,13 +683,24 @@ const [activeModule, setActiveModule] = useState<string>("home");
             console.log(`[VERA] Dynamically evaluated bundle for module: ${activeModule}`);
           } catch (err) {
             console.error(`[VERA] Failed to evaluate bundle for module: ${activeModule}`, err);
+            setModuleLoadError(prev => ({ ...prev, [activeModule]: `Could not start this module: ${String(err)}` }));
           }
         })
         .catch((err) => {
           console.error(`[VERA] Failed to load bundle for module: ${activeModule}`, err);
+          setModuleLoadError(prev => ({ ...prev, [activeModule]: "Module files are not installed yet. Check for updates to download them, or try again." }));
         });
     }
-  }, [activeModule, dynamicComponents]);
+  }, [activeModule, dynamicComponents, moduleLoadError]);
+
+  // Auto-check for app updates shortly after the app is ready (stable
+  // channel, silent — the user only sees something when an update exists).
+  useEffect(() => {
+    if (phase === PHASE.READY) {
+      const t = setTimeout(() => { void updater.autoCheck(); }, 8000);
+      return () => clearTimeout(t);
+    }
+  }, [phase]);
 
   const handleConfirmOnboardingModel = async (modelId: string) => {
     try {
@@ -2387,6 +2405,26 @@ const [activeModule, setActiveModule] = useState<string>("home");
                     if (DynComp) {
                       return <DynComp />;
                     }
+                    const loadErr = moduleLoadError[activeModule];
+                    if (loadErr) {
+                      return (
+                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", color: "var(--text-muted)", gap: "12px", padding: "24px", textAlign: "center" }}>
+                          <p style={{ fontWeight: 700, color: "var(--text)" }}>⚠ Module could not load</p>
+                          <p style={{ fontSize: "13px" }}>{loadErr}</p>
+                          <button
+                            className="hdr-btn"
+                            style={{ border: "1px solid var(--accent)", color: "var(--text)" }}
+                            onClick={() => setModuleLoadError(prev => {
+                              const next = { ...prev };
+                              delete next[activeModule];
+                              return next;
+                            })}
+                          >
+                            Retry
+                          </button>
+                        </div>
+                      );
+                    }
                     return (
                       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", color: "var(--text-muted)" }}>
                         <div className="spinner" style={{ width: "32px", height: "32px", border: "3px solid var(--border)", borderTopColor: "var(--accent)", borderRadius: "50%", animation: "spin 1s linear infinite", marginBottom: "16px" }} />
@@ -2629,6 +2667,91 @@ const [activeModule, setActiveModule] = useState<string>("home");
 
                 {settingsTab === "updates" && (
                   <div className="updates-container">
+                    {/* ── Automatic app updates (restart-to-apply, no reinstall) ── */}
+                    <div className="updates-status-card">
+                      <span className="updates-status-title">Automatic updates</span>
+                      <span className="updates-status-desc">
+                        VERA checks on launch and installs updates in the background. You just restart — never reinstall.
+                      </span>
+                      <div style={{ display: "flex", gap: "8px", alignItems: "center", margin: "10px 0" }}>
+                        <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>Channel:</span>
+                        {(["stable", "beta"] as const).map((ch) => (
+                          <button
+                            key={ch}
+                            className={updater.channel === ch ? "update-btn-active" : "hdr-btn"}
+                            style={updater.channel === ch ? {} : { border: "1px solid var(--border)", color: "var(--text)" }}
+                            disabled={updater.phase === "downloading"}
+                            onClick={() => { updater.setChannel(ch); void updater.check(ch); }}
+                          >
+                            {ch === "stable" ? "Stable" : "Beta"}
+                          </button>
+                        ))}
+                        {updater.channel === "beta" && (
+                          <span style={{ fontSize: "11px", fontWeight: 700, color: "var(--accent)", border: "1px solid var(--accent)", borderRadius: "6px", padding: "2px 8px" }}>
+                            BETA — under test
+                          </span>
+                        )}
+                      </div>
+                      {updater.phase === "checking" && (
+                        <span className="updates-status-desc">Checking for updates…</span>
+                      )}
+                      {updater.phase === "available" && updater.meta && (
+                        <>
+                          <span className="updates-status-desc">
+                            {updater.meta.isBeta && <strong style={{ color: "var(--accent)" }}>[Beta] </strong>}
+                            v{updater.meta.currentVersion} → v{updater.meta.version} available.
+                            {updater.meta.body ? ` ${updater.meta.body}` : ""}
+                          </span>
+                          <div style={{ marginTop: "10px" }}>
+                            <button className="update-btn-active" onClick={() => void updater.download()}>
+                              Download update
+                            </button>
+                          </div>
+                        </>
+                      )}
+                      {updater.phase === "downloading" && (
+                        <div className="updates-progress-container">
+                          <div className="updates-progress-label-row">
+                            <span>Downloading update…</span>
+                            <span className="updates-progress-percent">{updater.percent}%</span>
+                          </div>
+                          <div className="updates-progress-bar-track">
+                            <div className="updates-progress-bar-fill" style={{ width: `${updater.percent}%` }} />
+                          </div>
+                        </div>
+                      )}
+                      {updater.phase === "ready" && updater.meta && (
+                        <>
+                          <span className="updates-status-desc" style={{ color: "var(--green)", fontWeight: 700 }}>
+                            ✓ v{updater.meta.version} downloaded — restart to apply.
+                          </span>
+                          <div style={{ marginTop: "10px" }}>
+                            <button className="btn-update-install" onClick={() => void updater.restartToApply()}>
+                              Restart now
+                            </button>
+                          </div>
+                        </>
+                      )}
+                      {updater.phase === "error" && (
+                        <span className="updates-status-desc" style={{ color: "var(--red)" }}>
+                          ⚠ {updater.error ?? "Update failed."}{" "}
+                          <button className="hdr-btn" style={{ marginLeft: "8px" }} onClick={() => void updater.check()}>
+                            Try again
+                          </button>
+                        </span>
+                      )}
+                      {updater.phase === "idle" && !updater.meta && (
+                        <div style={{ marginTop: "10px" }}>
+                          <button
+                            className="hdr-btn"
+                            style={{ border: "1px solid var(--accent)", color: "var(--text)" }}
+                            onClick={() => void updater.check()}
+                          >
+                            Check for updates
+                          </button>
+                        </div>
+                      )}
+                    </div>
                     {checkingForUpdates ? (
                       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "20px", gap: "12px" }}>
                         <Spinner />

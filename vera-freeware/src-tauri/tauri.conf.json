@@ -25,6 +25,7 @@
   "bundle": {
     "active": true,
     "targets": "all",
+    "createUpdaterArtifacts": true,
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -36,6 +37,19 @@
       "signingIdentity": "9498E6481B8D3D1872E4E0E34BFB5F26E785F15D",
       "entitlements": "./entitlements.plist",
       "infoPlist": "./Info.plist"
+    }
+  },
+  "plugins": {
+    "updater": {
+      "active": true,
+      "dialog": false,
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDdGRTRENTY3RDJGMjhGRjYKUldUMmovTFNaOVhrZjFhT3J3N0w3YkQ0UTNLdFFNSGt4ZGdxTFM2RHpXUStnaHNOMUpQWFh2UEcK",
+      "endpoints": [
+        "https://lexsort.com/api/freeware-stable-latest.json"
+      ],
+      "windows": {
+        "installMode": "passive"
+      }
     }
   }
 }

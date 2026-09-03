@@ -2999,6 +2999,128 @@ pub mod commands {
     }
 }
 
+// ── Silent auto-updater (Tauri v2 updater plugin) ──────────────────────────
+// Stable channel is the default. The beta channel is opt-in from Settings and
+// is always badged "Beta" in the UI until the build is promoted to stable.
+// Endpoints are static JSON files served from lexsort.com (see
+// website/api/*-latest.json). No full-installer download, no reinstall:
+// the delta is staged and applied on app restart (relaunch).
+// Note: VERA ships desktop-only (macOS/Windows/Linux CI matrix), so the
+// updater is wired unconditionally — on any other platform check() simply
+// reports no update at runtime.
+pub mod app_updates {
+    use std::sync::Mutex;
+    use serde::Serialize;
+    use tauri::{ipc::Channel, AppHandle, State};
+    use tauri_plugin_updater::{Update, UpdaterExt};
+
+    fn channel_url(channel: &str) -> String {
+        let channel = match channel {
+            "beta" => "beta",
+            _ => "stable",
+        };
+        format!("https://lexsort.com/api/freeware-{channel}-latest.json")
+    }
+
+    #[derive(Debug, thiserror::Error)]
+    pub enum Error {
+        #[error(transparent)]
+        Updater(#[from] tauri_plugin_updater::Error),
+        #[error("invalid update URL: {0}")]
+        InvalidUrl(String),
+        #[error("there is no pending update")]
+        NoPendingUpdate,
+    }
+
+    impl Serialize for Error {
+        fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+        where
+            S: serde::Serializer,
+        {
+            serializer.serialize_str(self.to_string().as_str())
+        }
+    }
+
+    type Result<T> = std::result::Result<T, Error>;
+
+    #[derive(Clone, Serialize)]
+    #[serde(tag = "event", content = "data")]
+    pub enum DownloadEvent {
+        #[serde(rename_all = "camelCase")]
+        Started { content_length: Option<u64> },
+        #[serde(rename_all = "camelCase")]
+        Progress { chunk_length: usize },
+        Finished,
+    }
+
+    #[derive(Serialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct UpdateMetadata {
+        version: String,
+        current_version: String,
+        body: Option<String>,
+        date: Option<String>,
+        channel: String,
+        is_beta: bool,
+    }
+
+    pub struct PendingUpdate(pub Mutex<Option<Update>>);
+
+    #[tauri::command]
+    pub async fn fetch_update(
+        app: AppHandle,
+        channel: String,
+        pending_update: State<'_, PendingUpdate>,
+    ) -> Result<Option<UpdateMetadata>> {
+        let channel_norm = if channel == "beta" { "beta" } else { "stable" }.to_string();
+        let url: url::Url = channel_url(&channel_norm)
+            .parse()
+            .map_err(|e: url::ParseError| Error::InvalidUrl(e.to_string()))?;
+        let update = app
+            .updater_builder()
+            .endpoints(vec![url])?
+            .build()?
+            .check()
+            .await?;
+        let meta = update.as_ref().map(|update| UpdateMetadata {
+            version: update.version.clone(),
+            current_version: update.current_version.clone(),
+            body: update.body.clone(),
+            date: update.date.map(|d| d.to_string()),
+            channel: channel_norm.clone(),
+            is_beta: channel_norm == "beta",
+        });
+        *pending_update.0.lock().unwrap() = update;
+        Ok(meta)
+    }
+
+    #[tauri::command]
+    pub async fn install_update(
+        pending_update: State<'_, PendingUpdate>,
+        on_event: Channel<DownloadEvent>,
+    ) -> Result<()> {
+        let Some(update) = pending_update.0.lock().unwrap().take() else {
+            return Err(Error::NoPendingUpdate);
+        };
+        let mut started = false;
+        update
+            .download_and_install(
+                |chunk_length, content_length| {
+                    if !started {
+                        let _ = on_event.send(DownloadEvent::Started { content_length });
+                        started = true;
+                    }
+                    let _ = on_event.send(DownloadEvent::Progress { chunk_length });
+                },
+                || {
+                    let _ = on_event.send(DownloadEvent::Finished);
+                },
+            )
+            .await?;
+        Ok(())
+    }
+}
+
 #[cfg(target_os = "macos")]
 fn cleanup_unused_mounted_dmg_volumes() {
     // 1. Get current exe path
@@ -3051,10 +3173,13 @@ pub fn run() {
     tauri::Builder::default()
         .manage(ServerProcess(Mutex::new(None)))
         .manage(team_lab::commands::LabState::default())
+        .manage(app_updates::PendingUpdate(Mutex::new(None)))
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_process::init())
         .setup(|app| {
+            let _ = app.handle().plugin(tauri_plugin_updater::Builder::new().build());
             let handle = app.handle().clone();
             tauri::async_runtime::spawn(async move {
                 scheduler::run_scheduler(handle).await;
@@ -3128,6 +3253,8 @@ pub fn run() {
             commands::factory_reset,
             commands::exit_app,
             commands::is_running_from_dmg,
+            app_updates::fetch_update,
+            app_updates::install_update,
             team_lab::commands::lab_get_status,
             team_lab::commands::lab_get_config,
             team_lab::commands::lab_save_config,
