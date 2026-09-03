@@ -44,6 +44,19 @@
 <script>
 const SEED_ENTRIES = [
   {
+    id: 1788494460000,
+    date: "2026-09-03",
+    hours: 2.0,
+    start_time: "08:41",
+    end_time: "10:41",
+    area: "Software Development",
+    outcome: "success",
+    agent: "OpenCode",
+    problem: "VERA had no working update distribution: the custom fallback downloader pointed at a retired GitHub org with stale bundle filenames (every download 404), the update manifest parser required a modules map the live manifest never sends (every check failed before version compare), no Tauri updater plugin was wired so Mac installs ended in a manual DMG drag, and the two build machines had no secure channel to exchange the signing key — while Windows and Mac builds for Freeware 1.3.0 / Pro 1.0.13 had to ship in lockstep without CI.",
+    uncertainty: "It was not known in advance whether Tauri v2.11's new single-line encrypted signing-key format would verify against the older minisign-text public keys embedded in tauri.conf.json, or whether a key transmitted PowerShell-to-Mac (CRLF line endings, base64-wrapped) would survive byte-identical; whether per-arch updater tarballs could be served from a static CDN given tauri emits one shared tarball filename per build; and whether a PowerShell-authored UTF-8 webpage could be repaired byte-faithfully after cp1252 mojibake corruption without reconstructing it by hand.",
+    work: "Verified ThinkCentre's silent-updater branches on macOS (npx tsc --noEmit + cargo check + npm run build clean, both apps) and merged them to both mains. Established an age-encrypted machine channel (handoffs/SECURE-CHANNEL.md, M1 keypair generated, hello handshake both directions, updater key received, ciphertext shredded per protocol). Built a scratch verifier reusing minisign-verify 0.2.5 — the exact updater-client code path — proving the shared keypair MATCHES both embedded pubkeys (6 verifications incl. production artifacts). Diagnosed and normalized CRLF/base64 transfer corruption and a CLI gotcha (signer sign takes key content, not a path). Repaired the legacy fallback (get_installer_info in both lib.rs: LexSort-Inc URLs, verified bundle names, %20 encoding; RemoteManifest.modules optional). Bumped Freeware 1.3.0 / Pro 1.0.13 (fixing Pro package.json/Cargo.toml drift from 1.0.5). Produced 6 signed Mac builds (.dmg + .app.tar.gz + .sig, ARM+Intel both editions), hosted them plus updater tarballs on lexsort.com/downloads, filled both beta feeds with real signatures, deployed twice via Netlify CLI, curl-verified all URLs 200 byte-exact. Repaired cp1252-mojibake corruption of website/download.html (byte-faithful roundtrip, node --check clean), removed Linux from the beta lane with null-safe guards, recorded internal-build-only policy in AGENTS.md. Reviewed and merged the tester-allowlist feature (all 6 design conditions met, node --check re-verified). Backed up both repos as verified git bundles (refs/stash included) plus keys, SR&ED records, and launchers to lexsort-central/m1/2026-09-03 with 48/48 SHA-256 checksums passing.",
+  },
+  {
     id: 1786587200000,
     date: "2026-08-12",
     hours: 3.0,

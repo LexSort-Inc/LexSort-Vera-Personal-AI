@@ -1,0 +1,15 @@
+869634a feat: beta auto-update live for Mac — tarballs hosted, feeds filled, publishing guide fixed
+f156982 chore: cross-machine text policy — UTF-8 LF enforced, secrets/binaries exempt
+bebda2b Merge tester allowlist: Discord key issuance without subscription (M1 reviewed)
+16c7aeb feat: Mac installers live on site — 1.3.0 Freeware + 1.0.13 Pro DMGs, beta lane Mac-only
+ece4e7a feat: tester allowlist for Discord key issuance (no subscription needed)
+0cdfb55 fix(mac): remove Linux from Tester Beta lane — Mac + Windows only per founder
+76daf0a fix(mac): repair UTF-8 mojibake + real Mac beta dmg names at 1.0.13
+2b2537f feat: tester-beta lane on download page (?tier=beta)
+65fa217 docs: internal-build-only policy — no CI releases, M1 builds Mac, ThinkCentre builds Windows
+bc48262 chore: bump Freeware to v1.3.0 (silent updater release)
+59c9113 fix(mac): legacy fallback updater — LexSort-Inc URLs, real bundle filenames, optional modules field
+5700ecb feat: silent restart-to-apply updater with stable/beta channels
+363bf81 feat(website): publish private pilot portal and macOS installer on /pilot
+ac0de74 chore: simplify navigation and download tier switch for Freeware website
+95892ec docs: v1.2.0 release sweep — AGENTS, handoff, launch plan, marketing, build guide, freeware.html to 1.2.0

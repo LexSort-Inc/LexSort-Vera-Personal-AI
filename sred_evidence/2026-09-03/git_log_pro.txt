@@ -1,0 +1,12 @@
+eefc96f mailbox: board index -16
+563d0a2 mailbox: -16 Windows build-to-live runbook for thinkcentre
+2e07629 mailbox: board index -15
+0774a58 mailbox: -15 beta auto-update live for Mac
+7ed43d5 mailbox: -14 allowlist approval + .gitattributes (both repos get own commit)
+7d0c3d5 Merge ThinkCentre board backfill + Windows-done answers
+934e1e4 mailbox: m1 Mac builds live on lexsort.com, Windows ask restated
+72c741a docs: board backfill statuses + windows-done answers (all four M1 questions)
+703a67f Merge branch 'main' of https://github.com/LexSort-Inc/Lexsort-Vera-Pro
+aaca5e2 docs: message board protocol + backfill index + build/allowlist/auth questions for M1
+f48229b mailbox: m1 asks thinkcentre for Windows build status (no trace found)
+fb50f31 mailbox: m1 removed Linux from Tester Beta lane, stable-lane call open
