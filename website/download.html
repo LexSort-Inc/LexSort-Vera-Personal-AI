@@ -196,6 +196,11 @@
       box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);
     }
 
+    .switch-btn.active.beta-active {
+      background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%);
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+    }
+
     /* Detected OS Action Panel */
     .detected-panel {
       background: var(--surface-glass);
@@ -503,7 +508,7 @@
 </head>
 <body>
 
-  <!-- ── CORPORATE NAV BAR ────────────────────────────────────────────── -->
+  <!-- â”€â”€ CORPORATE NAV BAR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
   <div style="background:#080a0c;border-bottom:1px solid #21262d;padding:10px 24px;display:flex;align-items:center;justify-content:space-between;font-size:13px;">
     <a href="index.html" style="display:flex;align-items:center;gap:8px;text-decoration:none;color:#7d8590;">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
@@ -511,7 +516,7 @@
     </a>
     <div style="display:flex;align-items:center;gap:6px;color:#7d8590;">
       <a href="vera.html" style="color:#7d8590;text-decoration:none;font-weight:600;">VERA</a>
-      <span style="color:#21262d;">·</span>
+      <span style="color:#21262d;">Â·</span>
       <span style="color:#e6edf3;font-weight:700;letter-spacing:.04em;">Download</span>
     </div>
   </div>
@@ -545,18 +550,27 @@
       <div style="text-align: center; margin-bottom: 40px;">
         <div class="tier-switcher">
           <button id="btn-switch-free" class="switch-btn active" onclick="switchTier('free')">VERA Freeware</button>
+          <button id="btn-switch-beta" class="switch-btn" onclick="switchTier('beta')">ðŸ§ª Tester Beta</button>
         </div>
+      </div>
+
+      <!-- Beta tester notice (visible in beta tier only) -->
+      <div id="beta-notice" style="display:none;max-width:720px;margin:0 auto 32px;padding:16px 20px;border:1px solid rgba(245,158,11,.45);border-radius:12px;background:rgba(245,158,11,.07);font-size:14px;line-height:1.55;">
+        <strong style="color:#fbbf24;">ðŸ§ª Tester build.</strong>
+        One installer covers <strong>Pro + Freeware</strong> (flip tiers in the sidebar, no reinstall).
+        Get your key in Discord (<strong>/mykey</strong>), or continue key-free in Freeware mode.
+        Builds self-update from the beta channel â€” report differences between tiers in Discord.
       </div>
 
       <!-- Dynamic OS Panel -->
       <div id="detected-panel" class="detected-panel">
-        <div class="detected-os-badge" id="detected-os-badge">🍏 macOS (Apple Silicon) Detected</div>
+        <div class="detected-os-badge" id="detected-os-badge">ðŸ macOS (Apple Silicon) Detected</div>
         <h2 id="detected-title">Download LexSort VERA for Mac</h2>
         <p id="detected-desc">Optimized for Apple Silicon processors. Fully self-contained local workspace installer.</p>
         <a href="#" id="detected-download-btn" class="main-download-btn">
-          ⬇ Download LexSort VERA
+          â¬‡ Download LexSort VERA
         </a>
-        <div class="detected-subtext" id="detected-subtext">Version 1.2.0 (LexSort Vera Freeware) · Open-source local AI core</div>
+        <div class="detected-subtext" id="detected-subtext">Version 1.2.0 (LexSort Vera Freeware) Â· Open-source local AI core</div>
       </div>
 
     </div>
@@ -570,14 +584,14 @@
       <!-- macOS Apple Silicon -->
       <div class="platform-card" id="card-mac-silicon">
         <div class="platform-info">
-          <div class="platform-name">🍏 macOS (Apple Silicon)</div>
+          <div class="platform-name">ðŸ macOS (Apple Silicon)</div>
           <div class="platform-desc">For Apple M1, M2, M3, M4 systems. Auto-detects Unified Memory.</div>
-          <span class="verification-badge">✓ Tested & working (Developer specs)</span>
+          <span class="verification-badge">âœ“ Tested & working (Developer specs)</span>
         </div>
         <div class="download-links">
           <a href="#" id="link-mac-silicon" class="download-link">
             <span id="label-mac-silicon">LexSort Vera macOS Apple Silicon</span>
-            <span class="ext">.dmg (Apple Silicon)</span>
+            <span class="ext" id="ext-mac-silicon">.dmg (Apple Silicon)</span>
           </a>
         </div>
       </div>
@@ -585,14 +599,14 @@
       <!-- macOS Intel -->
       <div class="platform-card" id="card-mac-intel">
         <div class="platform-info">
-          <div class="platform-name">🖥️ macOS (Intel)</div>
+          <div class="platform-name">ðŸ–¥ï¸ macOS (Intel)</div>
           <div class="platform-desc">For older Intel-based Macs. Requires 8GB+ System RAM.</div>
-          <span class="verification-badge">✓ Compiled binary available</span>
+          <span class="verification-badge">âœ“ Compiled binary available</span>
         </div>
         <div class="download-links">
           <a href="#" id="link-mac-intel" class="download-link">
             <span id="label-mac-intel">LexSort Vera macOS Intel</span>
-            <span class="ext">.dmg (Intel)</span>
+            <span class="ext" id="ext-mac-intel">.dmg (Intel)</span>
           </a>
         </div>
       </div>
@@ -600,14 +614,14 @@
       <!-- Windows -->
       <div class="platform-card" id="card-windows">
         <div class="platform-info">
-          <div class="platform-name">🪟 Windows 10 / 11</div>
+          <div class="platform-name">ðŸªŸ Windows 10 / 11</div>
           <div class="platform-desc">For 64-bit Windows workstations. Supports Ollama backend integration.</div>
-          <span class="verification-badge">✓ Built & tested</span>
+          <span class="verification-badge">âœ“ Built & tested</span>
         </div>
         <div class="download-links">
           <a href="#" id="link-windows" class="download-link">
             <span id="label-windows">LexSort Vera Windows Installer</span>
-            <span class="ext">.msi (Windows Installer)</span>
+            <span class="ext" id="ext-windows">.msi (Windows Installer)</span>
           </a>
         </div>
       </div>
@@ -615,18 +629,18 @@
       <!-- Linux -->
       <div class="platform-card" id="card-linux">
         <div class="platform-info">
-          <div class="platform-name">🐧 Linux (Ubuntu/Debian)</div>
+          <div class="platform-name">ðŸ§ Linux (Ubuntu/Debian)</div>
           <div class="platform-desc">For 64-bit Linux environments. Tested on Ubuntu 22.04 LTS.</div>
-          <span class="verification-badge">✓ Compiled binaries</span>
+          <span class="verification-badge">âœ“ Compiled binaries</span>
         </div>
         <div class="download-links">
           <a href="#" id="link-linux-deb" class="download-link" style="margin-bottom: 8px;">
             <span id="label-linux-deb">LexSort Vera Linux Package</span>
-            <span class="ext">.deb</span>
+            <span class="ext" id="ext-linux-deb">.deb</span>
           </a>
           <a href="#" id="link-linux-appimage" class="download-link">
             <span id="label-linux-appimage">LexSort Vera Linux AppImage</span>
-            <span class="ext">.AppImage</span>
+            <span class="ext" id="ext-linux-appimage">.AppImage</span>
           </a>
         </div>
       </div>
@@ -640,29 +654,29 @@
     <div class="guide-grid">
       <!-- Mac -->
       <div class="guide-card">
-        <h3>🍏 macOS Setup</h3>
+        <h3>ðŸ macOS Setup</h3>
         <ol>
           <li>LexSort VERA is signed and notarized by Apple.</li>
-          <li>Simply open the DMG, drag to <strong>Applications</strong>, and launch normally — click <strong>Open</strong> on the standard macOS first-launch prompt.</li>
+          <li>Simply open the DMG, drag to <strong>Applications</strong>, and launch normally â€” click <strong>Open</strong> on the standard macOS first-launch prompt.</li>
         </ol>
       </div>
 
       <!-- Windows -->
       <div class="guide-card">
-        <h3>🪟 Windows Setup</h3>
+        <h3>ðŸªŸ Windows Setup</h3>
         <ol>
           <li>Download the installer, extract, and run the <strong>.exe</strong> or <strong>.msi</strong>.</li>
-          <li>If Windows SmartScreen appears, select <strong>More Info</strong> and click <strong>Run Anyway</strong> — this is normal for new applications not yet in Microsoft's signing database.</li>
+          <li>If Windows SmartScreen appears, select <strong>More Info</strong> and click <strong>Run Anyway</strong> â€” this is normal for new applications not yet in Microsoft's signing database.</li>
         </ol>
       </div>
 
       <!-- Linux -->
       <div class="guide-card">
-        <h3>🐧 Linux Setup</h3>
+        <h3>ðŸ§ Linux Setup</h3>
         <ol>
           <li>For Debian/Ubuntu, download the <strong>.deb</strong> and install via: <code id="linux-install-cmd">sudo dpkg -i LexSort.VERA_1.2.0_amd64.deb</code>.</li>
           <li>Alternatively use the <strong>.AppImage</strong>: <code>chmod +x *.AppImage</code> then run directly.</li>
-          <li>Linux support is community-tested — if you hit any issues use the <strong>Help & Support</strong> tab inside the app to send a bug report.</li>
+          <li>Linux support is community-tested â€” if you hit any issues use the <strong>Help & Support</strong> tab inside the app to send a bug report.</li>
         </ol>
       </div>
     </div>
@@ -684,11 +698,17 @@
   <!-- Footer -->
   <footer>
     <div class="container">
-      <p>&copy; 2026 LexSort Inc. All rights reserved. &nbsp;·&nbsp; Total Privacy. Sovereign Local-First AI.</p>
+      <p>&copy; 2026 LexSort Inc. All rights reserved. &nbsp;Â·&nbsp; Total Privacy. Sovereign Local-First AI.</p>
     </div>
   </footer>
 
   <script>
+    // â”€â”€ Tester-beta track â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // Internal-build-only policy: founder uploads locally-signed builds to
+    // this prerelease (web UI), then deploys the site. No CI involved.
+    // WHEN BUMPING VERSIONS: update tag + filenames here AND website/api/*.
+    const BETA_TAG_PRO = "v1.0.12-beta.1";
+    const BETA_BASE_PRO = "https://github.com/LexSort-Inc/Lexsort-Vera-Pro/releases/download/" + BETA_TAG_PRO;
     // Global State for active tier
     let currentTier = "free";
     let detectedRecommendation = "";
@@ -712,7 +732,7 @@
           'linux-appimage': "LexSort Vera Linux AppImage"
         },
         linuxCmd: "sudo dpkg -i LexSort.VERA_1.2.0_amd64.deb",
-        subtext: "Version 1.2.0 (LexSort Vera Freeware) · Open-source local AI core"
+        subtext: "Version 1.2.0 (LexSort Vera Freeware) Â· Open-source local AI core"
       },
       pro: {
         title: "LexSort VERA Pro",
@@ -732,7 +752,36 @@
           'linux-appimage': "LexSort VERA Pro Linux AppImage"
         },
         linuxCmd: "sudo dpkg -i LexSort.VERA.Pro_1.0.12_amd64.deb",
-        subtext: "Version 1.0.12 (LexSort VERA Pro) · Offline local activation"
+        subtext: "Version 1.0.12 (LexSort VERA Pro) Â· Offline local activation"
+      },
+      beta: {
+        title: "LexSort VERA Pro â€” Tester Beta",
+        subtitle: "One installer, both tiers. Flip Pro â‡„ Freeware in the sidebar â€” no reinstall, self-updates from beta.",
+        links: {
+          // Windows: NSIS setup (friendliest for testers). Filenames must match
+          // the uploaded release assets byte-for-byte (spaces are fine).
+          'mac-silicon': BETA_BASE_PRO + "/LexSort.VERA.Pro_1.0.12_aarch64.dmg",
+          'mac-intel': BETA_BASE_PRO + "/LexSort.VERA.Pro_1.0.12_x64.dmg",
+          'windows': BETA_BASE_PRO + "/LexSort VERA Pro_1.0.12_x64-setup.exe",
+          'linux-deb': BETA_BASE_PRO + "/LexSort.VERA.Pro_1.0.12_amd64.deb",
+          'linux-appimage': BETA_BASE_PRO + "/LexSort.VERA.Pro_1.0.12_amd64.AppImage"
+        },
+        labels: {
+          'mac-silicon': "VERA Pro Tester Beta (Apple Silicon)",
+          'mac-intel': "VERA Pro Tester Beta (Intel)",
+          'windows': "VERA Pro Tester Beta (Windows Setup)",
+          'linux-deb': "VERA Pro Tester Beta (.deb)",
+          'linux-appimage': "VERA Pro Tester Beta (AppImage)"
+        },
+        exts: {
+          'mac-silicon': ".dmg (Apple Silicon Â· Beta)",
+          'mac-intel': ".dmg (Intel Â· Beta)",
+          'windows': ".exe (Windows Setup Â· Beta)",
+          'linux-deb': ".deb (Beta)",
+          'linux-appimage': ".AppImage (Beta)"
+        },
+        linuxCmd: "sudo dpkg -i LexSort.VERA.Pro_1.0.12_amd64.deb",
+        subtext: "Tester Beta " + BETA_TAG_PRO + " Â· key via Discord /mykey Â· self-updates, never reinstall"
       }
     };
 
@@ -758,21 +807,21 @@
         proBadge.style.display = 'none';
       }
 
-      // Update switcher buttons classes
-      const btnFree = document.getElementById('btn-switch-free');
-      const btnPro = document.getElementById('btn-switch-pro');
+      // Update switcher buttons classes (null-safe: tiers may be absent)
+      const TIER_ACCENT = { free: "var(--border)", pro: "#a855f7", beta: "#f59e0b" };
+      ["free", "pro", "beta"].forEach((t) => {
+        const b = document.getElementById("btn-switch-" + t);
+        if (!b) return;
+        b.classList.toggle("active", t === tier);
+        b.classList.toggle("pro-active", t === "pro" && t === tier);
+        b.classList.toggle("beta-active", t === "beta" && t === tier);
+      });
       const switchContainer = document.querySelector('.tier-switcher');
-      if (tier === 'pro') {
-        btnFree.classList.remove('active');
-        btnPro.classList.add('active');
-        btnPro.classList.add('pro-active');
-        switchContainer.style.borderColor = "#a855f7";
-      } else {
-        btnPro.classList.remove('active');
-        btnPro.classList.remove('pro-active');
-        btnFree.classList.add('active');
-        switchContainer.style.borderColor = "var(--border)";
-      }
+      if (switchContainer) switchContainer.style.borderColor = TIER_ACCENT[tier] || TIER_ACCENT.free;
+
+      // Beta tester notice visibility
+      const betaNotice = document.getElementById('beta-notice');
+      if (betaNotice) betaNotice.style.display = tier === "beta" ? "block" : "none";
 
       // Update matrix card links and text
       document.getElementById('link-mac-silicon').href = data.links['mac-silicon'];
@@ -789,6 +838,12 @@
       
       document.getElementById('link-linux-appimage').href = data.links['linux-appimage'];
       document.getElementById('label-linux-appimage').innerText = data.labels['linux-appimage'];
+
+      // Update format badges (beta shows .exe tester labels, etc.)
+      ["mac-silicon", "mac-intel", "windows", "linux-deb", "linux-appimage"].forEach((k) => {
+        const el = document.getElementById("ext-" + k);
+        if (el && data.exts && data.exts[k]) el.innerText = data.exts[k];
+      });
 
       // Update Linux installation instruction code
       document.getElementById('linux-install-cmd').innerText = data.linuxCmd;
@@ -860,7 +915,7 @@
       const recLinkKey = recommendation === "linux" ? "linux-appimage" : recommendation;
       
       btn.href = data.links[recLinkKey];
-      btn.innerText = `⬇ Download ${data.labels[recLinkKey]}`;
+      btn.innerText = `â¬‡ Download ${data.labels[recLinkKey]}`;
       subtext.innerText = data.subtext;
 
       // Update button theme color depending on tier
@@ -870,6 +925,12 @@
         badge.style.color = "#c084fc";
         badge.style.background = "rgba(168, 85, 247, 0.15)";
         badge.style.borderColor = "rgba(168, 85, 247, 0.3)";
+      } else if (currentTier === "beta") {
+        btn.style.background = "linear-gradient(135deg, #f59e0b 0%, #b45309 100%)";
+        btn.style.boxShadow = "0 4px 24px rgba(245, 158, 11, 0.4)";
+        badge.style.color = "#fbbf24";
+        badge.style.background = "rgba(245, 158, 11, 0.15)";
+        badge.style.borderColor = "rgba(245, 158, 11, 0.3)";
       } else {
         btn.style.background = "var(--accent-gradient)";
         btn.style.boxShadow = "0 4px 24px rgba(37, 99, 235, 0.4)";
@@ -879,22 +940,22 @@
       }
 
       if (recommendation === "mac-silicon") {
-        badge.innerHTML = "🍏 macOS (Apple Silicon) Detected";
+        badge.innerHTML = "ðŸ macOS (Apple Silicon) Detected";
         title.innerText = `Download ${data.labels['mac-silicon']} for Mac`;
         desc.innerText = "Optimized for Apple M1, M2, M3, M4 systems. Fully self-contained local workspace installer.";
         highlightCard('card-mac-silicon');
       } else if (recommendation === "mac-intel") {
-        badge.innerHTML = "🖥️ macOS (Intel Core) Detected";
+        badge.innerHTML = "ðŸ–¥ï¸ macOS (Intel Core) Detected";
         title.innerText = `Download ${data.labels['mac-intel']} for Mac`;
         desc.innerText = "Optimized for older Intel-based Macs. Requires macOS 13 Ventura or newer.";
         highlightCard('card-mac-intel');
       } else if (recommendation === "windows") {
-        badge.innerHTML = "🪟 Windows (x64) Detected";
+        badge.innerHTML = "ðŸªŸ Windows (x64) Detected";
         title.innerText = `Download ${data.labels['windows']}`;
         desc.innerText = "Optimized for 64-bit Windows 10 and 11 workstations.";
         highlightCard('card-windows');
       } else if (recommendation === "linux") {
-        badge.innerHTML = "🐧 Linux (x86_64) Detected";
+        badge.innerHTML = "ðŸ§ Linux (x86_64) Detected";
         title.innerText = `Download ${data.labels['linux-deb']}`;
         desc.innerText = "Compatible with Ubuntu, Debian, Fedora, and major Linux distributions.";
         highlightCard('card-linux');
@@ -905,9 +966,10 @@
 
     function highlightCard(cardId) {
       const card = document.getElementById(cardId);
+      const accent = currentTier === "pro" ? ["#a855f7", "168, 85, 247"] : currentTier === "beta" ? ["#f59e0b", "245, 158, 11"] : ["#3b82f6", "59, 130, 246"];
       if (card) {
-        card.style.borderColor = currentTier === "pro" ? "#a855f7" : "#3b82f6";
-        card.style.boxShadow = currentTier === "pro" ? "0 0 20px rgba(168, 85, 247, 0.2)" : "0 0 20px rgba(59, 130, 246, 0.2)";
+        card.style.borderColor = accent[0];
+        card.style.boxShadow = "0 0 20px rgba(" + accent[1] + ", 0.2)";
         card.style.transform = "scale(1.02)";
       }
     }
@@ -915,9 +977,11 @@
     window.onload = () => {
       // Check query parameter to select default tier
       const urlParams = new URLSearchParams(window.location.search);
-      const isProParam = urlParams.get('pro') === 'true' || urlParams.get('pro') === '1' || urlParams.get('tier') === 'pro';
+      const tierParam = (urlParams.get('tier') || "").toLowerCase();
+      const isProParam = urlParams.get('pro') === 'true' || urlParams.get('pro') === '1' || tierParam === 'pro';
+      const isBetaParam = tierParam === 'beta';
       
-      switchTier(isProParam ? 'pro' : 'free');
+      switchTier(isBetaParam ? 'beta' : isProParam ? 'pro' : 'free');
       
       // Instantly run hardware/OS check on load (without simulated text animation)
       const clientInfo = detectPlatform();
