@@ -671,7 +671,7 @@
       </div>
 
       <!-- Linux -->
-      <div class="guide-card">
+      <div class="guide-card" id="guide-linux">
         <h3>🐧 Linux Setup</h3>
         <ol>
           <li>For Debian/Ubuntu, download the <strong>.deb</strong> and install via: <code id="linux-install-cmd">sudo dpkg -i LexSort.VERA_1.2.0_amd64.deb</code>.</li>
@@ -763,30 +763,23 @@
           // Mac .dmg names verified against real signed local builds
           // (productName "LexSort VERA Pro", spaces, arch aarch64/x64).
           // Version/tag follow the tree (1.0.13) — founder call if beta
-          // should ship different labels. Linux payloads have no builder
-          // (internal-build policy: ThinkCentre=Windows, M1=Mac) — those
-          // links stay dead until Linux gets an owner or is hidden.
+          // should ship different labels.
+          // No Linux in beta (founder directive: Mac + Windows only, no
+          // Linux builder under internal-build policy).
           'mac-silicon': BETA_BASE_PRO + "/LexSort VERA Pro_1.0.13_aarch64.dmg",
           'mac-intel': BETA_BASE_PRO + "/LexSort VERA Pro_1.0.13_x64.dmg",
-          'windows': BETA_BASE_PRO + "/LexSort VERA Pro_1.0.13_x64-setup.exe",
-          'linux-deb': BETA_BASE_PRO + "/LexSort.VERA.Pro_1.0.13_amd64.deb",
-          'linux-appimage': BETA_BASE_PRO + "/LexSort.VERA.Pro_1.0.13_amd64.AppImage"
+          'windows': BETA_BASE_PRO + "/LexSort VERA Pro_1.0.13_x64-setup.exe"
         },
         labels: {
           'mac-silicon': "VERA Pro Tester Beta (Apple Silicon)",
           'mac-intel': "VERA Pro Tester Beta (Intel)",
-          'windows': "VERA Pro Tester Beta (Windows Setup)",
-          'linux-deb': "VERA Pro Tester Beta (.deb)",
-          'linux-appimage': "VERA Pro Tester Beta (AppImage)"
+          'windows': "VERA Pro Tester Beta (Windows Setup)"
         },
         exts: {
           'mac-silicon': ".dmg (Apple Silicon · Beta)",
           'mac-intel': ".dmg (Intel · Beta)",
-          'windows': ".exe (Windows Setup · Beta)",
-          'linux-deb': ".deb (Beta)",
-          'linux-appimage': ".AppImage (Beta)"
+          'windows': ".exe (Windows Setup · Beta)"
         },
-        linuxCmd: "sudo dpkg -i LexSort.VERA.Pro_1.0.13_amd64.deb",
         subtext: "Tester Beta " + BETA_TAG_PRO + " · key via Discord /mykey · self-updates, never reinstall"
       }
     };
@@ -825,25 +818,23 @@
       const switchContainer = document.querySelector('.tier-switcher');
       if (switchContainer) switchContainer.style.borderColor = TIER_ACCENT[tier] || TIER_ACCENT.free;
 
-      // Beta tester notice visibility
+      // Beta tester notice visibility + Linux cards (no Linux payloads
+      // in beta — founder directive: Mac + Windows only)
       const betaNotice = document.getElementById('beta-notice');
       if (betaNotice) betaNotice.style.display = tier === "beta" ? "block" : "none";
+      const linuxCard = document.getElementById('card-linux');
+      if (linuxCard) linuxCard.style.display = tier === "beta" ? "none" : "";
+      const linuxGuide = document.getElementById('guide-linux');
+      if (linuxGuide) linuxGuide.style.display = tier === "beta" ? "none" : "";
 
-      // Update matrix card links and text
-      document.getElementById('link-mac-silicon').href = data.links['mac-silicon'];
-      document.getElementById('label-mac-silicon').innerText = data.labels['mac-silicon'];
-      
-      document.getElementById('link-mac-intel').href = data.links['mac-intel'];
-      document.getElementById('label-mac-intel').innerText = data.labels['mac-intel'];
-      
-      document.getElementById('link-windows').href = data.links['windows'];
-      document.getElementById('label-windows').innerText = data.labels['windows'];
-      
-      document.getElementById('link-linux-deb').href = data.links['linux-deb'];
-      document.getElementById('label-linux-deb').innerText = data.labels['linux-deb'];
-      
-      document.getElementById('link-linux-appimage').href = data.links['linux-appimage'];
-      document.getElementById('label-linux-appimage').innerText = data.labels['linux-appimage'];
+      // Update matrix card links and text. Guarded: tiers may omit
+      // platforms (beta ships Mac + Windows only — no Linux keys).
+      ["mac-silicon", "mac-intel", "windows", "linux-deb", "linux-appimage"].forEach((k) => {
+        const link = document.getElementById("link-" + k);
+        const label = document.getElementById("label-" + k);
+        if (link && data.links && data.links[k]) link.href = data.links[k];
+        if (label && data.labels && data.labels[k]) label.innerText = data.labels[k];
+      });
 
       // Update format badges (beta shows .exe tester labels, etc.)
       ["mac-silicon", "mac-intel", "windows", "linux-deb", "linux-appimage"].forEach((k) => {
@@ -851,8 +842,10 @@
         if (el && data.exts && data.exts[k]) el.innerText = data.exts[k];
       });
 
-      // Update Linux installation instruction code
-      document.getElementById('linux-install-cmd').innerText = data.linuxCmd;
+      // Update Linux installation instruction code (tiers without a
+      // linuxCmd — e.g. beta — leave the default text in place)
+      const linuxCmdEl = document.getElementById('linux-install-cmd');
+      if (linuxCmdEl && data.linuxCmd) linuxCmdEl.innerText = data.linuxCmd;
 
       // Reset hover effects for cards
       const cards = ['card-mac-silicon', 'card-mac-intel', 'card-windows', 'card-linux'];
@@ -920,8 +913,15 @@
       const data = downloadData[currentTier];
       const recLinkKey = recommendation === "linux" ? "linux-appimage" : recommendation;
       
-      btn.href = data.links[recLinkKey];
-      btn.innerText = `⬇ Download ${data.labels[recLinkKey]}`;
+      // Beta ships Mac + Windows only: hide the detected download button
+      // for Linux visitors in beta (no payload exists) instead of linking
+      // an undefined URL.
+      const recLink = data.links[recLinkKey];
+      if (btn) btn.style.display = recLink ? "" : "none";
+      if (recLink) {
+        btn.href = recLink;
+        btn.innerText = `⬇ Download ${data.labels[recLinkKey]}`;
+      }
       subtext.innerText = data.subtext;
 
       // Update button theme color depending on tier
@@ -962,8 +962,9 @@
         highlightCard('card-windows');
       } else if (recommendation === "linux") {
         badge.innerHTML = "🐧 Linux (x86_64) Detected";
-        title.innerText = `Download ${data.labels['linux-deb']}`;
-        desc.innerText = "Compatible with Ubuntu, Debian, Fedora, and major Linux distributions.";
+        const linuxLabel = data.labels['linux-deb'];
+        title.innerText = linuxLabel ? `Download ${linuxLabel}` : "Linux is not in the Tester Beta";
+        desc.innerText = linuxLabel ? "Compatible with Ubuntu, Debian, Fedora, and major Linux distributions." : "Tester Beta ships Mac + Windows only. Switch to the Freeware tier for Linux builds.";
         highlightCard('card-linux');
       }
 
