@@ -508,7 +508,7 @@
 </head>
 <body>
 
-  <!-- â”€â”€ CORPORATE NAV BAR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+  <!-- ── CORPORATE NAV BAR ────────────────────────────────────────────── -->
   <div style="background:#080a0c;border-bottom:1px solid #21262d;padding:10px 24px;display:flex;align-items:center;justify-content:space-between;font-size:13px;">
     <a href="index.html" style="display:flex;align-items:center;gap:8px;text-decoration:none;color:#7d8590;">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
@@ -516,7 +516,7 @@
     </a>
     <div style="display:flex;align-items:center;gap:6px;color:#7d8590;">
       <a href="vera.html" style="color:#7d8590;text-decoration:none;font-weight:600;">VERA</a>
-      <span style="color:#21262d;">Â·</span>
+      <span style="color:#21262d;">·</span>
       <span style="color:#e6edf3;font-weight:700;letter-spacing:.04em;">Download</span>
     </div>
   </div>
@@ -550,27 +550,27 @@
       <div style="text-align: center; margin-bottom: 40px;">
         <div class="tier-switcher">
           <button id="btn-switch-free" class="switch-btn active" onclick="switchTier('free')">VERA Freeware</button>
-          <button id="btn-switch-beta" class="switch-btn" onclick="switchTier('beta')">ðŸ§ª Tester Beta</button>
+          <button id="btn-switch-beta" class="switch-btn" onclick="switchTier('beta')">🧪 Tester Beta</button>
         </div>
       </div>
 
       <!-- Beta tester notice (visible in beta tier only) -->
       <div id="beta-notice" style="display:none;max-width:720px;margin:0 auto 32px;padding:16px 20px;border:1px solid rgba(245,158,11,.45);border-radius:12px;background:rgba(245,158,11,.07);font-size:14px;line-height:1.55;">
-        <strong style="color:#fbbf24;">ðŸ§ª Tester build.</strong>
+        <strong style="color:#fbbf24;">🧪 Tester build.</strong>
         One installer covers <strong>Pro + Freeware</strong> (flip tiers in the sidebar, no reinstall).
         Get your key in Discord (<strong>/mykey</strong>), or continue key-free in Freeware mode.
-        Builds self-update from the beta channel â€” report differences between tiers in Discord.
+        Builds self-update from the beta channel — report differences between tiers in Discord.
       </div>
 
       <!-- Dynamic OS Panel -->
       <div id="detected-panel" class="detected-panel">
-        <div class="detected-os-badge" id="detected-os-badge">ðŸ macOS (Apple Silicon) Detected</div>
+        <div class="detected-os-badge" id="detected-os-badge">🍏 macOS (Apple Silicon) Detected</div>
         <h2 id="detected-title">Download LexSort VERA for Mac</h2>
         <p id="detected-desc">Optimized for Apple Silicon processors. Fully self-contained local workspace installer.</p>
         <a href="#" id="detected-download-btn" class="main-download-btn">
-          â¬‡ Download LexSort VERA
+          ⬇ Download LexSort VERA
         </a>
-        <div class="detected-subtext" id="detected-subtext">Version 1.2.0 (LexSort Vera Freeware) Â· Open-source local AI core</div>
+        <div class="detected-subtext" id="detected-subtext">Version 1.2.0 (LexSort Vera Freeware) · Open-source local AI core</div>
       </div>
 
     </div>
@@ -584,9 +584,9 @@
       <!-- macOS Apple Silicon -->
       <div class="platform-card" id="card-mac-silicon">
         <div class="platform-info">
-          <div class="platform-name">ðŸ macOS (Apple Silicon)</div>
+          <div class="platform-name">🍏 macOS (Apple Silicon)</div>
           <div class="platform-desc">For Apple M1, M2, M3, M4 systems. Auto-detects Unified Memory.</div>
-          <span class="verification-badge">âœ“ Tested & working (Developer specs)</span>
+          <span class="verification-badge">✓ Tested & working (Developer specs)</span>
         </div>
         <div class="download-links">
           <a href="#" id="link-mac-silicon" class="download-link">
@@ -599,9 +599,9 @@
       <!-- macOS Intel -->
       <div class="platform-card" id="card-mac-intel">
         <div class="platform-info">
-          <div class="platform-name">ðŸ–¥ï¸ macOS (Intel)</div>
+          <div class="platform-name">🖥️ macOS (Intel)</div>
           <div class="platform-desc">For older Intel-based Macs. Requires 8GB+ System RAM.</div>
-          <span class="verification-badge">âœ“ Compiled binary available</span>
+          <span class="verification-badge">✓ Compiled binary available</span>
         </div>
         <div class="download-links">
           <a href="#" id="link-mac-intel" class="download-link">
@@ -614,9 +614,9 @@
       <!-- Windows -->
       <div class="platform-card" id="card-windows">
         <div class="platform-info">
-          <div class="platform-name">ðŸªŸ Windows 10 / 11</div>
+          <div class="platform-name">🪟 Windows 10 / 11</div>
           <div class="platform-desc">For 64-bit Windows workstations. Supports Ollama backend integration.</div>
-          <span class="verification-badge">âœ“ Built & tested</span>
+          <span class="verification-badge">✓ Built & tested</span>
         </div>
         <div class="download-links">
           <a href="#" id="link-windows" class="download-link">
@@ -629,9 +629,9 @@
       <!-- Linux -->
       <div class="platform-card" id="card-linux">
         <div class="platform-info">
-          <div class="platform-name">ðŸ§ Linux (Ubuntu/Debian)</div>
+          <div class="platform-name">🐧 Linux (Ubuntu/Debian)</div>
           <div class="platform-desc">For 64-bit Linux environments. Tested on Ubuntu 22.04 LTS.</div>
-          <span class="verification-badge">âœ“ Compiled binaries</span>
+          <span class="verification-badge">✓ Compiled binaries</span>
         </div>
         <div class="download-links">
           <a href="#" id="link-linux-deb" class="download-link" style="margin-bottom: 8px;">
@@ -654,29 +654,29 @@
     <div class="guide-grid">
       <!-- Mac -->
       <div class="guide-card">
-        <h3>ðŸ macOS Setup</h3>
+        <h3>🍏 macOS Setup</h3>
         <ol>
           <li>LexSort VERA is signed and notarized by Apple.</li>
-          <li>Simply open the DMG, drag to <strong>Applications</strong>, and launch normally â€” click <strong>Open</strong> on the standard macOS first-launch prompt.</li>
+          <li>Simply open the DMG, drag to <strong>Applications</strong>, and launch normally — click <strong>Open</strong> on the standard macOS first-launch prompt.</li>
         </ol>
       </div>
 
       <!-- Windows -->
       <div class="guide-card">
-        <h3>ðŸªŸ Windows Setup</h3>
+        <h3>🪟 Windows Setup</h3>
         <ol>
           <li>Download the installer, extract, and run the <strong>.exe</strong> or <strong>.msi</strong>.</li>
-          <li>If Windows SmartScreen appears, select <strong>More Info</strong> and click <strong>Run Anyway</strong> â€” this is normal for new applications not yet in Microsoft's signing database.</li>
+          <li>If Windows SmartScreen appears, select <strong>More Info</strong> and click <strong>Run Anyway</strong> — this is normal for new applications not yet in Microsoft's signing database.</li>
         </ol>
       </div>
 
       <!-- Linux -->
       <div class="guide-card">
-        <h3>ðŸ§ Linux Setup</h3>
+        <h3>🐧 Linux Setup</h3>
         <ol>
           <li>For Debian/Ubuntu, download the <strong>.deb</strong> and install via: <code id="linux-install-cmd">sudo dpkg -i LexSort.VERA_1.2.0_amd64.deb</code>.</li>
           <li>Alternatively use the <strong>.AppImage</strong>: <code>chmod +x *.AppImage</code> then run directly.</li>
-          <li>Linux support is community-tested â€” if you hit any issues use the <strong>Help & Support</strong> tab inside the app to send a bug report.</li>
+          <li>Linux support is community-tested — if you hit any issues use the <strong>Help & Support</strong> tab inside the app to send a bug report.</li>
         </ol>
       </div>
     </div>
@@ -698,16 +698,16 @@
   <!-- Footer -->
   <footer>
     <div class="container">
-      <p>&copy; 2026 LexSort Inc. All rights reserved. &nbsp;Â·&nbsp; Total Privacy. Sovereign Local-First AI.</p>
+      <p>&copy; 2026 LexSort Inc. All rights reserved. &nbsp;·&nbsp; Total Privacy. Sovereign Local-First AI.</p>
     </div>
   </footer>
 
   <script>
-    // â”€â”€ Tester-beta track â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Tester-beta track ────────────────────────────────────────────────
     // Internal-build-only policy: founder uploads locally-signed builds to
     // this prerelease (web UI), then deploys the site. No CI involved.
     // WHEN BUMPING VERSIONS: update tag + filenames here AND website/api/*.
-    const BETA_TAG_PRO = "v1.0.12-beta.1";
+    const BETA_TAG_PRO = "v1.0.13-beta.1";
     const BETA_BASE_PRO = "https://github.com/LexSort-Inc/Lexsort-Vera-Pro/releases/download/" + BETA_TAG_PRO;
     // Global State for active tier
     let currentTier = "free";
@@ -732,7 +732,7 @@
           'linux-appimage': "LexSort Vera Linux AppImage"
         },
         linuxCmd: "sudo dpkg -i LexSort.VERA_1.2.0_amd64.deb",
-        subtext: "Version 1.2.0 (LexSort Vera Freeware) Â· Open-source local AI core"
+        subtext: "Version 1.2.0 (LexSort Vera Freeware) · Open-source local AI core"
       },
       pro: {
         title: "LexSort VERA Pro",
@@ -752,19 +752,25 @@
           'linux-appimage': "LexSort VERA Pro Linux AppImage"
         },
         linuxCmd: "sudo dpkg -i LexSort.VERA.Pro_1.0.12_amd64.deb",
-        subtext: "Version 1.0.12 (LexSort VERA Pro) Â· Offline local activation"
+        subtext: "Version 1.0.12 (LexSort VERA Pro) · Offline local activation"
       },
       beta: {
-        title: "LexSort VERA Pro â€” Tester Beta",
-        subtitle: "One installer, both tiers. Flip Pro â‡„ Freeware in the sidebar â€” no reinstall, self-updates from beta.",
+        title: "LexSort VERA Pro — Tester Beta",
+        subtitle: "One installer, both tiers. Flip Pro ⇄ Freeware in the sidebar — no reinstall, self-updates from beta.",
         links: {
           // Windows: NSIS setup (friendliest for testers). Filenames must match
           // the uploaded release assets byte-for-byte (spaces are fine).
-          'mac-silicon': BETA_BASE_PRO + "/LexSort.VERA.Pro_1.0.12_aarch64.dmg",
-          'mac-intel': BETA_BASE_PRO + "/LexSort.VERA.Pro_1.0.12_x64.dmg",
-          'windows': BETA_BASE_PRO + "/LexSort VERA Pro_1.0.12_x64-setup.exe",
-          'linux-deb': BETA_BASE_PRO + "/LexSort.VERA.Pro_1.0.12_amd64.deb",
-          'linux-appimage': BETA_BASE_PRO + "/LexSort.VERA.Pro_1.0.12_amd64.AppImage"
+          // Mac .dmg names verified against real signed local builds
+          // (productName "LexSort VERA Pro", spaces, arch aarch64/x64).
+          // Version/tag follow the tree (1.0.13) — founder call if beta
+          // should ship different labels. Linux payloads have no builder
+          // (internal-build policy: ThinkCentre=Windows, M1=Mac) — those
+          // links stay dead until Linux gets an owner or is hidden.
+          'mac-silicon': BETA_BASE_PRO + "/LexSort VERA Pro_1.0.13_aarch64.dmg",
+          'mac-intel': BETA_BASE_PRO + "/LexSort VERA Pro_1.0.13_x64.dmg",
+          'windows': BETA_BASE_PRO + "/LexSort VERA Pro_1.0.13_x64-setup.exe",
+          'linux-deb': BETA_BASE_PRO + "/LexSort.VERA.Pro_1.0.13_amd64.deb",
+          'linux-appimage': BETA_BASE_PRO + "/LexSort.VERA.Pro_1.0.13_amd64.AppImage"
         },
         labels: {
           'mac-silicon': "VERA Pro Tester Beta (Apple Silicon)",
@@ -774,14 +780,14 @@
           'linux-appimage': "VERA Pro Tester Beta (AppImage)"
         },
         exts: {
-          'mac-silicon': ".dmg (Apple Silicon Â· Beta)",
-          'mac-intel': ".dmg (Intel Â· Beta)",
-          'windows': ".exe (Windows Setup Â· Beta)",
+          'mac-silicon': ".dmg (Apple Silicon · Beta)",
+          'mac-intel': ".dmg (Intel · Beta)",
+          'windows': ".exe (Windows Setup · Beta)",
           'linux-deb': ".deb (Beta)",
           'linux-appimage': ".AppImage (Beta)"
         },
-        linuxCmd: "sudo dpkg -i LexSort.VERA.Pro_1.0.12_amd64.deb",
-        subtext: "Tester Beta " + BETA_TAG_PRO + " Â· key via Discord /mykey Â· self-updates, never reinstall"
+        linuxCmd: "sudo dpkg -i LexSort.VERA.Pro_1.0.13_amd64.deb",
+        subtext: "Tester Beta " + BETA_TAG_PRO + " · key via Discord /mykey · self-updates, never reinstall"
       }
     };
 
@@ -915,7 +921,7 @@
       const recLinkKey = recommendation === "linux" ? "linux-appimage" : recommendation;
       
       btn.href = data.links[recLinkKey];
-      btn.innerText = `â¬‡ Download ${data.labels[recLinkKey]}`;
+      btn.innerText = `⬇ Download ${data.labels[recLinkKey]}`;
       subtext.innerText = data.subtext;
 
       // Update button theme color depending on tier
@@ -940,22 +946,22 @@
       }
 
       if (recommendation === "mac-silicon") {
-        badge.innerHTML = "ðŸ macOS (Apple Silicon) Detected";
+        badge.innerHTML = "🍏 macOS (Apple Silicon) Detected";
         title.innerText = `Download ${data.labels['mac-silicon']} for Mac`;
         desc.innerText = "Optimized for Apple M1, M2, M3, M4 systems. Fully self-contained local workspace installer.";
         highlightCard('card-mac-silicon');
       } else if (recommendation === "mac-intel") {
-        badge.innerHTML = "ðŸ–¥ï¸ macOS (Intel Core) Detected";
+        badge.innerHTML = "🖥️ macOS (Intel Core) Detected";
         title.innerText = `Download ${data.labels['mac-intel']} for Mac`;
         desc.innerText = "Optimized for older Intel-based Macs. Requires macOS 13 Ventura or newer.";
         highlightCard('card-mac-intel');
       } else if (recommendation === "windows") {
-        badge.innerHTML = "ðŸªŸ Windows (x64) Detected";
+        badge.innerHTML = "🪟 Windows (x64) Detected";
         title.innerText = `Download ${data.labels['windows']}`;
         desc.innerText = "Optimized for 64-bit Windows 10 and 11 workstations.";
         highlightCard('card-windows');
       } else if (recommendation === "linux") {
-        badge.innerHTML = "ðŸ§ Linux (x86_64) Detected";
+        badge.innerHTML = "🐧 Linux (x86_64) Detected";
         title.innerText = `Download ${data.labels['linux-deb']}`;
         desc.innerText = "Compatible with Ubuntu, Debian, Fedora, and major Linux distributions.";
         highlightCard('card-linux');
