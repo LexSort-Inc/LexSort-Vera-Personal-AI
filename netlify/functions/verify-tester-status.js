@@ -2,10 +2,29 @@
 // Verifies whether a Discord user has an active VERA Pro subscription
 // Called by the Discord bot to check tester eligibility
 
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const crypto = require('crypto');
 
 const { generateLicenseKey } = require('./license-helper');
+
+// Lazy Stripe client: constructed only when the paid path runs, so this
+// function survives without STRIPE_SECRET_KEY (tester-allowlist path).
+function stripeClient() {
+  // eslint-disable-next-line global-require
+  const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+  return stripe;
+}
+
+// Founder-managed tester allowlist (comma-separated Discord user IDs).
+// Never hardcode IDs in git — set TESTER_ALLOWLIST in Netlify env.
+function testerAllowlist() {
+  const raw = process.env.TESTER_ALLOWLIST || '';
+  return raw.split(',').map((s) => s.trim()).filter(Boolean);
+}
+
+function botSharedSecret(event) {
+  const headers = event.headers || {};
+  return headers['x-vera-bot-secret'] || headers['X-Vera-Bot-Secret'] || null;
+}
 
 exports.handler = async (event, context) => {
   if (event.httpMethod !== 'GET' && event.httpMethod !== 'POST') {
@@ -29,7 +48,40 @@ exports.handler = async (event, context) => {
       };
     }
 
+    // ── Tester-allowlist path (checked FIRST, short-circuits Stripe) ──
+    // Free beta testers approved by the founder. Requires the shared bot
+    // secret header so random callers can't mint keys for allowlisted IDs.
+    if (testerAllowlist().includes(discordUserId)) {
+      const expected = process.env.BOT_SHARED_SECRET;
+      if (!expected || botSharedSecret(event) !== expected) {
+        console.warn(`Tester-allowlist hit for ${discordUserId} without valid bot secret — denied.`);
+        return {
+          statusCode: 403,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ discordUserId, isActive: false, isBetaTester: true, testerSource: 'allowlist', error: 'Bot authentication required.' }),
+        };
+      }
+      const expiresAt = Math.floor(Date.now() / 1000) + 90 * 24 * 60 * 60; // 90-day tester key
+      const testerKey = generateLicenseKey('pro', expiresAt);
+      return {
+        statusCode: 200,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          discordUserId,
+          isActive: true,
+          subscriptionId: null,
+          licenseKey: testerKey,
+          currentPeriodEnd: new Date(expiresAt * 1000).toISOString(),
+          isBetaTester: true,
+          testerSource: 'allowlist',
+          canceledAt: null,
+          cancelAt: null,
+        }),
+      };
+    }
+
     // Search Stripe subscriptions for this Discord user
+    const stripe = stripeClient();
     const subscriptions = await stripe.subscriptions.search({
       query: `metadata['discord_user_id']:'${discordUserId}'`,
       limit: 5,

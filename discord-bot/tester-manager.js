@@ -222,9 +222,16 @@ client.on('interactionCreate', async (interaction) => {
     await interaction.deferReply({ ephemeral: true });
 
     try {
-      // Verify active subscription first
+      // Verify active subscription first (tester allowlist also accepted;
+      // shared secret authenticates this bot to the function — Railway env
+      // BOT_SHARED_SECRET must match the Netlify function env of the same name).
+      const headers = {};
+      if (process.env.BOT_SHARED_SECRET) {
+        headers['x-vera-bot-secret'] = process.env.BOT_SHARED_SECRET;
+      }
       const response = await fetch(
-        `${NETLIFY_BASE_URL}/.netlify/functions/verify-tester-status?discord_user_id=${user.id}`
+        `${NETLIFY_BASE_URL}/.netlify/functions/verify-tester-status?discord_user_id=${user.id}`,
+        { headers }
       );
       const data = await response.json();
 
