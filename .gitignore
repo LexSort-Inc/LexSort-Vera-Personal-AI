@@ -4,6 +4,7 @@ dist/
 build/
 *.app
 *.dmg
+!website/downloads/*.dmg
 *.pkg
 *.exe
 *.msi

@@ -662,7 +662,7 @@
       </div>
 
       <!-- Windows -->
-      <div class="guide-card">
+      <div class="guide-card" id="guide-windows">
         <h3>🪟 Windows Setup</h3>
         <ol>
           <li>Download the installer, extract, and run the <strong>.exe</strong> or <strong>.msi</strong>.</li>
@@ -718,8 +718,8 @@
         title: "LexSort VERA Freeware",
         subtitle: "Secure, sovereign, local-first core. Choose the installer for your platform.",
         links: {
-          'mac-silicon': "https://github.com/LexSort-Inc/LexSort-Vera-Personal-AI/releases/download/v1.2.0/LexSort.VERA_1.2.0_aarch64.dmg",
-          'mac-intel': "https://github.com/LexSort-Inc/LexSort-Vera-Personal-AI/releases/download/v1.2.0/LexSort.VERA_1.2.0_x64.dmg",
+          'mac-silicon': "downloads/LexSort VERA_1.3.0_aarch64.dmg",
+          'mac-intel': "downloads/LexSort VERA_1.3.0_x64.dmg",
           'windows': "https://github.com/LexSort-Inc/LexSort-Vera-Personal-AI/releases/download/v1.2.0/LexSort.VERA_1.2.0_x64_en-US.msi",
           'linux-deb': "https://github.com/LexSort-Inc/LexSort-Vera-Personal-AI/releases/download/v1.2.0/LexSort.VERA_1.2.0_amd64.deb",
           'linux-appimage': "https://github.com/LexSort-Inc/LexSort-Vera-Personal-AI/releases/download/v1.2.0/LexSort.VERA_1.2.0_amd64.AppImage"
@@ -732,14 +732,14 @@
           'linux-appimage': "LexSort Vera Linux AppImage"
         },
         linuxCmd: "sudo dpkg -i LexSort.VERA_1.2.0_amd64.deb",
-        subtext: "Version 1.2.0 (LexSort Vera Freeware) · Open-source local AI core"
+        subtext: "Version 1.3.0 (LexSort Vera Freeware) · Open-source local AI core"
       },
       pro: {
         title: "LexSort VERA Pro",
         subtitle: "Secure, sovereign, local-first professional workspace. Choose the installer for your platform.",
         links: {
-          'mac-silicon': "https://github.com/LexSort-Inc/Lexsort-Vera-Pro/releases/download/v1.0.12/LexSort.VERA.Pro_1.0.12_aarch64.dmg",
-          'mac-intel': "https://github.com/LexSort-Inc/Lexsort-Vera-Pro/releases/download/v1.0.12/LexSort.VERA.Pro_1.0.12_x64.dmg",
+          'mac-silicon': "downloads/LexSort VERA Pro_1.0.13_aarch64.dmg",
+          'mac-intel': "downloads/LexSort VERA Pro_1.0.13_x64.dmg",
           'windows': "https://github.com/LexSort-Inc/Lexsort-Vera-Pro/releases/download/v1.0.12/LexSort.VERA.Pro_1.0.12_x64_en-US.msi",
           'linux-deb': "https://github.com/LexSort-Inc/Lexsort-Vera-Pro/releases/download/v1.0.12/LexSort.VERA.Pro_1.0.12_amd64.deb",
           'linux-appimage': "https://github.com/LexSort-Inc/Lexsort-Vera-Pro/releases/download/v1.0.12/LexSort.VERA.Pro_1.0.12_amd64.AppImage"
@@ -752,33 +752,27 @@
           'linux-appimage': "LexSort VERA Pro Linux AppImage"
         },
         linuxCmd: "sudo dpkg -i LexSort.VERA.Pro_1.0.12_amd64.deb",
-        subtext: "Version 1.0.12 (LexSort VERA Pro) · Offline local activation"
+        subtext: "Version 1.0.13 (LexSort VERA Pro) · Offline local activation"
       },
       beta: {
         title: "LexSort VERA Pro — Tester Beta",
         subtitle: "One installer, both tiers. Flip Pro ⇄ Freeware in the sidebar — no reinstall, self-updates from beta.",
         links: {
-          // Windows: NSIS setup (friendliest for testers). Filenames must match
-          // the uploaded release assets byte-for-byte (spaces are fine).
-          // Mac .dmg names verified against real signed local builds
-          // (productName "LexSort VERA Pro", spaces, arch aarch64/x64).
-          // Version/tag follow the tree (1.0.13) — founder call if beta
-          // should ship different labels.
-          // No Linux in beta (founder directive: Mac + Windows only, no
-          // Linux builder under internal-build policy).
-          'mac-silicon': BETA_BASE_PRO + "/LexSort VERA Pro_1.0.13_aarch64.dmg",
-          'mac-intel': BETA_BASE_PRO + "/LexSort VERA Pro_1.0.13_x64.dmg",
-          'windows': BETA_BASE_PRO + "/LexSort VERA Pro_1.0.13_x64-setup.exe"
+          // Mac .dmg files are hosted on this site (downloads/) — built
+          // locally on M1, Developer-ID signed. Windows card is hidden in
+          // beta until the ThinkCentre build lands; restore the 'windows'
+          // key + card toggle below at that point (expected name:
+          // "LexSort VERA Pro_1.0.13_x64-setup.exe" — ThinkCentre to confirm).
+          'mac-silicon': "downloads/LexSort VERA Pro_1.0.13_aarch64.dmg",
+          'mac-intel': "downloads/LexSort VERA Pro_1.0.13_x64.dmg"
         },
         labels: {
           'mac-silicon': "VERA Pro Tester Beta (Apple Silicon)",
-          'mac-intel': "VERA Pro Tester Beta (Intel)",
-          'windows': "VERA Pro Tester Beta (Windows Setup)"
+          'mac-intel': "VERA Pro Tester Beta (Intel)"
         },
         exts: {
           'mac-silicon': ".dmg (Apple Silicon · Beta)",
-          'mac-intel': ".dmg (Intel · Beta)",
-          'windows': ".exe (Windows Setup · Beta)"
+          'mac-intel': ".dmg (Intel · Beta)"
         },
         subtext: "Tester Beta " + BETA_TAG_PRO + " · key via Discord /mykey · self-updates, never reinstall"
       }
@@ -826,6 +820,12 @@
       if (linuxCard) linuxCard.style.display = tier === "beta" ? "none" : "";
       const linuxGuide = document.getElementById('guide-linux');
       if (linuxGuide) linuxGuide.style.display = tier === "beta" ? "none" : "";
+      // Windows card hidden in beta until the ThinkCentre build lands
+      // (restore to "" when the Windows beta file exists).
+      const winCard = document.getElementById('card-windows');
+      if (winCard) winCard.style.display = tier === "beta" ? "none" : "";
+      const winGuide = document.getElementById('guide-windows');
+      if (winGuide) winGuide.style.display = tier === "beta" ? "none" : "";
 
       // Update matrix card links and text. Guarded: tiers may omit
       // platforms (beta ships Mac + Windows only — no Linux keys).
