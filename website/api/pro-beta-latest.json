@@ -1,1 +1,15 @@
-{"notes": "VERA Pro beta channel. Builds listed here are under test and are always badged Beta in the app. Enable beta updates in Settings to receive them.", "platforms": {}, "pub_date": "2026-08-12T00:00:00Z", "version": "1.0.12"}
+{
+  "version": "1.0.13",
+  "notes": "VERA Pro 1.0.13 beta: silent auto-update, Guardian Watch sidecar supervision, Smart Inbox, tester edition toggle (Pro/Freeware flip in sidebar). Enable beta updates in Settings to receive it.",
+  "pub_date": "2026-09-03T14:32:34Z",
+  "platforms": {
+    "darwin-aarch64": {
+      "url": "https://lexsort.com/downloads/LexSort%20VERA%20Pro_1.0.13_aarch64.app.tar.gz",
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUMmovTFNaOVhrZjZaUUU5Nnpla0xrMnJsa1VmMmFuT2JqSm5KWXlBcC9rdHBXbDIyQ0JIOG5sd0haMDA0OThOemQxajBHRkMrbXlZVld1OElKbUkzU2VrdVNaTTRvZmd3PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg4NDQ0Nzg3CWZpbGU6TGV4U29ydCBWRVJBIFByby5hcHAudGFyLmd6CmdpdmJZbFhzcndSMUkxYmtlMEVYRk5YSThXVUdUS1RuaTFUdHl2Y3JYSHhHR1FBTWwvVnFrRDRvMzRGWkRDUWlBRmNWQ2tIV0Q3bjljOGxvZXdpRENnPT0K"
+    },
+    "darwin-x86_64": {
+      "url": "https://lexsort.com/downloads/LexSort%20VERA%20Pro_1.0.13_x64.app.tar.gz",
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUMmovTFNaOVhrZngyYysrVFhyRUlCSUhseFNVSTdJMWhpT0xwZGl5VkxpbkhTUmE5ZVh3RDhhU1lEeGc1dTBXOUpVODZ5dFhZaTN4VW1XWUdZZ09oYmNsNFlsRjg2Mnc4PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg4NDQ0ODQ2CWZpbGU6TGV4U29ydCBWRVJBIFByby5hcHAudGFyLmd6ClVJSXU0N1VMYTkwYmR6UVNXRThURTFzQ05ERnFFVjRlbXRTQjdhVnF0ejBRSWRwQktQNTFrUGo3d2xTaXE0YVYyK3lBdVRoRUl0OE93c0xjcGVpL0RRPT0K"
+    }
+  }
+}

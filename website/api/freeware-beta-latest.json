@@ -1,1 +1,15 @@
-{"notes": "VERA Freeware beta channel. Builds listed here are under test and are always badged Beta in the app. Enable beta updates in Settings to receive them.", "platforms": {}, "pub_date": "2026-08-12T00:00:00Z", "version": "1.2.0"}
+{
+  "version": "1.3.0",
+  "notes": "VERA Freeware 1.3.0 beta: silent auto-update (no reinstall), Mac Intel build restored. Enable beta updates in Settings to receive it.",
+  "pub_date": "2026-09-03T14:32:34Z",
+  "platforms": {
+    "darwin-aarch64": {
+      "url": "https://lexsort.com/downloads/LexSort%20VERA_1.3.0_aarch64.app.tar.gz",
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUMmovTFNaOVhrZjB1V3Iyc2V6djZhZFAwWHhQa095MEhVZHJReVIxdnVqZHpOQjhLajFZYUFxN0JEVVVaclJ3by9wOEJQM1VpUUlXRllvYlVHYytOREJkQzNSUkJSV0FBPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg4NDQyNTM4CWZpbGU6TGV4U29ydCBWRVJBLmFwcC50YXIuZ3oKRjdGOFNTRFhDYmVjZXdQcndqVVEzYnZYVUtJS1p3UHNpQ0ZITU1sQU9nM0RJSm9ZNmI1ZmFBWjlUakNTaHJHZ2FsZjRFbW1WQTcxT0NLeVl2cEpVRFE9PQo="
+    },
+    "darwin-x86_64": {
+      "url": "https://lexsort.com/downloads/LexSort%20VERA_1.3.0_x64.app.tar.gz",
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUMmovTFNaOVhrZjhqYlQyb01PZnB1MFRRTjRTcGFhc0V5dzVCblF1Tmg5Y3dVYzdHQmdtZkE5VmhhczA2OFJJTXI4UTAyNTBVVUtVTk9rM1RlQzdFdUNiYm1hVmxHY2dRPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg4NDQyNjAwCWZpbGU6TGV4U29ydCBWRVJBLmFwcC50YXIuZ3oKZGRHNzdVSzBQZEFGY3pTeE9tYjRFcCtNSXM4WHFoT0JNenlHRGQxQnoydVdkcWRicE9jOXh5RDhmTmpIWVZRb2hBSjB5aGpWaW9OdjUvT2RZaXFKQVE9PQo="
+    }
+  }
+}

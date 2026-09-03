@@ -20,15 +20,19 @@ Format is the Tauri v2 static-JSON updater schema: `version`, `notes`,
 the `.sig` file — never a path). An empty `platforms` object is valid and
 means "no update".
 
-## Publishing a release (stable example, Freeware)
+## Publishing a release (internal builds — no CI, Sep 2026 policy)
 
-1. Pre-tag gate (mandatory): `cargo check` + `npx tsc --noEmit` clean.
-2. Tag + push: `git tag v1.2.1 && git push origin v1.2.1`
-   (Windows stays manual-only: Actions → Build & Release → `windows-only`.)
-3. CI (`tauri-action`) signs bundles with `TAURI_PRIVATE_KEY` and attaches
-   `latest.json` + `.sig` files to the GitHub release.
-4. Copy the new `version`, per-platform `url` + `signature`, and `notes`
-   from the release's `latest.json` into `freeware-stable-latest.json`.
+1. Pre-build gate (mandatory): `cargo check` + `npx tsc --noEmit` clean.
+2. Build locally with the shared updater key in env
+   (`TAURI_SIGNING_PRIVATE_KEY` / `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`):
+   ThinkCentre = Windows (`.msi`/`-setup.exe` + `.sig`),
+   M1 = macOS (`aarch64` + `x64` `.dmg` + `.app.tar.gz` + `.sig`).
+   NEVER push a `v*` tag to trigger CI — release workflows are retired.
+3. Host the updater payloads where the feed URLs point (site
+   `downloads/` or GitHub Releases — Mac `.app.tar.gz` files share one
+   filename per arch, so rename with the arch suffix on upload).
+4. Copy the new `version`, per-platform `url` + `signature` (contents of
+   the `.sig` file — never a path), and `notes` into the channel file.
 5. Deploy: `netlify deploy --prod --dir=website` (CLI only — never connect
    GitHub to Netlify).
 
