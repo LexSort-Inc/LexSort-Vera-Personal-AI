@@ -2086,6 +2086,9 @@ const [activeModule, setActiveModule] = useState<string>("home");
 
           <div className="sidebar-footer" style={{ padding: "16px 12px", borderTop: "1px solid var(--border)", fontSize: "11px", color: "var(--text-muted)", textAlign: "center", fontStyle: "normal", fontWeight: 500, letterSpacing: "0.5px" }}>
             v{appVersion} {isPro ? "Pro" : "Freeware"}
+            {updater.channel === "beta" && (
+              <span title="Tester Beta channel — self-updates from beta" style={{ marginLeft: "6px", padding: "1px 8px", borderRadius: "9px", background: "rgba(245,158,11,.18)", color: "#fbbf24", border: "1px solid rgba(245,158,11,.55)", fontSize: "10px", fontWeight: 800, letterSpacing: "0.06em" }}>Beta</span>
+            )}
           </div>
         </aside>
 
