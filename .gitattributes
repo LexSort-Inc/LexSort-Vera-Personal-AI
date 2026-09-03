@@ -1,0 +1,25 @@
+# Cross-machine text policy (approved both sides 2026-09-03):
+# Windows text handling corrupted UTF-8 site files and CRLF'd secrets
+# twice. All text ships LF + UTF-8; Windows-only scripts keep CRLF.
+* text=auto eol=lf
+*.html text eol=lf working-tree-encoding=UTF-8
+*.md text eol=lf working-tree-encoding=UTF-8
+*.json text eol=lf working-tree-encoding=UTF-8
+*.js text eol=lf working-tree-encoding=UTF-8
+*.ts text eol=lf working-tree-encoding=UTF-8
+*.tsx text eol=lf working-tree-encoding=UTF-8
+*.rs text eol=lf working-tree-encoding=UTF-8
+*.toml text eol=lf working-tree-encoding=UTF-8
+*.yml text eol=lf working-tree-encoding=UTF-8
+*.yaml text eol=lf working-tree-encoding=UTF-8
+*.css text eol=lf working-tree-encoding=UTF-8
+*.ps1 text eol=crlf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+# Never normalize: binaries, signatures, encrypted payloads
+*.dmg binary
+*.msi binary
+*.exe binary
+*.sig binary
+*.age binary
+handoffs/inbox/*.age binary
