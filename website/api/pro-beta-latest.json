@@ -10,6 +10,10 @@
     "darwin-x86_64": {
       "url": "https://lexsort.com/downloads/LexSort%20VERA%20Pro_1.0.13_x64.app.tar.gz",
       "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUMmovTFNaOVhrZjBhcVNnakJTNmF1R1ZIYkhHbDczUjJYRzRxeEFlZzBWc2VrUWt1ajNhaWZzMmlhUVd2MWtRYkRhR1ZqalErSndwSlgrb1VjMnlyc0tidVBFQmNMcEFZPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg4NDQ4NDMyCWZpbGU6TGV4U29ydCBWRVJBIFByby5hcHAudGFyLmd6Cjg2T09NcHhJV0NPRVpEQVk5aDRJT05WbUxsUXQwbTgrQzdyZzQ1YTU2TnZuTzRoWTFhbTNXYW52YmdYTmFTU3p5ajFBeXpWTXFYTlhodWVtVGZIVUJRPT0K"
+    },
+    "windows-x86_64": {
+      "url": "https://lexsort.com/downloads/LexSort%20VERA%20Pro_1.0.13_x64-setup.exe",
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUMmovTFNaOVhrZjFxeU0rZlREMDF6VlFJTDA4M2xpU3k4dldDcVpvZ0FGem4wS1F2OW5qL1NPMEcvSGxWQnVzbzRMRCtRK1pVamg4bGFtdEpUVy8yTFgxRzhtRGp4T1E4PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg4NDUwNjA2CWZpbGU6TGV4U29ydCBWRVJBIFByb18xLjAuMTNfeDY0LXNldHVwLmV4ZQpoYVFESlJzVlpUdDFmOWZRRk5zemtHcHcrZWV5NVdDL3phdXV0RFhpeERzRW44NUdlbjVXWVRWRTh5M1pmcm1jR3A0TkpGdG0wNzcxclhnRkdmVW5Edz09Cg=="
     }
   }
 }

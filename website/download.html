@@ -758,21 +758,21 @@
         title: "LexSort VERA Pro — Tester Beta",
         subtitle: "One installer, both tiers. Flip Pro ⇄ Freeware in the sidebar — no reinstall, self-updates from beta.",
         links: {
-          // Mac .dmg files are hosted on this site (downloads/) — built
-          // locally on M1, Developer-ID signed. Windows card is hidden in
-          // beta until the ThinkCentre build lands; restore the 'windows'
-          // key + card toggle below at that point (expected name:
-          // "LexSort VERA Pro_1.0.13_x64-setup.exe" — ThinkCentre to confirm).
+          // Mac .dmg + Windows setup.exe are hosted on this site
+          // (downloads/) — M1 builds Mac, ThinkCentre builds Windows.
           'mac-silicon': "downloads/LexSort VERA Pro_1.0.13_aarch64.dmg",
-          'mac-intel': "downloads/LexSort VERA Pro_1.0.13_x64.dmg"
+          'mac-intel': "downloads/LexSort VERA Pro_1.0.13_x64.dmg",
+          'windows': "downloads/LexSort VERA Pro_1.0.13_x64-setup.exe"
         },
         labels: {
           'mac-silicon': "VERA Pro Tester Beta (Apple Silicon)",
-          'mac-intel': "VERA Pro Tester Beta (Intel)"
+          'mac-intel': "VERA Pro Tester Beta (Intel)",
+          'windows': "VERA Pro Tester Beta (Windows Setup)"
         },
         exts: {
           'mac-silicon': ".dmg (Apple Silicon · Beta)",
-          'mac-intel': ".dmg (Intel · Beta)"
+          'mac-intel': ".dmg (Intel · Beta)",
+          'windows': ".exe (Windows Setup · Beta)"
         },
         subtext: "Tester Beta " + BETA_TAG_PRO + " · key via Discord /mykey · self-updates, never reinstall"
       }
@@ -820,12 +820,7 @@
       if (linuxCard) linuxCard.style.display = tier === "beta" ? "none" : "";
       const linuxGuide = document.getElementById('guide-linux');
       if (linuxGuide) linuxGuide.style.display = tier === "beta" ? "none" : "";
-      // Windows card hidden in beta until the ThinkCentre build lands
-      // (restore to "" when the Windows beta file exists).
-      const winCard = document.getElementById('card-windows');
-      if (winCard) winCard.style.display = tier === "beta" ? "none" : "";
-      const winGuide = document.getElementById('guide-windows');
-      if (winGuide) winGuide.style.display = tier === "beta" ? "none" : "";
+      // Windows card restored in beta (ThinkCentre 1.0.13 landed).
 
       // Update matrix card links and text. Guarded: tiers may omit
       // platforms (beta ships Mac + Windows only — no Linux keys).

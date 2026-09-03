@@ -8,6 +8,8 @@ build/
 *.pkg
 *.exe
 *.msi
+!website/downloads/*.exe
+!website/downloads/*.msi
 *.deb
 *.rpm
 
