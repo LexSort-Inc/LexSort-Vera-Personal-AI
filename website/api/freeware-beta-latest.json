@@ -1,15 +1,15 @@
 {
   "version": "1.3.0",
-  "notes": "VERA Freeware 1.3.0 beta: silent auto-update (no reinstall), Mac Intel build restored, persistent Beta badge on the beta channel.",
-  "pub_date": "2026-09-03T15:16:40Z",
+  "notes": "VERA Freeware 1.3.0 beta: Drop & Query documents, quick-translate, Alt+Space launcher, Pro previews. Silent auto-update, no reinstall.",
+  "pub_date": "2026-09-04T06:00:22Z",
   "platforms": {
     "darwin-aarch64": {
       "url": "https://lexsort.com/downloads/LexSort%20VERA_1.3.0_aarch64.app.tar.gz",
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUMmovTFNaOVhrZnlUa1NKdzZqOG5vL1NCZnptVVRsUnRWWWRjSmlGNVNHVjNEV3dkWmYwVTlPUlZXd21rVnJmMTZpV3ArZVNHNUM0K2F1ZmsycDQvQzM5cjNidTlIR1FjPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg4NDQ4NDk4CWZpbGU6TGV4U29ydCBWRVJBLmFwcC50YXIuZ3oKbzlqRmlMeTlxbmErYlJ0VXFJejVubzhsVkZHRlgzUW05bGFnWFNuTnJuSU5Hc3RWaHNtTUQ2OEZrQVRHTVNIWVE4Z3dueUZjcnFJVFc3UlNzK3dSREE9PQo="
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUMmovTFNaOVhrZjhIM0VGWDFiMTlnN2dSMExQaGNNanVmYXVJY0FGNkwzazVqcEh5SHkwdmlXZjhXQ1hjcUxuUnFZblVOVEh6dWoyaFN4TFJERHRobkpEVHB2S0t5NEFrPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg4NTAxNTQyCWZpbGU6TGV4U29ydCBWRVJBLmFwcC50YXIuZ3oKQmJ1Nk9BTDNLVkdIK0NmTkYxa2dHRDE5YTJZSlVnWWlCRkhmbjJLYVBYcjJtSHI3Y0h1akZNNERqeGZOV2x0cU1yVXlucFI3WDRCOUoyM1EreHhmQXc9PQo="
     },
     "darwin-x86_64": {
       "url": "https://lexsort.com/downloads/LexSort%20VERA_1.3.0_x64.app.tar.gz",
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUMmovTFNaOVhrZjlRWlhkRy82WE10ck1LWHYwTXlTVTRhRjk2V0E4QWc5MTBSczlURFlGVDcyaXB4N0RBSSthcEN5Y1VCcjYydUtuTmpjejJNMUxjZG9SbkovOUVXV2djPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg4NDQ4NTU1CWZpbGU6TGV4U29ydCBWRVJBLmFwcC50YXIuZ3oKckJjUGhTL3JaYjg5QWVCdkZPSTlDMVVZSjlwdFNQQkVwR0g4d0lpa05mWkFzRS9aYWJIQjRVUUR2U1AwL0FOUUpEb0wxOXRvTUJWRHR3c0tJVlVYQkE9PQo="
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUMmovTFNaOVhrZjd5NEU1SFF4Um5qWitHNGxpa3AwQXJIMklGWjZ5WnJ6Y3JPaWE1aHY3SXh3V0JLOU1TVWttbFJhdlhLS1F6OWdIWGdXZE9HUW9NK2J3WDRaWjFiN1FjPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg4NTAxNjAzCWZpbGU6TGV4U29ydCBWRVJBLmFwcC50YXIuZ3oKNzgxSWMxcThvZjJYZy9ZR1N3RmptZjB5dEhvRkJPeUE1ZmtpVU1WU2NZL1pIdElMMzhCQjlHWTlRb2RRalRYbjA3UUNPTEtMR3AyVGwwWGpmVHcyQ2c9PQo="
     },
     "windows-x86_64": {
       "url": "https://lexsort.com/downloads/LexSort%20VERA_1.3.0_x64-setup.exe",
