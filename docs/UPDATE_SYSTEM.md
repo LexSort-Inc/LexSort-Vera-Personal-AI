@@ -1,136 +1,107 @@
-# VERA — In-App Update System
+# VERA — In-App Update System (silent updater, Sep 2026)
 
-VERA uses a custom-built update flow that bypasses GitHub API rate limits, preserves the UI style, and safely launches installers without file-lock collisions.
+VERA updates itself silently: the app checks its channel file on launch,
+downloads the new version in the background, and applies it on restart.
+Users never reinstall. One shared Ed25519 keypair signs both editions.
+
+> Historical note: before Sep 2026 VERA used a custom downloader
+> (`check_for_updates` → download DMG → `open *.dmg`, manual drag to
+> install). That flow is now the **legacy fallback** only. This document
+> describes the current official updater.
 
 ---
 
-## Flow Overview
+## Flow overview
 
 ```
-App Launch
+App launch
     │
     ▼
-check_for_updates (Rust)
-    │  fetches https://lexsort.com/api/manifest.json
-    │  compares manifest.version vs current app version
+useUpdater.check() — fetches channel feed (stable default, beta opt-in)
+    │  https://lexsort.com/api/{freeware,pro}-{stable,beta}-latest.json
+    │  compares feed.version vs installed version (semver)
     │
     ├── No update → idle, nothing shown
     │
-    └── Update available
+    └── Update available → banner (badged [Beta] on beta channel)
             │
-            ▼
-        UI shows banner / Settings badge dot
+        User clicks Download (or auto-downloads) → progress bar
             │
-        User clicks "Download Update"
-            │
-            ▼
-        approve_core_update(edition, version)   ← Rust
-            │  spawns Tokio background task
-            │  downloads platform installer → ~/.lexsort/updates/
-            │  streams core_update_progress events to React
-            │
-            ├── status: "downloading"  → progress bar updates
-            ├── status: "downloaded"   → "Install & Restart" shown
-            └── status: "error"        → "Retry" shown
-                    │
-                    ▼ (on "Install & Restart")
-                launch_installer_and_exit()     ← Rust
-                    │  runs platform shell command (open/msiexec/xdg-open)
-                    │  calls std::process::exit(0) — drops all locks
-                    │
-                    ▼
-                Native installer runs
+        Ready → "Restart to apply" → install + relaunch, silent
 ```
 
----
+Beta is opt-in in Settings. Whenever the beta channel is selected, a
+persistent amber **Beta pill** shows next to the brand (Pro sidebar /
+Freeware footer) — testers always know what track they're on.
 
-## Stage 1 — Update Discovery
+## Channel feeds (Tauri v2 static-JSON schema)
 
-- Called on every app boot (non-blocking, after hardware detection)
-- **Freeware:** calls `check_for_updates({ edition: "freeware" })`
-- **Pro:** calls `check_for_updates({ edition: "pro" })`, fires 3s after license check
+| File | Edition | Channel |
+|---|---|---|
+| `freeware-stable-latest.json` | Freeware | stable (default endpoint) |
+| `freeware-beta-latest.json` | Freeware | beta (Settings opt-in) |
+| `pro-stable-latest.json` | Pro | stable (default endpoint) |
+| `pro-beta-latest.json` | Pro | beta (Settings opt-in) |
 
-The manifest endpoint: `https://lexsort.com/api/manifest.json`  
-**Why not GitHub API?** GitHub enforces 60 unauthenticated requests/hour. A static manifest avoids rate-limits and is deployable to Netlify's CDN in milliseconds.
+Each file: `version`, `notes`, `pub_date` (RFC 3339), `platforms` map
+(`darwin-aarch64`, `darwin-x86_64`, `windows-x86_64` — **no Linux**: no
+builder exists under internal-build policy, never publish `linux`
+entries) with `url` + `signature` (contents of the `.sig` file).
+Empty `platforms` = no update (valid state).
 
-### manifest.json structure
+## Frontend (`useUpdater.ts`, both apps)
 
-```json
-{
-  "version": "1.1.5",
-  "freeware_download": {
-    "windows": "https://github.com/.../v1.1.5/...x64-setup.msi",
-    "macos_arm": "https://github.com/.../v1.1.5/...aarch64.dmg",
-    "macos_x64": "https://github.com/.../v1.1.5/...x64.dmg",
-    "linux": "https://github.com/.../v1.1.5/...amd64.AppImage"
-  },
-  "notes": "Changelog text shown in the update banner."
-}
-```
+- `channel` state persisted in `localStorage` (`vera_update_channel`).
+- `check()` invokes the Rust `fetch_update` command for the channel.
+- Progress events drive the banner; `relaunch()` applies.
+- Edition toggle (Pro tester builds): sidebar Pro ⇄ Freeware flip,
+  persisted — display-only downgrade, never grants Pro without a key.
 
----
+## Backend (Tauri plugin)
 
-## Stage 2 — Background Download & Staging
+- `tauri-plugin-updater` initialized in `lib.rs`; `plugins.updater` in
+  `tauri.conf.json` holds the minisign **public** key + endpoint.
+- `createUpdaterArtifacts: true` makes CI/local builds emit
+  `.app.tar.gz` + `.sig` (Mac) alongside `.dmg` / `.msi` + `-setup.exe`.
+- Gotcha (learned 2026-09-03): tauri emits ONE shared tarball filename
+  per build — staging MUST rename per arch or one overwrites the other.
 
-- `approve_core_update(edition, version)` spawns a Tokio task
-- Download destination: `~/.lexsort/updates/<filename>`
-- Path stored in `~/.lexsort/installed.json` under `update_downloaded_path`
-- Progress events emitted: `core_update_progress` → `{ status, percent, path }`
+## Signing keys
 
----
+- One shared keypair, both editions. Public key embedded in both
+  `tauri.conf.json` files (public by design).
+- Private key + password: **never in git**. ThinkCentre holds
+  `~/.tauri/vera-update.key` / `.pw`; M1 holds copies at the same path
+  (received via age channel 2026-09-03). GitHub secrets
+  `TAURI_PRIVATE_KEY` / `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` exist but
+  release CI is retired — local builds read env vars of the same names.
+- PowerShell lesson: strip `\r` (`.Trim()`) — the CLI chokes on CR
+  (`Invalid symbol 13`). Send LF-only payloads machine to machine.
+- CLI lesson: `signer sign --private-key` takes key CONTENT, not a path
+  (path → `Invalid symbol 46`, offset = the dot in the filename).
 
-## Stage 3 — Install on Exit (Freeware)
+## Publishing (internal builds — no CI)
 
-The freeware intercepts close events via `onCloseRequested`:
+1. Gates: `cargo check` + `npx tsc --noEmit` clean, both apps.
+2. ThinkCentre builds Windows (`.msi` + `-setup.exe` + `.sig`, shared
+   key); M1 builds macOS (`aarch64` + `x64` `.dmg` + `.app.tar.gz` +
+   `.sig`). NEVER push a `v*` tag — release workflows are retired.
+3. Host payloads where feed URLs point (`website/downloads/` or GitHub
+   Releases — Mac `.app.tar.gz` files renamed per arch on staging).
+4. Fill channel feeds (beta first), `netlify deploy --prod --dir=website`
+   (CLI only), curl-verify every URL 200, announce with the deploy ID.
+5. Soak on both machines → founder promotes beta→stable (copy entry).
 
-```typescript
-const currentWindow = getCurrentWindow();
-currentWindow.onCloseRequested((event) => {
-  if (pendingUpdateRef.current) {
-    event.preventDefault();    // block the close
-    setShowExitPrompt(true);   // show install modal
-  }
-});
-```
+## Legacy fallback (kept, not primary)
 
-User options in the modal:
-1. **Install & Restart** → `launch_installer_and_exit()` → opens native installer → `exit(0)`
-2. **Later** → `allowCloseRef.current = true` → close without installing
-3. **Cancel** → dismiss modal, continue using app
-
----
-
-## Stage 3 — Floating Banner (Pro)
-
-Pro shows a dismissable bottom-right banner instead of an exit intercept:
-
-- **Update available** → "Download Update" button
-- **Downloading** → animated progress bar
-- **Ready** → "Install & Restart" button
-- **Error** → "Retry" button
-
-The banner is dismissed via the `✕` button. It reappears next launch.
-
----
-
-## Platform Installer Commands (Rust)
-
-| Platform | Command used to launch installer |
-|---|---|
-| macOS | `open /path/to/installer.dmg` |
-| Windows | `msiexec /i C:\path\to\installer.msi` |
-| Linux | `xdg-open /path/to/installer.AppImage` |
-
-`exit(0)` is called immediately after spawning the installer. This is critical — it releases the SQLite write lock and port 11434, allowing the installer to replace the binary cleanly.
+`check_for_updates` / `approve_core_update` /
+`launch_installer_and_exit` still exist for manual full-installer
+download. Its `get_installer_info` targets LexSort-Inc org URLs with
+verified bundle names (`%20`-encoded); `RemoteManifest.modules` is
+optional. Windows MSI names per tauri convention — ThinkCentre owns
+them. Do not build new features on this path.
 
 ---
 
-## Testing Updates Locally
-
-1. Bump `website/api/manifest.json` to a version higher than the current app build
-2. Deploy the manifest to Netlify (or serve locally and update the manifest URL in `lib.rs`)
-3. Launch the app — the update banner should appear within 3 seconds
-
----
-
-*See also: [BUILD_AND_RELEASE.md](BUILD_AND_RELEASE.md) · [ARCHITECTURE.md](ARCHITECTURE.md)*
+*See also: [BUILD_AND_RELEASE.md](BUILD_AND_RELEASE.md) ·
+[ARCHITECTURE.md](ARCHITECTURE.md) · [ONBOARDING.md](ONBOARDING.md)*

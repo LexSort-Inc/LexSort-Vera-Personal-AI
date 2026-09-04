@@ -2,9 +2,9 @@
 
 **Project:** LexSort VERA — Local-First Private AI Desktop App
 **Parent Brand:** LexSort Inc. (DUNS 243369420)
-**Current Versions:** VERA Freeware **v1.2.0** 🚀 (relaunch tagged Aug 12 — Home dashboard, machine-grounded chat tools, all modules free; CI building, smoke tests pending) · VERA Pro v1.0.12 (binaries recovered; **v1.0.13 scope committed** — Guardian Watch + Smart Inbox, tag pending) · VERA Engine v1.0.0 ✅
+**Current Versions:** VERA Freeware **v1.3.0** (in tree + live on lexsort.com — silent updater, Intel restored) · VERA Pro **v1.0.13** (in tree + live — Guardian Watch + Smart Inbox + updater + toggle) · VERA Engine v1.0.0 ✅
 **Stack:** React 19 (TypeScript) + Rust (Tauri v2) + Ollama v0.9.6
-**Last Updated:** August 11, 2026
+**Last Updated:** September 3, 2026
 
 > [!IMPORTANT]
 > **ALWAYS read this file and `AGENTS.md` at the start of every session before touching any code.**
@@ -72,24 +72,25 @@ Do NOT fabricate times. Use the session tracker:
 cd vera-freeware && npm run tauri dev
 ```
 
-### Release a new Freeware version
+### Release a new Freeware version (INTERNAL BUILDS ONLY — never tag for CI)
+
 ```bash
 # 1. Bump version in: vera-freeware/src-tauri/tauri.conf.json, package.json, Cargo.toml
-# 2. Bump website/api/manifest.json to match
-# 3. Commit & push, then tag:
-git tag v1.1.8 && git push origin v1.1.8
+# 2. M1 builds macOS (ARM+Intel, signed + .sig); ThinkCentre builds Windows
+# 3. Host payloads (website/downloads/ or GitHub Releases), fill channel
+#    feeds (beta first), then:
+git add -A && git commit -m "chore: bump to v1.3.0" && git push
 # 4. Deploy website:
 netlify deploy --prod --dir=website
 ```
 
-### Release a new Pro version
+### Release a new Pro version (INTERNAL BUILDS ONLY — never tag for CI)
 ```bash
 # Pro repo: 02_ACTIVE_PROJECTS/Lexsort-Vera-Pro/lexsort-vera-pro/
-# Current version: v1.0.13 scope COMMITTED (Guardian Watch + Smart Inbox, Aug 11 2026)
+# Current version: v1.0.13 LIVE (Guardian Watch + Smart Inbox + updater + toggle)
 # 1. Bump version in: src-tauri/tauri.conf.json, package.json, Cargo.toml
-# 2. Commit & push, then tag:
-git tag v1.0.13 && git push origin v1.0.13
-# CI auto-builds .dmg (arm64 + x86), .exe, .deb → GitHub Draft Release
+# 2. ThinkCentre builds Windows, M1 builds macOS (same shared updater key)
+# 3. Host payloads, fill feeds (beta first), deploy website, commit & push
 ```
 
 ### Generate beta license keys
@@ -119,17 +120,16 @@ netlify deploy --prod --dir=website
 
 | Component | State | Notes |
 |---|---|---|
-| Freeware v1.2.0 | ✅ Live at lexsort.com/download | **v1.2.0 relaunch** tagged Aug 12 2026 — Home dashboard, chat system tool layer, all modules free; CI building ARM/Intel/Linux; manual Windows build in progress |
-| Pro v1.0.12 | ⚠️ Binaries recovered 5/9 (org release) | v1.0.1–v1.0.5 + v1.0.12 orphaned by force-moved tags; rpm/setup.exe/tar.gz unrecoverable |
-| Pro v1.0.13 (Guardian + Smart Inbox) | ✅ Committed `9ce5392` — **tag NOT yet pushed** | Scope = Guardian Watch + Smart Inbox; business-organizer backend intentionally left uncommitted |
+| Freeware v1.3.0 | ✅ Live at lexsort.com/download | Silent updater, Intel restored; Mac ARM+Intel DMGs + updater payloads site-hosted; beta auto-update live |
+| Pro v1.0.13 | ✅ Live (beta lane) | Guardian Watch + Smart Inbox + updater + edition toggle + Beta pill; Mac DMGs site-hosted; Windows built by ThinkCentre |
 | VERA Engine v1.0.0 | ✅ Stable | Standalone Rust LLM proxy |
-| Discord Bot | ✅ Deployed on Railway | `/register` `/mykey` `/mystatus` `/help` |
+| Discord Bot | 🔄 Railway expired → ThinkCentre self-host (PM2) in progress | `/register` `/mykey` `/mystatus` `/help` + tester allowlist (merged, needs envs + redeploy) |
 | Website (lexsort.com) | ✅ Live — serves org release links | Netlify — CLI deploy only (site `charming-zuccutto-05cf6a`) |
 | Module CDN | ✅ `modules.lexsort.com/index.json` live | `.vera-module` ZIPs not yet uploaded |
 | Stripe Webhook | ⚠️ Wired, needs Netlify env vars | Free beta bypasses Stripe for now |
 | GitHub Actions Secrets | ✅ Set (Apple certs + Team ID) | Set Jun 17 2026 — all 6 secrets present |
 | Apple Developer Account | ✅ **Organization account LIVE** | LexSort Inc. — developer.apple.com (Jul 3 2026) |
-| Intel Mac `.dmg` | ✅ RESUMED at v1.2.0 | `vendored-openssl` on git2 (`40fd72f`) → first Intel build since v1.1.6 ships in v1.2.0; **verify x64 artifact in the v1.2.0 release** |
+| Intel Mac `.dmg` | ✅ Verified ARM+Intel, both editions | `vendored-openssl` fix holds; `LexSort VERA_1.3.0_x64.dmg` + `LexSort VERA Pro_1.0.13_x64.dmg` built locally, sig-verified, live |
 
 ### VERA Pro — Onboarding Flow (NEW as of v1.0.12)
 
