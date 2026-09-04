@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { Task } from './types';
 import { useSpeechRecognition } from '../../hooks/useSpeechRecognition';
+import { extractFileText, docContextBlock, type DocContext } from '../../utils/documentReader';
+import { buildTranslatePrompt, detectLocale, type TranslateTone } from '../../utils/translatorPrompt';
 
 interface Message {
     id: string;
@@ -29,6 +31,16 @@ export function VeraCopilot({
     const [loading, setLoading] = useState(false);
     const [selectedTaskId, setSelectedTaskId] = useState('');
     const [moduleDocs, setModuleDocs] = useState('');
+
+    // Document Drop & Query state (100% local extraction)
+    const [doc, setDoc] = useState<DocContext | null>(null);
+    const [docError, setDocError] = useState('');
+    const [dragOver, setDragOver] = useState(false);
+    const [docBusy, setDocBusy] = useState(false);
+
+    // Quick-translate state (prompt-engineered, local model)
+    const [targetLang, setTargetLang] = useState(detectLocale());
+    const [tone, setTone] = useState<TranslateTone>('business');
 
     // Voice Input (Speech to Text) Logic
     const initialTextRef = useRef('');
@@ -162,7 +174,8 @@ export function VeraCopilot({
                 "2. You can answer general knowledge questions easily. You do not need to restrict yourself only to the organizer.\n" +
                 "3. If the user asks a question about the LexSort program, the VERA app itself, unsupported features, or upcoming development ideas that are not covered in the provided documentation, or if you do not know the answer, you MUST politely explain that you do not know and suggest they visit the official LexSort Discord community for support: https://discord.gg/kpZ3hWyAaq.\n" +
                 "4. Do not hallucinate app features or make up capabilities that do not exist.\n" +
-                "5. Format your response with clear Markdown formatting (e.g. lists, bold text).\n";
+                "5. Format your response with clear Markdown formatting (e.g. lists, bold text).\n" +
+                (doc ? "\n" + docContextBlock(doc) + "\n" : "");
 
             // Prepare messages array for Ollama Chat API
             // We include system prompt first, then map the conversation history
@@ -238,6 +251,22 @@ export function VeraCopilot({
         setLoading(false);
     };
 
+    const handleDrop = async (e: React.DragEvent) => {
+        e.preventDefault();
+        setDragOver(false);
+        setDocError('');
+        const file = e.dataTransfer.files?.[0];
+        if (!file || loading) return;
+        setDocBusy(true);
+        try {
+            setDoc(await extractFileText(file));
+        } catch (err: any) {
+            setDocError(err?.message ?? 'Could not read that file.');
+        } finally {
+            setDocBusy(false);
+        }
+    };
+
     const handleQuickAction = (action: 'prioritize' | 'breakdown' | 'estimate') => {
         if (action === 'prioritize') {
             handleSendMessage("Rank and prioritize my active task list, suggesting 1-3 tasks to focus on.");
@@ -254,7 +283,13 @@ export function VeraCopilot({
     };
 
     return (
-        <div className="qo-ask-panel">
+        <div
+            className="qo-ask-panel"
+            onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+            onDragLeave={() => setDragOver(false)}
+            onDrop={handleDrop}
+            style={dragOver ? { outline: '2px dashed var(--accent)', outlineOffset: '-2px' } : undefined}
+        >
             <div className="qo-ask-panel__header">
                 <h3 className="qo-ask-panel__title">✨ VERA Copilot Chat</h3>
                 {loading && (
@@ -381,6 +416,64 @@ export function VeraCopilot({
                             ⏱️ Estimate Time
                         </button>
                     </div>
+                </div>
+
+                {/* Attached document chip (Drop & Query) */}
+                {(doc || docBusy || docError) && (
+                    <div className="qo-doc-chip" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', padding: '6px 8px' }}>
+                        {docBusy ? (
+                            <span>📄 Reading document…</span>
+                        ) : docError ? (
+                            <span style={{ color: 'var(--danger, #ef4444)' }}>⚠️ {docError}</span>
+                        ) : doc ? (
+                            <>
+                                <span>📄 {doc.fileName} ({doc.charCount} chars{doc.truncated ? ', truncated' : ''})</span>
+                                <button
+                                    className="qo-chat-tool-btn"
+                                    style={{ fontSize: '11px', padding: '2px 8px' }}
+                                    onClick={() => { setDoc(null); setDocError(''); }}
+                                    title="Remove attached document"
+                                >
+                                    ✕
+                                </button>
+                            </>
+                        ) : null}
+                    </div>
+                )}
+
+                {/* Quick-translate row (prompt-engineered, local model) */}
+                <div className="qo-translate-row" style={{ display: 'flex', gap: '6px', alignItems: 'center', marginBottom: '6px' }}>
+                    <span title="Translate the message box text with the local model">🌐</span>
+                    <input
+                        className="qo-ask-select"
+                        style={{ fontSize: '12px', padding: '6px', width: '64px' }}
+                        value={targetLang}
+                        onChange={(e) => setTargetLang(e.target.value)}
+                        placeholder="fr"
+                        title="Target language code (default: your system locale)"
+                        disabled={loading}
+                    />
+                    <select
+                        className="qo-ask-select"
+                        style={{ fontSize: '12px', padding: '6px' }}
+                        value={tone}
+                        onChange={(e) => setTone(e.target.value as TranslateTone)}
+                        disabled={loading}
+                        title="Translation tone"
+                    >
+                        <option value="business">Business</option>
+                        <option value="casual">Casual</option>
+                        <option value="academic">Academic</option>
+                        <option value="idiomatic">Native idioms</option>
+                    </select>
+                    <button
+                        className="qo-chat-tool-btn"
+                        onClick={() => handleSendMessage(buildTranslatePrompt(input, targetLang || detectLocale(), tone))}
+                        disabled={loading || !input.trim()}
+                        title="Translate the message above"
+                    >
+                        Translate
+                    </button>
                 </div>
 
                 {/* Chat Input Bar */}

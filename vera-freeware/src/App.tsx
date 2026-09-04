@@ -20,6 +20,7 @@ import { useConversations } from "./hooks/useConversations";
 import { useChat } from "./hooks/useChat";
 import { useEngine, PHASE } from "./hooks/useEngine";
 import { useUpdater } from "./hooks/useUpdater";
+import { useGlobalShortcut } from "./hooks/useGlobalShortcut";
 import { SYSTEM_TOOLS_PROMPT, parseToolAction, runTool } from "./toolLayer";
 // useVoiceSession: reserved for future whisper.cpp backend integration (Amendment 03 Phase 3)
 // import { useVoiceSession } from "./hooks/useVoiceSession";
@@ -140,6 +141,45 @@ const MODULES_LIST: VeraModule[] = [
     description: "Distributed AI coding swarm. Multi-machine, git-based code generation lab. Included free.",
     isFree: true
   }
+];
+
+// ── Pro module previews (Freeware teaser → trial CTA) ──────────────────────
+// Static showcase entries for Pro-tier modules. Clicking opens an
+// informational modal with a 14-day trial link — never gates Freeware.
+const PRO_PREVIEWS = [
+  {
+    id: "smart-inbox",
+    icon: "📥",
+    name: "Smart Inbox",
+    tagline: "Every lead answered in minutes, automatically.",
+    bullets: [
+      "ProMailer lead capture flows straight into a triaged inbox",
+      "AI-drafted replies tuned to your tone, approve-to-send",
+      "Follow-up sequences that never let a lead go cold",
+    ],
+  },
+  {
+    id: "guardian-watch-pro",
+    icon: "🛡️",
+    name: "Guardian Watch Pro",
+    tagline: "Your machine watched while you sleep.",
+    bullets: [
+      "Continuous process + resource supervision with instant alerts",
+      "Ollama sidecar lifecycle management (no orphaned processes)",
+      "Weekly health digests with one-click fixes",
+    ],
+  },
+  {
+    id: "business-organizer",
+    icon: "💼",
+    name: "Business Organizer",
+    tagline: "Books, receipts and tax worksheets on autopilot.",
+    bullets: [
+      "Receipt scanning straight into a double-entry ledger",
+      "CCA schedules and tax-year worksheets for Canada",
+      "Bank-grade local encryption — books never leave disk",
+    ],
+  },
 ];
 
 // ── Capability grounding for the chat system prompt ────────────────────────
@@ -432,6 +472,8 @@ export default function App() {
   const [showSupport,      setShowSupport]      = useState<boolean>(false);
 const [activeModule, setActiveModule] = useState<string>("home");
   const [showModulesDrawer, setShowModulesDrawer] = useState<boolean>(false);
+  // Pro preview modal (which Pro module is being previewed, or null)
+  const [proPreview, setProPreview] = useState<string | null>(null);
   const [dynamicComponents, setDynamicComponents] = useState<Record<string, React.ComponentType<any>>>({});
   const [searchLogs,        setSearchLogs]        = useState<string[]>([]);
   const [isSearching,       setIsSearching]       = useState<boolean>(false);
@@ -442,6 +484,9 @@ const [activeModule, setActiveModule] = useState<string>("home");
 
   // Silent restart-to-apply app updater (stable auto-check on launch).
   const updater = useUpdater();
+
+  // Global quick-launcher hotkey (opt-in; Alt+Space toggles the window).
+  const quickLaunch = useGlobalShortcut();
 
   // Settings and Switcher States
   const {
@@ -2051,6 +2096,22 @@ const [activeModule, setActiveModule] = useState<string>("home");
             </button>
           </nav>
 
+          {/* Pro previews (teaser — opens trial modal, never gates Freeware) */}
+          <div className="sidebar-pro-preview">
+            <div className="sidebar-pro-preview-title">✨ PRO</div>
+            {PRO_PREVIEWS.map((mod) => (
+              <button
+                key={mod.id}
+                className="sidebar-item sidebar-pro-item"
+                onClick={() => setProPreview(mod.id)}
+                title={`${mod.name} — preview the Pro version`}
+              >
+                <span className="sidebar-icon">{mod.icon}</span>
+                <span className="sidebar-label">{mod.name}</span>
+              </button>
+            ))}
+          </div>
+
           <button 
             className="sidebar-item sidebar-exit-item"
             onClick={async () => {
@@ -2091,6 +2152,42 @@ const [activeModule, setActiveModule] = useState<string>("home");
             )}
           </div>
         </aside>
+
+        {proPreview && (() => {
+          const mod = PRO_PREVIEWS.find((m) => m.id === proPreview);
+          if (!mod) return null;
+          return (
+            <div
+              className="pro-preview-overlay"
+              onClick={() => setProPreview(null)}
+              style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.55)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}
+            >
+              <div
+                className="pro-preview-modal"
+                onClick={(e) => e.stopPropagation()}
+                style={{ background: "var(--surface, #111827)", border: "1px solid var(--border)", borderRadius: "14px", padding: "24px", maxWidth: "420px", width: "calc(100% - 48px)" }}
+              >
+                <div style={{ fontSize: "34px" }}>{mod.icon}</div>
+                <h3 style={{ margin: "8px 0 4px 0" }}>{mod.name} <span style={{ fontSize: "11px", fontWeight: 800, color: "#fbbf24" }}>✨ PRO</span></h3>
+                <p style={{ color: "var(--text-muted)", fontSize: "13px", margin: "0 0 12px 0" }}>{mod.tagline}</p>
+                <ul style={{ paddingLeft: "18px", fontSize: "13px", lineHeight: "1.6" }}>
+                  {mod.bullets.map((b) => (<li key={b}>{b}</li>))}
+                </ul>
+                <div style={{ display: "flex", gap: "8px", marginTop: "16px" }}>
+                  <button
+                    className="update-btn-active"
+                    onClick={() => { setProPreview(null); void openExternalUrl("https://lexsort.com/vera-pro.html"); }}
+                  >
+                    Start 14-day free trial
+                  </button>
+                  <button className="hdr-btn" onClick={() => setProPreview(null)}>
+                    Maybe later
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
 
         {showModulesDrawer && (
           <ModuleDrawer
@@ -2753,6 +2850,29 @@ const [activeModule, setActiveModule] = useState<string>("home");
                             Check for updates
                           </button>
                         </div>
+                      )}
+                    </div>
+                    {/* ── Global quick launcher (Alt+Space, opt-in) ── */}
+                    <div className="updates-status-card">
+                      <span className="updates-status-title">Quick launcher</span>
+                      <span className="updates-status-desc">
+                        Press {quickLaunch.shortcut} anywhere to show or hide VERA.
+                        Off by default — a global hotkey needs your explicit opt-in
+                        (macOS may ask for accessibility permission).
+                      </span>
+                      <div style={{ display: "flex", gap: "8px", alignItems: "center", marginTop: "10px" }}>
+                        <button
+                          className={quickLaunch.enabled ? "update-btn-active" : "hdr-btn"}
+                          style={quickLaunch.enabled ? {} : { border: "1px solid var(--border)", color: "var(--text)" }}
+                          onClick={() => quickLaunch.setEnabled(!quickLaunch.enabled)}
+                        >
+                          {quickLaunch.enabled ? "Disable" : "Enable"} {quickLaunch.shortcut}
+                        </button>
+                      </div>
+                      {quickLaunch.status && (
+                        <span className="updates-status-desc" style={{ marginTop: "6px" }}>
+                          {quickLaunch.status}
+                        </span>
                       )}
                     </div>
                     {checkingForUpdates ? (
