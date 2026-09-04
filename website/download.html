@@ -792,13 +792,10 @@
       }
       document.getElementById('hero-subtitle-text').innerText = data.subtitle;
 
-      // Update Nav / Pro Badge
+      // Update Nav / Pro Badge (element absent in current header — guard it
+      // so a missing badge can never kill the whole tier switcher again)
       const proBadge = document.getElementById('header-pro-tag');
-      if (tier === 'pro') {
-        proBadge.style.display = 'inline-block';
-      } else {
-        proBadge.style.display = 'none';
-      }
+      if (proBadge) proBadge.style.display = tier === 'pro' ? 'inline-block' : 'none';
 
       // Update switcher buttons classes (null-safe: tiers may be absent)
       const TIER_ACCENT = { free: "var(--border)", pro: "#a855f7", beta: "#f59e0b" };
