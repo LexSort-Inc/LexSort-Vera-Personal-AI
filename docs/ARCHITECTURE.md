@@ -1,8 +1,9 @@
 # ARCHITECTURE.md — VERA Personal AI
 
-**Repository:** LexSort-Inc/LexSort-Vera-Personal-AI  
-**Last updated:** July 2, 2026  
-**Stack:** React 19 (TypeScript) + Rust (Tauri v2) + Ollama
+**Repository:** LexSort-Inc/LexSort-Vera-Personal-AI
+**Last updated:** September 3, 2026
+**Stack:** React 19 (TypeScript) + Rust (Tauri v2) + Ollama v0.9.6
+**Versions:** Freeware v1.3.0 · Pro v1.0.13 (separate private repo) · Engine v1.0.0
 
 ---
 
@@ -15,64 +16,58 @@ VERA is a local-first desktop app using Tauri v2. The frontend (React 19 + TypeS
 ## Directory Structure
 
 ```
-vera/
-├── src-tauri/                        # Rust backend
-│   ├── Cargo.toml                    # No feature flags (single binary)
+vera-freeware/                       # Tauri v2 desktop app (this repo's product)
+├── src-tauri/
+│   ├── Cargo.toml
 │   ├── src/
 │   │   ├── main.rs                   # Entry point
-│   │   ├── lib.rs                    # ~2800 lines: all Tauri commands inline
+│   │   ├── lib.rs                    # ~3300 lines: all Tauri commands + updater
 │   │   ├── quick_organizer.rs        # SQLite task CRUD + recurrence engine
 │   │   ├── calendar_bridge.rs        # JXA (macOS) / PowerShell (Win) calendar import
 │   │   ├── conversations.rs          # SQLite conversation + message CRUD
 │   │   ├── recurrence_parser.rs      # Natural-language → RRULE parser
 │   │   ├── scheduler.rs              # Background recurring-task advance loop
 │   │   ├── rest_api.rs               # Axum REST API on localhost:8888
-│   │   └── team_lab/                 # Distibuted coding module
-│   ├── tauri.conf.json
-│   └── capabilities/default.json     # Tauri v2 permissions
+│   │   └── team_lab/                 # Distributed coding module
+│   ├── tauri.conf.json               # Includes plugins.updater (pubkey + feed)
+│   └── capabilities/default.json     # Tauri v2 permissions (incl. updater)
 │
 ├── src/                              # React frontend
 │   ├── main.tsx
-│   ├── App.tsx                       # ~2800 lines: boot, chat, settings, routing
-│   ├── app.css                       # ~3900 lines: single stylesheet
+│   ├── App.tsx                       # ~3000 lines: boot, chat, settings, routing
+│   ├── app.css                       # Single stylesheet
 │   ├── components/
-│   │   ├── QuickOrganizer/           # Calendar/task week view
+│   │   ├── QuickOrganizer/
 │   │   ├── ModuleDrawer.tsx
 │   │   ├── ModuleErrorBoundary.tsx
 │   │   ├── FeedbackBanner.tsx
 │   │   └── TeamLab/
 │   ├── hooks/
+│   │   ├── useSettings.ts
+│   │   ├── useUpdater.ts             # Silent updater: channel, check, progress
 │   │   └── useSpeechRecognition.ts
 │   ├── types/
 │   │   └── module.ts
 │   ├── SupportPanel.tsx
 │   └── UpdateStatusIndicator.tsx
 │
-├── vera-engine/                      # Standalone Rust binary (Pro path — llama.cpp)
-│   ├── src/
-│   │   ├── main.rs                   # CLI args, server dispatch
-│   │   ├── server.rs                 # Axum HTTP server + scheduler
-│   │   ├── models.rs                 # Model capability matching
-│   │   ├── system.rs                 # Hardware detection
-│   │   ├── token.rs                  # Tokenizer via llama-cpp-sys2
-│   │   └── config.rs                 # TOML config
-│   └── Cargo.toml
-│
-├── scripts/                          # Build tools
-│   ├── build-module.sh               # Create .vera-module ZIP
-│   ├── sign-module.js                # Ed25519 sign module
-│   └── generate-test-keys.js         # Beta license key gen
-│
-├── website/                          # Static site (lexsort.com)
-│   └── netlify/                      # Serverless functions
-│
-├── discord-bot/                      # Railway-deployed Discord bot
-├── docs/
-│   ├── ARCHITECTURE.md               # This file
-│   ├── SECURITY.md
-│   └── BUILD_AND_RELEASE.md
+├── vera-engine/                      # Standalone Rust binary (LLM proxy + models)
+├── scripts/                          # build-module.sh, sign-module.js, generate-test-keys.js
+├── website/                          # Static site (lexsort.com, Netlify CLI deploys)
+│   ├── api/                          # Update feeds ({freeware,pro}-{stable,beta}-latest.json) + README
+│   ├── downloads/                    # Hosted installers (.dmg + .app.tar.gz + .msi/.exe)
+│   └── download.html                 # Tier matrix (?tier=free|pro|beta)
+├── discord-bot/                      # Self-hosted on ThinkCentre (PM2), NOT Railway
+├── docs/                             # This file, SECURITY, BUILD_AND_RELEASE, UPDATE_SYSTEM, ONBOARDING
+├── .github/workflows/                # contracts.yml (free smoke) + retired release.yml
+├── .gitattributes                    # UTF-8 LF enforced (Windows mojibake/CRLF lessons)
 └── AGENTS.md                         # Session briefing + dev commands
 ```
+
+**Second repo (private):** `LexSort-Inc/Lexsort-Vera-Pro`
+(`02_ACTIVE_PROJECTS/Lexsort-Vera-Pro/lexsort-vera-pro/`) — same shape,
+Pro feature flags + modules (emailer, license, benchmark, history).
+`handoffs/` there is the machine coordination channel (see below).
 
 ---
 
@@ -116,6 +111,24 @@ Calendar events are fetched fresh on every mount/refresh via JXA/PowerShell and 
 ### Module System
 Dynamic modules (ProMailer, Research Lab, Guardian Watch) are loaded at runtime via `registerVeraModule` global + IIFE JavaScript bundles. The `ModuleDrawer` component shows available modules; clicking one loads its bundle and renders the exported component.
 
+### Silent Auto-Update
+`useUpdater.ts` + `tauri-plugin-updater`: channel feeds under
+`website/api/` (`{freeware,pro}-{stable,beta}-latest.json`), one shared
+Ed25519 keypair, background download + restart-to-apply. Beta is opt-in
+with a persistent in-app Beta pill. Full design: [UPDATE_SYSTEM.md](UPDATE_SYSTEM.md).
+
+### Two-Machine Builds (internal only — no CI releases)
+ThinkCentre builds Windows (`.msi`/`-setup.exe`), M1 Pro builds macOS
+(`aarch64` + `x64` `.dmg` + updater `.tar.gz`/`.sig`). Never push `v*`
+tags to trigger CI. Ownership map: `handoffs/2026-09-03-28-*`
+in the Pro repo; policy: `AGENTS.md`.
+
+### Machine Coordination
+The Pro repo's `handoffs/` directory is the async message bus
+(ID-numbered notes + `BOARD.md` index) plus the age-encrypted secret
+channel (`SECURE-CHANNEL.md`, `keys/`, `inbox/`). Read the board tail
+before starting cross-machine work.
+
 ---
 
 ## Current Technical Debt
@@ -138,4 +151,6 @@ Only `com.apple.security.cs.disable-library-validation` for Python C-extension l
 ## See Also
 
 - [SECURITY.md](SECURITY.md) — Threat model, CSP, zero-telemetry
-- [BUILD_AND_RELEASE.md](BUILD_AND_RELEASE.md) — CI/CD, signing, notarization
+- [BUILD_AND_RELEASE.md](BUILD_AND_RELEASE.md) — Internal builds, signing, feeds
+- [UPDATE_SYSTEM.md](UPDATE_SYSTEM.md) — Silent updater design + publishing
+- [ONBOARDING.md](ONBOARDING.md) — New-developer guide (read order, machines, boards)
