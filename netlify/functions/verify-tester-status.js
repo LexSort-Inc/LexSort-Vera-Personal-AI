@@ -80,6 +80,57 @@ exports.handler = async (event, context) => {
       };
     }
 
+    // ── Discord-role path (checked LAST — paid subscriptions and the
+    // ID allowlist both take precedence, so paid users keep
+    // subscription-linked keys, never 90-day tester keys).
+    // The bot attests it saw the Beta Tester role on the caller's guild
+    // member object (role_verified flag); the shared-secret header proves
+    // the attestation came from our bot, not a random caller.
+    // Null-safe: role flag absent (old bot, DMs) → skipped.
+    const roleVerified =
+      event.queryStringParameters?.role_verified === '1' ||
+      (event.body && (() => { try { return JSON.parse(event.body).roleVerified === true; } catch { return false; } })());
+    if (roleVerified) {
+      const expected = process.env.BOT_SHARED_SECRET;
+      if (!expected || botSharedSecret(event) !== expected) {
+        console.warn(`Role-verified hit for ${discordUserId} without valid bot secret — denied.`);
+        return {
+          statusCode: 403,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ discordUserId, isActive: false, isBetaTester: true, testerSource: 'role', error: 'Bot authentication required.' }),
+        };
+      }
+      // Paid precedence: role holders include paying subscribers (role is
+      // auto-granted on checkout). An active subscription must keep its
+      // subscription-linked key — fall through to the Stripe path below.
+      const roleStripe = stripeClient();
+      const roleSubs = await roleStripe.subscriptions.search({
+        query: `metadata['discord_user_id']:'${discordUserId}'`,
+        limit: 5,
+      });
+      const roleActive = roleSubs.data.find(sub => sub.status === 'active' || sub.status === 'trialing') || null;
+      if (!roleActive) {
+        const expiresAt = Math.floor(Date.now() / 1000) + 90 * 24 * 60 * 60; // 90-day tester key
+        const testerKey = generateLicenseKey('pro', expiresAt);
+        return {
+          statusCode: 200,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            discordUserId,
+            isActive: true,
+            subscriptionId: null,
+            licenseKey: testerKey,
+            currentPeriodEnd: new Date(expiresAt * 1000).toISOString(),
+            isBetaTester: true,
+            testerSource: 'role',
+            canceledAt: null,
+            cancelAt: null,
+          }),
+        };
+      }
+      // Active paid subscription: fall through to the Stripe path below.
+    }
+
     // Search Stripe subscriptions for this Discord user
     const stripe = stripeClient();
     const subscriptions = await stripe.subscriptions.search({

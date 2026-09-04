@@ -65,8 +65,14 @@ const client = new Client({
 
 const { initApprovalBot } = require('./approval-bot.js');
 
-// Initialize approval bot (runs HTTP server immediately)
-initApprovalBot(client);
+// Approval webhook listener runs ONLY when explicitly enabled —
+// self-hosted boxes (ThinkCentre, no port-forwarding) run outbound-only
+// gateway mode. Set ENABLE_APPROVAL_BOT=true where inbound :8080 works.
+if (process.env.ENABLE_APPROVAL_BOT === 'true') {
+  initApprovalBot(client);
+} else {
+  console.log('ℹ️ Approval bot listener disabled (outbound-only gateway mode).');
+}
 
 client.once('ready', () => {
   console.log(`✅ VERA Tester Bot is online as ${client.user.tag}`);
@@ -222,6 +228,18 @@ client.on('interactionCreate', async (interaction) => {
     await interaction.deferReply({ ephemeral: true });
 
     try {
+      // Beta Tester role holders authenticate even without an allowlist ID:
+      // the bot attests the role to the function (role_verified flag), and
+      // the function mints a tester key after verifying our shared secret.
+      // Null-safe: interaction.member is absent in DMs → role path skipped.
+      const testerRoleId = process.env.DISCORD_TESTER_ROLE_ID;
+      const roleVerified = Boolean(
+        testerRoleId &&
+          interaction.member?.roles?.cache?.has(testerRoleId)
+      );
+      if (roleVerified) {
+        console.log(`Role-verified Beta Tester requesting key: ${user.id}`);
+      }
       // Verify active subscription first (tester allowlist also accepted;
       // shared secret authenticates this bot to the function — Railway env
       // BOT_SHARED_SECRET must match the Netlify function env of the same name).
@@ -230,7 +248,7 @@ client.on('interactionCreate', async (interaction) => {
         headers['x-vera-bot-secret'] = process.env.BOT_SHARED_SECRET;
       }
       const response = await fetch(
-        `${NETLIFY_BASE_URL}/.netlify/functions/verify-tester-status?discord_user_id=${user.id}`,
+        `${NETLIFY_BASE_URL}/.netlify/functions/verify-tester-status?discord_user_id=${user.id}&role_verified=${roleVerified ? '1' : '0'}`,
         { headers }
       );
       const data = await response.json();
