@@ -1,15 +1,15 @@
 {
   "version": "1.0.13",
-  "notes": "VERA Pro 1.0.13 beta: silent auto-update, Guardian Watch, Smart Inbox, tester edition toggle, persistent Beta badge on the beta channel.",
-  "pub_date": "2026-09-03T15:16:40Z",
+  "notes": "VERA Pro 1.0.13 beta: Boardroom v1 2-persona debate, tester toggle, Beta badge, silent auto-update.",
+  "pub_date": "2026-09-04T06:00:22Z",
   "platforms": {
     "darwin-aarch64": {
       "url": "https://lexsort.com/downloads/LexSort%20VERA%20Pro_1.0.13_aarch64.app.tar.gz",
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUMmovTFNaOVhrZisrdDVZVU5oQUVWVHVBbHd5bDZPWG1CTHY5R3YwY2ZPUCtCWHZnM2xkOERROUM2b3VrS204RnhpaWlhY3o0TXBTK2ZwbHZpWEZWb2l2ejdzWkFRM2dZPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg4NDQ4MzgxCWZpbGU6TGV4U29ydCBWRVJBIFByby5hcHAudGFyLmd6Ck5KMzcrSTBSV2xycGFIckFESExJVlhWdmtHaHBxeGM5dHNWNlI0TGFlTDhlcUtXdDBuTFZlc004T2JLOVhIaXZRSW8wT1BLK1VBLzVIdHhVUVJxZkJBPT0K"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUMmovTFNaOVhrZitncUJ2WGlrOEkzbkh5a3ZnTHA0aDF0VSt3SGtIL1NGV1pzYUNJa25DeUxEbHNjT1BKeVlTcGtQWDFmeGxUVTVIdGRKUGI2ZWpvUDNsZGFKdFlUakFZPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg4NTAxNDIzCWZpbGU6TGV4U29ydCBWRVJBIFByby5hcHAudGFyLmd6CnlyWUpnbkVOcFg5Y2VvbFduSXM3WHVFQ0M1RWFMOTFWMG9NSlZLbU9iNjZmelNnQm9WWmUwT3c0MlU0QjQwVUpwSVBVbkdZWXBralk3UkVDZTcyK0JnPT0K"
     },
     "darwin-x86_64": {
       "url": "https://lexsort.com/downloads/LexSort%20VERA%20Pro_1.0.13_x64.app.tar.gz",
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUMmovTFNaOVhrZjBhcVNnakJTNmF1R1ZIYkhHbDczUjJYRzRxeEFlZzBWc2VrUWt1ajNhaWZzMmlhUVd2MWtRYkRhR1ZqalErSndwSlgrb1VjMnlyc0tidVBFQmNMcEFZPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg4NDQ4NDMyCWZpbGU6TGV4U29ydCBWRVJBIFByby5hcHAudGFyLmd6Cjg2T09NcHhJV0NPRVpEQVk5aDRJT05WbUxsUXQwbTgrQzdyZzQ1YTU2TnZuTzRoWTFhbTNXYW52YmdYTmFTU3p5ajFBeXpWTXFYTlhodWVtVGZIVUJRPT0K"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUMmovTFNaOVhrZnlkK1ZwbUI4b2twYzgzeXBmZjkvNmVFR0tDbDQzVVZSY0dyQ3duVm9kMCs0eDJvN0xhT2JyQ2hZOFRCN0x5eGp4YXRFSlBpeWJiTUNHTDBDZVRTeWdJPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg4NTAxNDc1CWZpbGU6TGV4U29ydCBWRVJBIFByby5hcHAudGFyLmd6ClFSR1F4bFZ0TW4rcTU1WHNmaGlUcjU4YVh0QWRPRWhydU1ITXF6RVdPMTJaNWhVZHQ5OWhQd0k1NVJ0QTRCQ1F2RXoyZmFXcnhCQTFIVTV6NkVTRkFBPT0K"
     },
     "windows-x86_64": {
       "url": "https://lexsort.com/downloads/LexSort%20VERA%20Pro_1.0.13_x64-setup.exe",
