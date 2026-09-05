@@ -1,9 +1,12 @@
 name: Build & Release VERA Freeware
 
 on:
-  push:
-    tags:
-      - 'v*'
+  # Tag-push auto-builds DISABLED Sep 2026 (internal-build policy — Mac/Win
+  # built locally; a v* push used to auto-spend macOS/Linux CI minutes).
+  # To re-enable, uncomment the push block below.
+  # push:
+  #   tags:
+  #     - 'v*'
   # Manual trigger: lets you build one platform at a time to save CI minutes.
   # Windows is manual-only (~$8/run on GitHub paid minutes). Tag pushes auto-build macOS + Linux only.
   # Go to GitHub → Actions → "Build & Release VERA Freeware" → Run workflow

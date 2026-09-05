@@ -1,10 +1,14 @@
 name: Contract Tests
 
 on:
-  push:
-    branches: [main]
+  # Push trigger DISABLED Sep 2026: ~75 pushes/2 days burned through the
+  # org's monthly minutes. Run manually when a signal is needed.
+  # To re-enable, uncomment the push block below.
+  # push:
+  #   branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
 
 jobs:
   rust-contracts:
