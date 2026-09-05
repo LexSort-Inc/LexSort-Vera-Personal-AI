@@ -30,4 +30,7 @@ Node.js Discord bot for VERA Pro beta tester onboarding, subscription management
 
 ## Deployment
 
-Deployed on Railway (`railway.json`). Health check at `/health`.
+Self-hosted on the ThinkCentre Windows box under PM2
+(`pm2 start tester-manager.js --name vera-discord-bot`).
+Railway is retired (trial expired Sep 2026) — do not redeploy there.
+`railway.json` kept for reference only. Health check at `/health`.

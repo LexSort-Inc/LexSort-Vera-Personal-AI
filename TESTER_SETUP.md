@@ -43,7 +43,9 @@ App launches → OnboardingWizard runs automatically
 | `/mystatus` | Check if your subscription/key is active |
 | `/help` | Show all available commands |
 
-**Bot is live on Railway.** If commands aren't responding, check Railway dashboard.
+**Bot runs self-hosted on the ThinkCentre (PM2) — Railway is retired.**
+If commands aren't responding, check with the ThinkCentre operator
+(`pm2 list` / `pm2 logs vera-discord-bot`).
 
 ---
 

@@ -72,7 +72,7 @@ VERA/                             ← This repo (Freeware + Engine + iOS + websi
 ├── vera-go-ios/                  # Swift iOS companion app
 ├── website/                      # Static marketing site (lexsort.com)
 │   └── netlify/                  # Serverless functions (Stripe, license, uptime)
-├── discord-bot/                  # DEPLOYED on Railway — /register /mykey /mystatus /help
+  ├── discord-bot/                  # Self-hosted on ThinkCentre (PM2) — /register /mykey /mystatus /help
 ├── scripts/                      # build-module.sh, sign-module.js, generate-test-keys.js
 ├── docs/                         # ARCHITECTURE.md, SECURITY.md, BUILD_AND_RELEASE.md etc.
 ├── AGENTS.md                     # THIS FILE — read every session
@@ -113,7 +113,7 @@ VERA/                             ← This repo (Freeware + Engine + iOS + websi
 
 | Component | Status | Location |
 |---|---|---|
-| Discord Bot | ✅ **LIVE** on Railway | `/register`, `/mykey`, `/mystatus`, `/help` all working |
+| Discord Bot | 🔄 ThinkCentre PM2 self-host (Railway retired Sep 2026) | `/register`, `/mykey`, `/mystatus`, `/help` all working |
 | Stripe Webhook | ⚠️ Needs env vars in Netlify | `netlify/functions/stripe-webhook.js` |
 | Freeware CI | ✅ Active — auto-builds on `v*` tag | `LexSort-Inc/LexSort-Vera-Personal-AI` |
 | Pro CI | ✅ Active — auto-builds on `v*` tag | `LexSort-Inc/Lexsort-Vera-Pro` |
