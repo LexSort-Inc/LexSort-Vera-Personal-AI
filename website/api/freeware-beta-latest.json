@@ -1,19 +1,15 @@
 {
-  "version": "1.3.0",
-  "notes": "VERA Freeware 1.3.0 beta: Drop & Query documents, quick-translate, Alt+Space launcher, Pro previews. Silent auto-update, no reinstall.",
-  "pub_date": "2026-09-04T06:00:22Z",
+  "version": "1.3.1-beta.1",
+  "notes": "VERA Freeware soak beta: silent-update proof build. No user-facing changes over 1.3.0.",
+  "pub_date": "2026-09-05T02:32:35Z",
   "platforms": {
     "darwin-aarch64": {
-      "url": "https://lexsort.com/downloads/LexSort%20VERA_1.3.0_aarch64.app.tar.gz",
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUMmovTFNaOVhrZjhIM0VGWDFiMTlnN2dSMExQaGNNanVmYXVJY0FGNkwzazVqcEh5SHkwdmlXZjhXQ1hjcUxuUnFZblVOVEh6dWoyaFN4TFJERHRobkpEVHB2S0t5NEFrPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg4NTAxNTQyCWZpbGU6TGV4U29ydCBWRVJBLmFwcC50YXIuZ3oKQmJ1Nk9BTDNLVkdIK0NmTkYxa2dHRDE5YTJZSlVnWWlCRkhmbjJLYVBYcjJtSHI3Y0h1akZNNERqeGZOV2x0cU1yVXlucFI3WDRCOUoyM1EreHhmQXc9PQo="
+      "url": "https://lexsort.com/downloads/LexSort%20VERA_1.3.1-beta.1_aarch64.app.tar.gz",
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUMmovTFNaOVhrZitvZlR2dVdlY2k5dld4ZTVNZWVZZzVDK3lrVTJkZTlWaU1GVHpqZWtSUE52aVhkRHl0WlVBb3hyNUxIWnE2ZFljZHIyRWlLWnVrWG5kSEhNSDc4V0FVPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg4NTc1MDQyCWZpbGU6TGV4U29ydCBWRVJBLmFwcC50YXIuZ3oKLzJxOFMvdEpzcjFOejFKSE9DdVY3c1dtTk1lNWM4T3ZrTGg5eHJkSWxvMEVFU3ZwNTVqMnYwMkFRY3ozK2Y1bmdHZ3ZkTXZDOFZsQ1g2bFVrTW8xQ1E9PQo="
     },
     "darwin-x86_64": {
-      "url": "https://lexsort.com/downloads/LexSort%20VERA_1.3.0_x64.app.tar.gz",
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUMmovTFNaOVhrZjd5NEU1SFF4Um5qWitHNGxpa3AwQXJIMklGWjZ5WnJ6Y3JPaWE1aHY3SXh3V0JLOU1TVWttbFJhdlhLS1F6OWdIWGdXZE9HUW9NK2J3WDRaWjFiN1FjPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg4NTAxNjAzCWZpbGU6TGV4U29ydCBWRVJBLmFwcC50YXIuZ3oKNzgxSWMxcThvZjJYZy9ZR1N3RmptZjB5dEhvRkJPeUE1ZmtpVU1WU2NZL1pIdElMMzhCQjlHWTlRb2RRalRYbjA3UUNPTEtMR3AyVGwwWGpmVHcyQ2c9PQo="
-    },
-    "windows-x86_64": {
-      "url": "https://lexsort.com/downloads/LexSort%20VERA_1.3.0_x64-setup.exe",
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUMmovTFNaOVhrZitZdjBBSWZVak9GOGc4WjNqaXMvdXg0NnpEVmtZdVhWZjU2TjI2TWNRWFhYbDdxeEs5cHBRSlgxN2IyV0ptQnNlYS90UFY5RlIrT2xVR1YwYmxjMmc4PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg4NDUwNDM2CWZpbGU6TGV4U29ydCBWRVJBXzEuMy4wX3g2NC1zZXR1cC5leGUKQjJUMmh2dEFwRFZ0enBLajBDZVB5cGI1VkNubk1WNXRHL3dQSytGYjIzTUdiVXp3MjVSK3BvZEN6dWUvQWtqM24zdGthMEpZT3pPM3FwWlVNdGNvQ1E9PQo="
+      "url": "https://lexsort.com/downloads/LexSort%20VERA_1.3.1-beta.1_x64.app.tar.gz",
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUMmovTFNaOVhrZjYxZVVGSktnVlhBQS9vSU9QaXVwNE1sSHhlaThNZHRkak5wTTR0UmxsSnRKSlVFTkFYL1F2VDVLRWZ1bEhMdDlKTmhFMjRKSFBZT2RHYzRIK2Qzamd3PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg4NTc1MTAzCWZpbGU6TGV4U29ydCBWRVJBLmFwcC50YXIuZ3oKQnpIZHVZcmt6MFg2eG1Cczc5WS90V2hrU0hGSHA3NVJjRGl5eXdUSytjMUtrMlNiMUNOcTZaTDNGOXROWnBtOXpVbmIyUHhHeVl0YXdoUHRLVy95QkE9PQo="
     }
   }
 }
