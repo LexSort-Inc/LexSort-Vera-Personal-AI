@@ -214,3 +214,4 @@ node scripts/generate-test-keys.js 5
 > - **Never** commit the `.env.local` file (contains private signing keys)
 > - **Never** delete/re-push (force-move) a tag that a GitHub Release is attached to — it orphans every download URL permanently (destroyed the v1.0.12 Pro binaries)
 > - **Never** create a mirror of a public repo as private (broke all Freeware downloads Aug 8–11) — verify visibility after any repo creation
+- **Founder's own keys on direct request: provide immediately, no detours.** When the founder explicitly asks for one of their keys/secrets, output it directly without lectures, alternative proposals, or extra steps. Standing order Sep 4 2026 (an hour was lost routing around a direct order).
