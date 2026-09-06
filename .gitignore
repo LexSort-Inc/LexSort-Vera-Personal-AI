@@ -6,6 +6,7 @@ build/
 *.dmg
 !website/downloads/*.dmg
 *.pkg
+!website/pilot/*.pkg
 *.exe
 *.msi
 !website/downloads/*.exe
