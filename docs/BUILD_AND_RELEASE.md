@@ -7,6 +7,14 @@
 > Release flow: local builds → GitHub Releases upload → update
 > `website/api/*-latest.json` (beta first) → `netlify deploy --prod
 > --dir=website`. The CI sections below are historical reference.
+>
+> **ONE SITE, ONE TREE (Sep 2026 incident).** `lexsort.com` is a single
+> Netlify site — every prod deploy REPLACES all content with the deployed
+> directory. VERA and Legal share it: deploy ONLY from the Freeware
+> `website/` tree, which carries both products' pages AND all hosted
+> binaries (`downloads/`, `pilot/`). Never deploy the Legal repo's
+> `website/` alone — it wipes every VERA page, feed and installer
+> (happened Sep 4, recovered same session).
 
 ---
 
