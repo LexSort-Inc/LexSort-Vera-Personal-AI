@@ -59,7 +59,20 @@ cd /Users/williamcommu/Desktop/JUST_ME_MEDIA_VAULT/LexSortInc/01_ACTIVE/VERA
 node scripts/generate-test-keys.js 5   # generates 5 keys
 ```
 
-Keys expire 30 days from generation. DM each key privately — never post in public channels.
+Keys expire 30 days from generation via this script (bot/DM-distributed tester keys are 90-day). DM each key privately — never post in public channels.
+
+---
+
+## Current Testers (Sep 2026)
+
+| Tester | Platform | Status | Key |
+|---|---|---|---|
+| Ev (`daboievan`) | **Windows 64-bit only** | Key issued, expires Dec 3 2026 | DM-relayed by founder |
+| Jack | Mac — **LexSort Legal project, out of VERA scope** | — | — |
+
+> Ev runs Windows: Mac builds do not unblock him. His path is the
+> beta lane Windows card + `windows-x86_64` feed entries, which land
+> when ThinkCentre's soak builds arrive (mesh Task #11).
 
 ---
 
@@ -67,8 +80,8 @@ Keys expire 30 days from generation. DM each key privately — never post in pub
 
 | Requirement | Notes |
 |---|---|
-| macOS (Apple Silicon or Intel) | `.dmg` download from lexsort.com/download |
-| Windows 64-bit | `.exe` from GitHub releases (once CI passes) |
+| macOS (Apple Silicon or Intel) | `.dmg` from `lexsort.com/download.html?tier=beta` |
+| Windows 64-bit | `-setup.exe` from `lexsort.com/download.html?tier=beta` (NOT GitHub — CI retired, site-hosted only) |
 | ~5 GB free disk space | For AI model download |
 | Internet for first setup | Engine + model download (one-time) |
 | **Nothing else** | Ollama is installed automatically by the app |
@@ -79,9 +92,9 @@ Keys expire 30 days from generation. DM each key privately — never post in pub
 
 | Platform | Link |
 |---|---|
-| macOS Apple Silicon | [lexsort.com/download](https://lexsort.com/download) → auto-detected |
-| macOS Intel | [lexsort.com/download](https://lexsort.com/download) → auto-detected |
-| Windows | GitHub releases: github.com/LexSort-Inc/Lexsort-Vera-Pro/releases |
+| macOS Apple Silicon | [lexsort.com/download.html?tier=beta](https://lexsort.com/download.html?tier=beta) → auto-detected |
+| macOS Intel | [lexsort.com/download.html?tier=beta](https://lexsort.com/download.html?tier=beta) → auto-detected |
+| Windows | [lexsort.com/download.html?tier=beta](https://lexsort.com/download.html?tier=beta) → Windows card (setup.exe, appears when ThinkCentre build lands) |
 
 ---
 
